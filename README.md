@@ -10,7 +10,7 @@ Initially, two components are available: `ict::bitstring` and `ict::multivector`
 and links to their respective documentation.  
 
 Everything here is a work in progress.  Nothing, especially multivector, is a complete
-implementation yet.  We tend to only implement the functionality we need.  Hopefully you will find ways to 
+implementation.  We tend to only implement the functionality we need.  Hopefully you will find ways to 
 contribute the things you need also.
 
 ## ict::bitstring
