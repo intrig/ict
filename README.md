@@ -1,9 +1,11 @@
-# ict
-Intrig C++ Tools
+# Intrig C++ Tools
 
 *ict* is a small set of openly available reusable components developed and used by Intrig.  They are a result of
 countless hours of programming, restarts, and refactoring.  We are left with an almost trivially simple set
 of components that will hopefully prompt you to think, "That doesn't seem very hard."  
+
+The aim is natural, simple interfaces with minimal dependencies (usually just the stl) that help you concentrate on the
+problem at hand.
 
 Initially, two components are available: `ict::bitstring` and `ict::multivector`.
 
