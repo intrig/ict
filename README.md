@@ -1,11 +1,10 @@
 # Intrig C++ Tools
 
 *ict* is a small set of openly available reusable components developed and used by Intrig.  They are a result of
-countless hours of programming, restarts, and refactoring.  We are left with an almost trivially simple set
-of components that will hopefully prompt you to think, "That doesn't seem very hard."  
+countless hours of programming missteps, restarts, and refactoring.
 
-The aim is natural, simple interfaces with minimal dependencies (usually just the stl) that help you concentrate on the
-problem at hand.
+The aim is to provide a natural, simple interface with minimal dependencies (usually just the stl)
+and enable you to concentrate on the task at hand, not the tools you are using.
 
 Initially, two components are available: `ict::bitstring` and `ict::multivector`.
 
@@ -14,5 +13,6 @@ Corresponding input and output streams for bits are provided with `ict::ibitstre
 
 A multivector is a generic container that behaves just like a std::vector, except its iterators also behave just like
 std::vectors.  Since std::vector is used in the underlying representation, we can make heirarchies that benefit from
-cache friendly locality of reference.  Also `multivector` would not be feasible without C++11 move semantics.
+both cache friendly locality of reference and C++11 move semantics.
+
 
