@@ -160,8 +160,8 @@ struct bitstring {
         a.bit_size_ = 0;
     }
 
-    template <typename I>
-    bitstring(I first, size_t bit_size) {
+    template <typename Iter>
+    bitstring(Iter first, size_t bit_size) {
         alloc(bit_size);
         std::copy(first, first + byte_size(), begin());
     }
@@ -493,8 +493,8 @@ inline bitstring::bitstring(int base, const char * str) {
     }
 }
 
-template <typename T>
-inline void reverse_bytes(T & number) { std::reverse((char *) &number, (char *) &number + sizeof(T)); }
+template <typename Iter>
+inline void reverse_bytes(Iter & number) { std::reverse((char *) &number, (char *) &number + sizeof(T)); }
 
 template <typename T>
 inline T to_integer(bitstring const & bits, bool swap = true) {
