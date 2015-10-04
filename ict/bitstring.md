@@ -29,7 +29,20 @@ avoid confusion.
 
 ## Constructing bitstrings from strings
 
-    bitstring(int base, const char * str); 
+The following table provides examples on how represent a bitstring in ascii:
+
+string   | meaning
+---------|---------
+@1110    | binary 1110
+#1110    | hexadecimal 1100
+1110     | hexadecimal 1100
+FF       | hexadecimal FF
+@FF      | error! binary numbers must be 1 or 0
+#F       | error! hexadecimal numbers must be byte aligned
+@1 101 01  | binary 110101
+AA BB CC DD | hexadecimal AABBCDEE
+
+`c++
     bitstring(const char * str);
     bitstring(const std::string & str);
 
