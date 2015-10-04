@@ -59,10 +59,11 @@ friend bool operator==(const bitstring & a, const bitstring & b);
 friend bool operator!=(const bitstring & a, const bitstring & b);
 ```
 
-# Methods
+## Methods
 
 ```c++
-bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const; // return a substring
+// return a substring
+bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const;
 inline bitstring& remove(size_t index, size_t len); // remove a substring
 void resize(size_t s);  // resize
 
@@ -70,16 +71,16 @@ bool empty() const // check for empty
 
 pointer begin() const // return an iterator (this is a char *)
 pointer end() const
-pointer data() const
+pointer data() const // same as begin()
 
-size_t byte_size() const
-size_t bit_size() const
+size_t byte_size() const // size in bytes
+size_t bit_size() const  // size in bits
 
-bool local() const
+bool local() const // denotes if the bitstring is stored locally (true if its smaller than 64 bits)
 
-void set(size_t index)
-void reset(size_t index)
-bool at(size_t index) const
+void set(size_t index) // set a bit to 1
+void reset(size_t index) // set a bit to 0
+bool at(size_t index) const // get the bit value 
 
 void clear()
 ```
