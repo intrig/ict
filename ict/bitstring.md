@@ -9,8 +9,9 @@ A bitstring provides a way to access arbitrarily sized data at a bit level.
 
 ## Related functions
 
+Copy a range of bits from one address and bit offset to another.  
 ```c++
-inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t length)
+inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length)
 ```
 
 #define IT_BYTE(buf, index) (buf + (index / 8))

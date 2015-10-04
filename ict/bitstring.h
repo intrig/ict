@@ -119,8 +119,8 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
 }
 }
 
-inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t length) {
-    util::bitarray_copy((const unsigned char *) src, srco, length, (unsigned char *) dest, desto);
+inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length) {
+    util::bitarray_copy((const unsigned char *) src, srco, bit_length, (unsigned char *) dest, desto);
 }
 
 #define IT_BYTE(buf, index) (buf + (index / 8))
