@@ -42,9 +42,13 @@ FF       | hexadecimal FF
 @1 101 01  | binary 110101
 AA BB CC DD | hexadecimal AABBCDEE
 
-`c++
+Strings preceded with a `#` denotes hexadecimal, a `@` symbol denotes binary.  Otherwise, strings are 
+interpreted as hexadecimal.
+
+```c++
     bitstring(const char * str);
     bitstring(const std::string & str);
+```
 
     bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const;
     inline bitstring& remove(size_t index, size_t len);
