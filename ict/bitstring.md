@@ -29,7 +29,10 @@ avoid confusion.
 
 ## Constructing bitstrings from strings
 
-The following table provides examples on how represent a bitstring in ascii:
+Strings preceded with a `#` denotes hexadecimal, a `@` symbol denotes binary.  Otherwise, strings are 
+interpreted as hexadecimal.  Spaces are ignored.
+
+The following table provides examples on how to represent a bitstring in ascii:
 
 string   | meaning
 ---------|---------
@@ -39,48 +42,47 @@ string   | meaning
 FF       | hexadecimal FF
 @FF      | error! binary numbers must be 1 or 0
 #F       | error! hexadecimal numbers must be byte aligned
-@1 101 01  | binary 110101
+@1 101 01   | binary 110101
 AA BB CC DD | hexadecimal AABBCDEE
 
-Strings preceded with a `#` denotes hexadecimal, a `@` symbol denotes binary.  Otherwise, strings are 
-interpreted as hexadecimal.
-
 ```c++
-    bitstring(const char * str);
-    bitstring(const std::string & str);
+bitstring(const char * str);
+bitstring(const std::string & str);
 ```
 
-    bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const;
-    inline bitstring& remove(size_t index, size_t len);
+## Operators
 
-    ~bitstring();
+```c++
+bitstring & operator=(const bitstring & b);
+bitstring & operator=(bitstring && b) noexcept;
+friend bool operator==(const bitstring & a, const bitstring & b);
+friend bool operator!=(const bitstring & a, const bitstring & b);
+```
 
-    bitstring & operator=(const bitstring & b);
+# Methods
 
-    bitstring & operator=(bitstring && b) noexcept;
+```c++
+bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const; // return a substring
+inline bitstring& remove(size_t index, size_t len); // remove a substring
+void resize(size_t s);  // resize
 
-    void resize(size_t s);
+bool empty() const // check for empty
 
-    friend bool operator==(const bitstring & a, const bitstring & b);
+pointer begin() const // return an iterator (this is a char *)
+pointer end() const
+pointer data() const
 
-    friend bool operator!=(const bitstring & a, const bitstring & b);
+size_t byte_size() const
+size_t bit_size() const
 
-    bool empty() const
-    pointer begin() const
-    pointer end() const
-    pointer data() const
+bool local() const
 
-    size_t byte_size() const
-    size_t bit_size() const
+void set(size_t index)
+void reset(size_t index)
+bool at(size_t index) const
 
-    bool local() const
-
-    void set(size_t index)
-    void reset(size_t index)
-    bool at(size_t index) const
-
-    void clear()
-
+void clear()
+```
 
 inline std::string to_string(const bitstring & bits);
 

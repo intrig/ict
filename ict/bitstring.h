@@ -205,15 +205,6 @@ struct bitstring {
 
     bitstring(const std::string & str) : bitstring(str.c_str()) { }
 
-    bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const {
-        if (index == bit_size()) return bitstring();
-        if (index > bit_size()) IT_PANIC("bitstring::substr index out of range");
-        if (len > (bit_size() - index)) len = bit_size() - index;
-        return bitstring(begin(), len, index);
-    }
-
-    inline bitstring& remove(size_t index, size_t len);
-
     ~bitstring() {
         clear();
     }
@@ -237,16 +228,6 @@ struct bitstring {
         return *this;
     }
 
-    void resize(size_t s) {
-        if (s > bit_size_) {
-            auto bs = bitstring(s);
-            std::copy(begin(), end(), bs.begin());
-            *this = std::move(bs);
-        } else {
-            bit_size_ = s;
-        }
-    }
-
     friend bool operator==(const bitstring & a, const bitstring & b) {
         // possible they are equal all but for the size (e.g., @100 and @1000)
         if (a.bit_size() != b.bit_size()) return false;
@@ -255,6 +236,25 @@ struct bitstring {
 
     friend bool operator!=(const bitstring & a, const bitstring & b) {
         return !(a == b);
+    }
+
+    bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const {
+        if (index == bit_size()) return bitstring();
+        if (index > bit_size()) IT_PANIC("bitstring::substr index out of range");
+        if (len > (bit_size() - index)) len = bit_size() - index;
+        return bitstring(begin(), len, index);
+    }
+
+    inline bitstring& remove(size_t index, size_t len);
+
+    void resize(size_t s) {
+        if (s > bit_size_) {
+            auto bs = bitstring(s);
+            std::copy(begin(), end(), bs.begin());
+            *this = std::move(bs);
+        } else {
+            bit_size_ = s;
+        }
     }
 
     bool empty() const { return bit_size() == 0; }
