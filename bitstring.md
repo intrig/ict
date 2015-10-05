@@ -11,7 +11,9 @@ bitstrings to and from strings and integers.  The bitstring unit test provides u
 
 Input and output bit streams can be used for writing and reading bits to and from a stream.
 
-Example usage can be found in the unit tests: [a relative link](unit/bitstring/bitstringunit.cpp)
+Example usage can be found in the unit tests: 
+* [bitstringunit.cpp](unit/bitstring/bitstringunit.cpp)
+* [unit/bitstring/convert.cpp]
 
 * [ict::bitstring](#bitstring)
 * [ict::ibitstream](#ibitstream)
