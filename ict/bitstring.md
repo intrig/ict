@@ -36,10 +36,14 @@ FF       | hexadecimal FF
 #F       | error! hexadecimal numbers must be byte aligned
 @1 101 01   | binary 110101
 AA BB CC DD | hexadecimal AABBCDEE
-**Constructors**
 
 ```c++
 struct bitstring {
+```
+
+**Constructors**
+
+```c++
     bitstring();                        // empty bitstring
     bitstring(size_t bit_size);         // bitstring filled with 0 bits
     bitstring(const bitstring & a);     // copy constructor
@@ -57,16 +61,15 @@ struct bitstring {
     // create from strings
     bitstring(const char * str);
     bitstring(const std::string & str);
-
-    **Operators**
-
-    ```c++
+```
+**Operators**
+```c++
     bitstring & operator=(const bitstring & b);
     bitstring & operator=(bitstring && b) noexcept;
     friend bool operator==(const bitstring & a, const bitstring & b);
     friend bool operator!=(const bitstring & a, const bitstring & b);
     ```
-    **Methods**
+**Methods**
 
     ```c++
     // return a substring
