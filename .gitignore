@@ -29,3 +29,6 @@
 
 # directories
 build
+
+#vim
+*.swp
