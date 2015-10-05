@@ -101,6 +101,9 @@ struct bitstring {
 An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
 a convenient way to read bits from a bitstring (a protocol message, for example).
 
+*TODO: There is a lot of room for performance improvement here.  Using move semantics through for one, also the
+output stream operator is not ideal.*
+
 ```c++
 struct ibitstream {
 ```
@@ -138,9 +141,6 @@ The only way to create an `ibitstream` is to initialize its constructor with a `
 
 Instead of using the ibitstream `constrain()` and `unconstrain()`, or `mark()` and `unmark()`, a single `constraint` or
 `bitmarker` object initialized with the `ibitstream` can be created that uses RAII.
-
-*TODO: There is a lot of room for performance improvement here.  using move semantics for one, also the
-output stream operator is not ideal.*
 
 ```c++
 struct constraint {
