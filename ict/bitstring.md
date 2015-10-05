@@ -57,7 +57,7 @@ struct bitstring {
 
     // same as above, but will copy the bits into the bitstring at an offset.
     bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
-    ```
+
     // create from strings
     bitstring(const char * str);
     bitstring(const std::string & str);
@@ -68,7 +68,7 @@ struct bitstring {
     bitstring & operator=(bitstring && b) noexcept;
     friend bool operator==(const bitstring & a, const bitstring & b);
     friend bool operator!=(const bitstring & a, const bitstring & b);
-    ```
+```
 **Methods**
 
 ```c++
@@ -101,8 +101,9 @@ struct bitstring {
 An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
 a convenient way to read bits from a bitstring (a protocol message, for example).
 
-**Constructors**
-
+```c++
+struct ibitstream
+```
 The only way to create an `ibitstream` is to initialize its constructor with a `bitstring`.  
 
 ```c++
@@ -135,7 +136,10 @@ The only way to create an `ibitstream` is to initialize its constructor with a `
 **Constraints and Marks**
 
 Instead of using the ibitstream `constrain()` and `unconstrain()`, or `mark()` and `unmark()`, a single `constraint` or
-`bitmarker` object can be created that uses RAII.
+`bitmarker` object initialized with the `ibitstream` can be created that uses RAII.
+
+*TODO: There is a lot of room for performance improvement here.  using move semantics for one, also the the 
+output stream operator is not ideal.
 
 ```c++
 struct constraint {
