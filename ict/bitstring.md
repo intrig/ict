@@ -9,6 +9,7 @@ namespace ict
 * [ict::bitstring](#bitstring)
 * [ict::ibitstream](#ibitstream)
 * [ict::obitstream](#obitstream)
+* [ict::Related Functions](#functions)
 
 Bitstrings store variable sized data and provide access at a bit level.  There are convenient ways of converting 
 bitstrings to and from strings and integers.  
@@ -25,19 +26,19 @@ avoid confusion.
 ### Constructors
 
 ```c++
-    bitstring();                        // empty bitstring
-    bitstring(size_t bit_size);         // bitstring filled with 0 bits
-    bitstring(const bitstring & a);     // copy constructor
-    bitstring(bitstring && a) noexcept; // move constructor
+bitstring();                        // empty bitstring
+bitstring(size_t bit_size);         // bitstring filled with 0 bits
+bitstring(const bitstring & a);     // copy constructor
+bitstring(bitstring && a) noexcept; // move constructor
 
-    // bitstring from an input iterator and bit size.
-    bitstring(Iter first, size_t bit_size);
+// bitstring from an input iterator and bit size.
+bitstring(Iter first, size_t bit_size);
 
-    // bitstring from a bit_view(first, source_offset) of length bit_size
-    bitstring(const pointer first, size_t bit_size, unsigned source_offset);
+// bitstring from a bit_view(first, source_offset) of length bit_size
+bitstring(const pointer first, size_t bit_size, unsigned source_offset);
 
-    // same as above, but will copy the bits into the bitstring at an offset.
-    bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
+// same as above, but will copy the bits into the bitstring at an offset.
+bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
 ```
 
 ### Constructing bitstrings from strings
