@@ -6,15 +6,15 @@
 namespace ict
 ```
 
-* [ict::bitstring](#bitstring)
-* [ict::ibitstream](#ibitstream)
-* [ict::obitstream](#obitstream)
-* [ict::Related Functions](#functions)
-
 Bitstrings store variable sized data and provide access at a bit level.  There are convenient ways of converting 
 bitstrings to and from strings and integers.  
 
 Input and output bit streams can be used for writing and reading bits to and from a stream.
+
+* [ict::bitstring](#bitstring)
+* [ict::ibitstream](#ibitstream)
+* [ict::obitstream](#obitstream)
+* [ict::Related Functions](#functions)
 
 ## <a name="bitstring"/> ict::bitstring
 
@@ -41,7 +41,7 @@ bitstring(const pointer first, size_t bit_size, unsigned source_offset);
 bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
 ```
 
-### Constructing bitstrings from strings
+** Constructing bitstrings from strings **
 
 Strings preceded with a `#` denotes hexadecimal, a `@` symbol denotes binary.  Otherwise, strings are 
 interpreted as hexadecimal.  Spaces are ignored.
@@ -64,7 +64,7 @@ bitstring(const char * str);
 bitstring(const std::string & str);
 ```
 
-### Operators
+** Operators **
 
 ```c++
 bitstring & operator=(const bitstring & b);
@@ -73,7 +73,7 @@ friend bool operator==(const bitstring & a, const bitstring & b);
 friend bool operator!=(const bitstring & a, const bitstring & b);
 ```
 
-### Methods
+** Methods **
 
 ```c++
 // return a substring
@@ -99,129 +99,83 @@ bool at(size_t index) const // get the bit value
 void clear()
 ```
 
-inline std::string to_string(const bitstring & bits);
+## <a name="ibitstream"/> ict::ibitstream
 
-inline std::ostream& operator<<(std::ostream& os, const bitstring & bits)
+An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
+a convenient way to read bits from a bitstring (a protocol message, for example).
 
+** constructors **
 
-struct ibitstream {
+The only way to create an `ibitstream` is to initialize its constructor with a `bitstring`.  
+
+```c++
     ibitstream() = delete;
-
     ibitstream(const ibitstream &) = delete;
+    ibitstream(const bitstring & bits) : bits(bits) 
 
-    ibitstream(const bitstring & bits) : bits(bits) {
-        index = 0;
-        end_list.push_back(bits.bit_size());
-        mark();
-    }
+    // read up n bits blindly.  Values of n greater than remaining() result in undefined behavior.
+    bitstring read_blind(size_t n) 
 
-    // read up to n bits blindly
-    bitstring read_blind(size_t n) {
-        index += n;
-        return bitstring(bits.begin(), n, index - n);
-    }
+    bitstring read(size_t n) // read up to n bits
+    bitstring peek(size_t n, size_t offset=0) // peek ahead
 
-    // read up to n bits
-    bitstring read(size_t n) {
-        if (n > remaining()) n = remaining();
-        return read_blind(n);
-    }
+    size_t tellg() const // return the current index
 
-    // peek ahead
-    bitstring peek(size_t n, size_t offset=0) {
-        return bitstring(bits.begin(), n, index + offset);
-    }
+    ibitstream& seek(size_t n) // advance the index
 
-    size_t tellg() const { return index; }
+    void constrain(size_t length) // temporarily set the remaining bits to length (reentrant)
+    void unconstrain() // lift the last constraint
 
-    ibitstream& seek(size_t n) { 
-        index += n; 
-        return *this;
-    }
+    void mark() // set a marker to remember current index that can be used by last_mark() (reentrant)
+    void unmark() // remove last mark
+    size_t last_mark() const // return the index of the last mark set
 
-    void constrain(size_t length) {
-        if (length > remaining()) length = remaining();
-        end_list.push_back(index + length);
-    }
+    size_t remaining() const // remaming number of bits to read 
 
-    void unconstrain() { end_list.pop_back(); }
+    bool eobits() const // return if at the end
+```
 
-    size_t remaining() const { 
-        return end_list.back() - index; 
-     };
+**Constraints and Marks**
 
-    void mark() {
-        marker_list.push_back(index);
-    }
+Instead of using the ibitstream `constrain()` and `unconstrain()`, or `mark()` and `unmark()`, a single `constraint` or
+`bitmarker` object can be created that uses RAII.
 
-    void unmark() { marker_list.pop_back(); }
-
-    size_t last_mark() const {
-        return marker_list.back();
-    }
-
-    bool eobits() const { return remaining() <= 0; }
-
-    friend std::ostream& operator<<(std::ostream& os, const ibitstream & bs) {
-        os << "(" << bs.index << ", " << bs.remaining() << ", " << bs.eobits() << ") " << (bs.bits);
-        return os;
-    }
-
-    private:
-    const bitstring & bits;
-    size_t index = 0;
-    std::vector<size_t> end_list;
-    std::vector<size_t> marker_list;
-};
-
-// use this instead of calling ibitstream::constrain()/unconstrain() pairs.
+```c++
 struct constraint {
     constraint() = delete;
     constraint(const constraint &) = delete;
     constraint& operator=(const constraint &) = delete;
-
     constraint(ibitstream& bs, size_t length) : bs(bs) { bs.constrain(length); }
     ~constraint() { bs.unconstrain(); }
-
-    private:
-    ibitstream &bs;
 };
 
 struct bitmarker {
     bitmarker() = delete;
     bitmarker(const bitmarker &) = delete;
     bitmarker& operator=(const bitmarker &) = delete;
-
     bitmarker(ibitstream &bs) : bs(bs) { bs.mark(); }
     ~bitmarker() { bs.unmark(); }
-
-    private:
-    ibitstream &bs;
 };
+```
+
+## <a name="obitstream"/> ict::obitstream
+
+Output bit streams can be used to construct bitstrings from others.
 
 struct obitstream {
-    obitstream(const bitstring & bits) : index(bits.bit_size()), data(1024) {
-        std::copy(bits.begin(), bits.end(), data.begin());
-    }
+    // create a stream and initialize it with bits
+    obitstream(const bitstring & bits)
 
-    obitstream() : index(0) {}
+    obitstream() // create obitstream
+    obitstream& operator<<(const bitstring & b) // stream operator
 
-    obitstream& operator<<(const bitstring & b) {
-        while (((index + b.bit_size() + 8) / 8) > data.size()) data.resize(data.size() + 1024);
-
-        util::bitarray_copy((const unsigned char *) b.begin(), 0, b.bit_size(), (unsigned char *) &(data[0]), index);
-        index += b.bit_size();
-        return *this;
-    }
-
-    bitstring bits() {
-        return bitstring(data.begin(), index);
-    }
-    int index;
-    // TODO change this to a bitstring and then use move copy for bits()?
-    std::vector<char> data;
+    bitstring bits() // return contents of stream as a bitstring
 };
 
+
+## <a name="functions"/> Related functions
+
+```c++
 inline void reverse_bytes(T & number)
 
 template <typename T>
@@ -231,14 +185,13 @@ template <typename T>
 inline bitstring from_integer(T number, size_t dest_size=sizeof(T) * 8)
 
 inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
+inline std::string to_string(const bitstring & bits); // convert to std::string
+inline std::ostream& operator<<(std::ostream& os, const bitstring & bits)
 
-## Related functions
-
-Copy a range of bits from one address and bit offset to another.  Set a bit, and get a bit value.
-```c++
+// Copy a range of bits from one address and bit offset to another.
 inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length);
-inline void set_bit(unsigned char * buf, unsigned index, bool val);
-inline bool bit(unsigned char * buf, unsigned index);
+inline void set_bit(unsigned char * buf, unsigned index, bool val); // set a bit
+inline bool bit(unsigned char * buf, unsigned index); // get a bit
 ```
 
 }
