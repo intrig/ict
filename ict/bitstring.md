@@ -24,7 +24,7 @@ For API calls that use strings to encode a bitstring, the following convention i
 denotes hexadecimal, an `@` symbol denotes binary.  Otherwise, strings are interpreted as hexadecimal.  Spaces are
 ignored.
 
-The following table provides examples on how to represent a bitstring in ascii:
+The following table provides examples on how to represent a bitstring in ASCII:
 
 ASCII   | meaning
 ---------|---------
@@ -102,7 +102,7 @@ An input bit stream is modeled after the std::istream.  However it acts upon bit
 a convenient way to read bits from a bitstring (a protocol message, for example).
 
 ```c++
-struct ibitstream
+struct ibitstream {
 ```
 The only way to create an `ibitstream` is to initialize its constructor with a `bitstring`.  
 
@@ -131,6 +131,7 @@ The only way to create an `ibitstream` is to initialize its constructor with a `
     size_t remaining() const // remaming number of bits to read 
 
     bool eobits() const // return if at the end
+};
 ```
 
 **Constraints and Marks**
@@ -138,8 +139,8 @@ The only way to create an `ibitstream` is to initialize its constructor with a `
 Instead of using the ibitstream `constrain()` and `unconstrain()`, or `mark()` and `unmark()`, a single `constraint` or
 `bitmarker` object initialized with the `ibitstream` can be created that uses RAII.
 
-*TODO: There is a lot of room for performance improvement here.  using move semantics for one, also the the 
-output stream operator is not ideal.
+*TODO: There is a lot of room for performance improvement here.  using move semantics for one, also the
+output stream operator is not ideal.*
 
 ```c++
 struct constraint {
