@@ -23,7 +23,7 @@ A bitstring provides a way to access arbitrarily sized data at a bit level.
 TODO: Make an `ict::bit_view` struct that represents an address and bit offset.  Use that for the low level APIs to
 avoid confusion.
 
-### Constructors
+**Constructors**
 
 ```c++
 bitstring();                        // empty bitstring
