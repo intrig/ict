@@ -20,6 +20,22 @@ Input and output bit streams can be used for writing and reading bits to and fro
 
 A bitstring provides a way to access arbitrarily sized data at a bit level. 
 
+For API calls that use strings to encode a bitstring, the following convention is used.  Strings preceded with a `#`
+denotes hexadecimal, an `@` symbol denotes binary.  Otherwise, strings are interpreted as hexadecimal.  Spaces are
+ignored.
+
+The following table provides examples on how to represent a bitstring in ascii:
+
+ASCII   | meaning
+---------|---------
+@1110    | binary 1110
+#1110    | hexadecimal 1100
+1110     | hexadecimal 1100
+FF       | hexadecimal FF
+@FF      | error! binary numbers must be 1 or 0
+#F       | error! hexadecimal numbers must be byte aligned
+@1 101 01   | binary 110101
+AA BB CC DD | hexadecimal AABBCDEE
 **Constructors**
 
 ```c++
@@ -37,31 +53,11 @@ bitstring(const pointer first, size_t bit_size, unsigned source_offset);
 // same as above, but will copy the bits into the bitstring at an offset.
 bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
 ```
-
-** Constructing bitstrings from strings **
-
-Strings preceded with a `#` denotes hexadecimal, a `@` symbol denotes binary.  Otherwise, strings are 
-interpreted as hexadecimal.  Spaces are ignored.
-
-The following table provides examples on how to represent a bitstring in ascii:
-
-string   | meaning
----------|---------
-@1110    | binary 1110
-#1110    | hexadecimal 1100
-1110     | hexadecimal 1100
-FF       | hexadecimal FF
-@FF      | error! binary numbers must be 1 or 0
-#F       | error! hexadecimal numbers must be byte aligned
-@1 101 01   | binary 110101
-AA BB CC DD | hexadecimal AABBCDEE
-
-```c++
+// create from strings
 bitstring(const char * str);
 bitstring(const std::string & str);
-```
 
-** Operators **
+**Operators**
 
 ```c++
 bitstring & operator=(const bitstring & b);
@@ -69,8 +65,7 @@ bitstring & operator=(bitstring && b) noexcept;
 friend bool operator==(const bitstring & a, const bitstring & b);
 friend bool operator!=(const bitstring & a, const bitstring & b);
 ```
-
-** Methods **
+**Methods**
 
 ```c++
 // return a substring
@@ -101,7 +96,7 @@ void clear()
 An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
 a convenient way to read bits from a bitstring (a protocol message, for example).
 
-** constructors **
+**Constructors**
 
 The only way to create an `ibitstream` is to initialize its constructor with a `bitstring`.  
 
