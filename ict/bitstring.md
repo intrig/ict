@@ -7,7 +7,7 @@ namespace ict
 ```
 
 Bitstrings store variable sized data and provide access at a bit level.  There are convenient ways of converting 
-bitstrings to and from strings and integers.  
+bitstrings to and from strings and integers.  The bitstring unit test provides usage examples.
 
 Input and output bit streams can be used for writing and reading bits to and from a stream.
 
@@ -19,9 +19,6 @@ Input and output bit streams can be used for writing and reading bits to and fro
 ## <a name="bitstring"/> ict::bitstring
 
 A bitstring provides a way to access arbitrarily sized data at a bit level. 
-
-TODO: Make an `ict::bit_view` struct that represents an address and bit offset.  Use that for the low level APIs to
-avoid confusion.
 
 **Constructors**
 
@@ -162,6 +159,7 @@ struct bitmarker {
 
 Output bit streams can be used to construct bitstrings from others.
 
+```c++
 struct obitstream {
     // create a stream and initialize it with bits
     obitstream(const bitstring & bits)
@@ -171,27 +169,39 @@ struct obitstream {
 
     bitstring bits() // return contents of stream as a bitstring
 };
+```
 
-
-## <a name="functions"/> Related functions
+## <a name="functions"/> Related Functions and Algorithms
 
 ```c++
 inline void reverse_bytes(T & number)
 
+// convert a bitstream to an integer of a given type.  Little-endian representation is assumed.
 template <typename T>
 inline T to_integer(bitstring const & bits, bool swap = true)
 
+// convert a number to a bitstring
 template <typename T> 
 inline bitstring from_integer(T number, size_t dest_size=sizeof(T) * 8)
 
+// text mesaging support, of course.
 inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
-inline std::string to_string(const bitstring & bits); // convert to std::string
+
+// Convert to std::string.  Byte aligned bitstrings will be returned in hex, otherwise binary.
+inline std::string to_string(const bitstring & bits);
+
+// Output stream operator, uses to_string() above.
 inline std::ostream& operator<<(std::ostream& os, const bitstring & bits)
 
-// Copy a range of bits from one address and bit offset to another.
+// Copy a range of bits from one address and bit offset to another.  This is the the thing that actually does 
+// something.  The API should be improved by using array_view
 inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length);
-inline void set_bit(unsigned char * buf, unsigned index, bool val); // set a bit
-inline bool bit(unsigned char * buf, unsigned index); // get a bit
+
+// set a bit
+inline void set_bit(unsigned char * buf, unsigned index, bool val);
+
+// get a bit
+inline bool bit(unsigned char * buf, unsigned index);
 ```
 
 }
