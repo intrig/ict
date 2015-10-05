@@ -71,7 +71,7 @@ struct bitstring {
     ```
 **Methods**
 
-    ```c++
+```c++
     // return a substring
     bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const;
     inline bitstring& remove(size_t index, size_t len); // remove a substring
