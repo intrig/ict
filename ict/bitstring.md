@@ -6,7 +6,7 @@
 namespace ict
 ```
 
-Bitstrings store variable sized data and provide access at a bit level.  There are convenient ways of converting 
+Bitstrings store resizable data and provide access at a bit level.  There are convenient ways of converting 
 bitstrings to and from strings and integers.  The bitstring unit test provides usage examples.
 
 Input and output bit streams can be used for writing and reading bits to and from a stream.
@@ -39,56 +39,58 @@ AA BB CC DD | hexadecimal AABBCDEE
 **Constructors**
 
 ```c++
-bitstring();                        // empty bitstring
-bitstring(size_t bit_size);         // bitstring filled with 0 bits
-bitstring(const bitstring & a);     // copy constructor
-bitstring(bitstring && a) noexcept; // move constructor
+struct bitstring {
+    bitstring();                        // empty bitstring
+    bitstring(size_t bit_size);         // bitstring filled with 0 bits
+    bitstring(const bitstring & a);     // copy constructor
+    bitstring(bitstring && a) noexcept; // move constructor
 
-// bitstring from an input iterator and bit size.
-bitstring(Iter first, size_t bit_size);
+    // bitstring from an input iterator and bit size.
+    bitstring(Iter first, size_t bit_size);
 
-// bitstring from a bit_view(first, source_offset) of length bit_size
-bitstring(const pointer first, size_t bit_size, unsigned source_offset);
+    // bitstring from a bit_view(first, source_offset) of length bit_size
+    bitstring(const pointer first, size_t bit_size, unsigned source_offset);
 
-// same as above, but will copy the bits into the bitstring at an offset.
-bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
-```
-// create from strings
-bitstring(const char * str);
-bitstring(const std::string & str);
+    // same as above, but will copy the bits into the bitstring at an offset.
+    bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
+    ```
+    // create from strings
+    bitstring(const char * str);
+    bitstring(const std::string & str);
 
-**Operators**
+    **Operators**
 
-```c++
-bitstring & operator=(const bitstring & b);
-bitstring & operator=(bitstring && b) noexcept;
-friend bool operator==(const bitstring & a, const bitstring & b);
-friend bool operator!=(const bitstring & a, const bitstring & b);
-```
-**Methods**
+    ```c++
+    bitstring & operator=(const bitstring & b);
+    bitstring & operator=(bitstring && b) noexcept;
+    friend bool operator==(const bitstring & a, const bitstring & b);
+    friend bool operator!=(const bitstring & a, const bitstring & b);
+    ```
+    **Methods**
 
-```c++
-// return a substring
-bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const;
-inline bitstring& remove(size_t index, size_t len); // remove a substring
-void resize(size_t s);  // resize
+    ```c++
+    // return a substring
+    bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const;
+    inline bitstring& remove(size_t index, size_t len); // remove a substring
+    void resize(size_t s);  // resize
 
-bool empty() const // check for empty
+    bool empty() const // check for empty
 
-pointer begin() const // return an iterator (this is a char *)
-pointer end() const
-pointer data() const // same as begin()
+    pointer begin() const // return an iterator (this is a char *)
+    pointer end() const
+    pointer data() const // same as begin()
 
-size_t byte_size() const // size in bytes
-size_t bit_size() const  // size in bits
+    size_t byte_size() const // size in bytes
+    size_t bit_size() const  // size in bits
 
-bool local() const // denotes if the bitstring is stored locally (true if its smaller than 64 bits)
+    bool local() const // denotes if the bitstring is stored locally (true if its smaller than 64 bits)
 
-void set(size_t index) // set a bit to 1
-void reset(size_t index) // set a bit to 0
-bool at(size_t index) const // get the bit value 
+    void set(size_t index) // set a bit to 1
+    void reset(size_t index) // set a bit to 0
+    bool at(size_t index) const // get the bit value 
 
-void clear()
+    void clear()
+}
 ```
 
 ## <a name="ibitstream"/> ict::ibitstream
