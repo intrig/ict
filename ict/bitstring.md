@@ -6,7 +6,7 @@
 namespace ict
 ```
 
-* [ict::bitstring](#bitring)
+* [ict::bitstring](#bitstring)
 * [ict::ibitstream](#ibitstream)
 * [ict::obitstream](#obitstream)
 
