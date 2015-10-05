@@ -493,8 +493,8 @@ inline bitstring::bitstring(int base, const char * str) {
     }
 }
 
-template <typename Iter>
-inline void reverse_bytes(Iter & number) { std::reverse((char *) &number, (char *) &number + sizeof(T)); }
+template <typename T>
+inline void reverse_bytes(T & number) { std::reverse((char *) &number, (char *) &number + sizeof(T)); }
 
 template <typename T>
 inline T to_integer(bitstring const & bits, bool swap = true) {

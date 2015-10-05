@@ -1,15 +1,17 @@
-# ict::bitstring Reference
+# Bit strings and streams
 
 ```c++
 #include <ict/bitstring.h>
 ```
+
+## ict::bitstring Reference
 
 A bitstring provides a way to access arbitrarily sized data at a bit level. 
 
 TODO: Make an `ict::bit_view` struct that represents an address and bit offset.  Use that for the low level APIs to
 avoid confusion.
 
-## Constructors
+### Constructors
 
 ```c++
     bitstring();                        // empty bitstring
@@ -27,7 +29,7 @@ avoid confusion.
     bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
 ```
 
-## Constructing bitstrings from strings
+### Constructing bitstrings from strings
 
 Strings preceded with a `#` denotes hexadecimal, a `@` symbol denotes binary.  Otherwise, strings are 
 interpreted as hexadecimal.  Spaces are ignored.
@@ -50,7 +52,7 @@ bitstring(const char * str);
 bitstring(const std::string & str);
 ```
 
-## Operators
+### Operators
 
 ```c++
 bitstring & operator=(const bitstring & b);
@@ -59,7 +61,7 @@ friend bool operator==(const bitstring & a, const bitstring & b);
 friend bool operator!=(const bitstring & a, const bitstring & b);
 ```
 
-## Methods
+### Methods
 
 ```c++
 // return a substring
@@ -208,7 +210,7 @@ struct obitstream {
     std::vector<char> data;
 };
 
-inline void reverse_bytes(Iter & number)
+inline void reverse_bytes(T & number)
 
 template <typename T>
 inline T to_integer(bitstring const & bits, bool swap = true)

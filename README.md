@@ -3,10 +3,11 @@
 **ict** is a small set of openly available reusable components developed and used by Intrig for its next-generation
 message decoding engine.  They are a result of countless hours of programming missteps, restarts, and refactoring.  The
 header files contain the complete implementation so you will not need to compile any source files.
+**ict** is released under the MIT license allowing you to include it in your proprietary
+software.
 
 The goal is to provide a natural, simple interface enabling you to concentrate on your task at hand, not wrestle with
-the tools you are using.  **ict** is released under the MIT license allowing you to include it in your proprietary
-software.
+the tools you are using. 
 
 Initially, two components are available (with more to come): `ict::bitstring` and `ict::multivector`.  Below is a brief
 description and links to their respective documentation.  
