@@ -6,16 +6,16 @@
 namespace ict
 ```
 
-* [ict::bitstring](#ict::bitring)
-* [ict::ibitstream](#ict::ibitstream)
-* [ict::obitstream](#ict::obitstream)
+* [ict::bitstring](#bitring)
+* [ict::ibitstream](#ibitstream)
+* [ict::obitstream](#obitstream)
 
 Bitstrings store variable sized data and provide access at a bit level.  There are convenient ways of converting 
 bitstrings to and from strings and integers.  
 
 Input and output bit streams can be used for writing and reading bits to and from a stream.
 
-## ict::bitstring
+## <a name="bitstring"/> ict::bitstring
 
 A bitstring provides a way to access arbitrarily sized data at a bit level. 
 
