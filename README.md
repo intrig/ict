@@ -2,12 +2,14 @@
 
 **ict** is a small set of openly available reusable components originally developed and used by Intrig for its
 next-generation message decoding engine.  They are a result of countless hours of programming missteps, restarts, and
-refactoring.  The header files contain the complete implementation so you will not need to compile any source files.
-**ict** is released under the MIT license allowing you to include it in your proprietary software.
+refactoring.  
 
 The goal of **ict** is to provide useful independent components with a natural, simple interface enabling you to
 concentrate on your task at hand, not wrestle with the tools you are using. The only dependency is the standard template
 library.
+
+The header files contain the complete implementation so you will not need to compile any source files.  **ict** is
+released under the MIT license allowing you to include it in your open and proprietary software.
 
 Initially, two components are available, with more to come: `ict::bitstring` and `ict::multivector`.  Below is a brief
 description and links to their respective documentation.  
@@ -24,7 +26,7 @@ and integers.  Corresponding input and output streams for bits are provided with
 `ict::obitstream`.  This enables you to easily dissect or catenate bitstrings without being concerned with byte
 alignment.
 
-[ict::bitstring Tutorial and Reference](bitstring.md)
+**[ict::bitstring Tutorial and Reference](bitstring.md)**
 
 ## ict::multivector
 
@@ -32,7 +34,7 @@ A [multivector](multivector.md) is a generic container that behaves just like a 
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
-[ict::multivector Tutorial and Reference](multivector.md)
+**[ict::multivector Tutorial and Reference](multivector.md)**
 
 ## Building unit tests and examples
 
