@@ -95,7 +95,9 @@ For example:
 
 ```c++
     auto m = ict::multivector<int>{1, {2, { 10, 11, 12}, 3, 4, 5}};
-    auto last = m.root().leaf(); // points to 5
+    
+    // get a cursor to the last item, and then convert it to a root_cursor.
+    auto last = ict::multivector<int>::root_cursor(m.root().leaf()); // points to 5
     while (!last.is_root()) std::cout << *last << '\n';
 ```
 will print out
@@ -123,360 +125,63 @@ Additional operations in addition to forward iterators:
     bool is_root() const
 ```
 
-template <typename ValueType, bool is_const_cursor>    
-struct linear_cursor_base : public std::iterator<std::forward_iterator_tag, ValueType> {
-    typedef linear_cursor_base linear_type;
-    typedef linear_type & linear_reference;
-    typedef linear_type * linear_pointer;
-    typedef const linear_type & const_linear_reference;
-
-    typedef cursor_base<ValueType, is_const_cursor> cursor_type;
-    typedef typename cursor_type::pointer pointer;
-    typedef typename cursor_type::reference reference;
-
-    linear_cursor_base() {}
-    linear_cursor_base(const linear_cursor_base<ValueType, false> & b) : c(b.c) {}
-    linear_cursor_base(const cursor_type b) : c(b) {}
-
-    reference operator*() const { return *c; }
-    pointer operator->() const { return &(*c); }
-
-    bool operator==(const_linear_reference b) const { return c == b.c; }
-
-    bool operator!=(const_linear_reference b) const { return !operator==(b); }
-
-    linear_reference operator++() {
-        if (!c.empty()) {
-            parents.push_back(c);
-            c = c.begin();
-        } else increment();
-        return *this;
-    }
-    
-    linear_type operator++(int) {
-        auto temp = *this;
-        operator++();
-        return temp;
-    }
-
-    void increment() {
-        if (!parents.empty() && (c == (parents.back().end() - 1))) {
-            c = parents.back();
-            parents.pop_back();
-            increment(); // try again
-        } else ++c;
-    }
-
-    //private:
-    cursor_type c;
-    std::vector<cursor_type> parents;
-};
-
-template <typename ValueType>
-struct item {
-    typedef ValueType value_type;
-    typedef const value_type const_value_type;
-    typedef value_type * pointer;
-    typedef value_type & reference;
-    typedef const value_type & const_reference;
-
-    typedef std::vector<item> vector_type;
-    typedef vector_type * vector_pointer;
-    typedef const vector_type * const_vector_pointer;
-
-    typedef typename std::vector<item>::iterator item_iterator;
-    typedef typename std::vector<item>::const_iterator const_item_iterator;
-    typedef item & item_reference;
-    typedef const item & const_item_reference;
-    typedef item * item_pointer;
-    typedef const item * const_item_pointer;
-
-    typedef size_t size_type;
-    typedef int difference_type;
-
-    //! Default constructor
-    item() : parent{(item *)(-1)} { }
-
-    //! Copy constructor
-    item(const item & b) : parent(0) {
-        parent = b.parent;
-        value = b.value;
-        nodes_ = b.nodes_;
-        if (!nodes_.empty()) nodes_[0].parent = this;
-    }
-
-    item(item && b) NOEXCEPT : parent(0) {
-        parent = b.parent;
-        value = std::move(b.value);
-        nodes_ = std::move(b.nodes_);
-        if (!nodes_.empty()) nodes_[0].parent = this;
-    }
-
-    item(item * parent, const value_type & value) : parent(parent), value(value) { }
-
-    template <class... Args>
-    item(item * parent, Args&&... args) : parent(parent), value(std::forward<Args>(args)...) { }
-
-    // copy assignable: a = b
-    item& operator=(const item & b) {
-        value = b.value;
-        nodes_ = b.nodes_;
-        if (!nodes_.empty()) nodes_[0].parent = this;
-        return *this;
-    }
-
-    item& operator=(item && b) NOEXCEPT {
-        value = std::move(b.value);
-        nodes_ = std::move(b.nodes_);
-        if (!nodes_.empty()) nodes_[0].parent = this;
-        return *this;
-    }
-
-    item& operator=(value_type b) {
-        value = b;
-        return *this;
-    }
-
-    // equality
-    friend bool operator==(const item & a, const item & b) {
-        return (a.value == b.value) && (a.nodes_ == b.nodes_);
-    }
-       
-    // not equality
-    friend bool operator!=(const item & a, const item & b) {
-        return !(a == b);
-    }
-
-    // less than 
-    friend bool operator<(const  item & a, const item & b) {
-        if (a.value < b.value) return true;
-        else return a.nodes_ < b.nodes_;
-    }
-
-    //! emptiness
-    bool empty() const { return nodes_.empty(); }
-
-    //! clear
-    void clear() { nodes_.clear(); }
-
-
-    //! pop_back
-    void pop_back() { nodes_.pop_back(); }
-
-    //! size
-    size_t size() const { return nodes_.size(); }
-
-    size_t item_count() const {
-        if (empty()) return 0;
-        return item_count(&(nodes_[0]), &nodes_.back() + 1);
-    }
-
-    item_reference operator[](int index) { return nodes_[index]; }
-    const_item_reference operator[](int index) const { return nodes_[index]; }
-
-    template <class... Args>
-    void emplace_back(Args&&... args) {
-        nodes_.emplace_back(nullptr, std::forward<Args>(args)...);
-        nodes_[0].parent = this;
-    }
-
-    template <class... Args>
-    item_pointer emplace(Args&&... args) {
-        emplace_back(std::forward<Args>(args)...);
-        return &nodes_.back();
-    }
-
-
-    operator reference () { return value; }
-    operator const_reference () const { return value; }
-
-    bool is_root() const { return parent == (item *)(-1); }
-
-    item_pointer parent_item() const {
-        auto i = this;
-        while (!i->parent) --i;
-        return i->parent;
-    }
-
-    // promote the children of the last item 
-    void promote_last() {
-        // detach the last child
-        if (nodes_.empty()) return;
-        auto last = std::move(nodes_.back());
-        last[0].parent = 0; // set its parent pointer to 0
-        nodes_.resize(nodes_.size() - 1);
-
-        if (last.empty()) return;
-        // now move its contents 
-        std::move(last.nodes_.begin(), last.nodes_.end(), std::back_inserter(nodes_));
-
-        nodes_[0].parent = this; // in case nodes_ was reallocated
-
-    }
-
-    const_vector_pointer vec_pointer() const { return &nodes_; }
-    vector_pointer vec_pointer() { return &nodes_; }
-
-    item_pointer begin_ptr() { return &(nodes_[0]); }
-    item_pointer end_ptr() { return &nodes_.back() + 1; }
-    const_item_pointer begin_ptr() const { return &(nodes_[0]); }
-    const_item_pointer end_ptr() const { return &nodes_.back() + 1; }
-    const_item_pointer cbegin_ptr() const { return begin_ptr(); }
-    const_item_pointer cend_ptr() const { return end_ptr(); }
-
-
-    item_pointer parent;
-    value_type value;
-    vector_type nodes_;
-
-    private:
-    template <typename T>
-    size_t item_count(T first, T last) const {
-        size_t n = 0;
-        for (auto i = first; i != last; ++i) {
-            if (!i->nodes_.empty()) n += item_count(i->nodes_.begin(), i->nodes_.end());
-            ++n;
-        }
-        return n;
-    }
-
-};
-
-// initialization list helper type
-template <typename T>
-struct init_list_type {
-    init_list_type(T v) : d(v) {}
-    init_list_type(std::initializer_list<init_list_type<T>> l) : l(l) {}
-
-    template <typename Cursor>
-    void add(Cursor parent) const {
-        if (is_list()) {
-            if (l.begin()->is_list()) {
-                // create a default constructed T and add it if "{{" occurs in initializer list
-                parent.leaf().emplace_back();
-            }
-            for ( const auto & e: l) e.add(--parent.end());
-        } else {
-            parent.emplace_back(d);
-        }
-    }
-
-    bool is_list() const { return l.size() > 0; }
-
-private:
-    std::initializer_list<init_list_type<T>> l;
-    T d;
-};
-
-template <typename value_type>
-struct multivector {
-    typedef bool is_multivector;
-    typedef item<value_type> item_type;
-    typedef item<value_type> * item_pointer;
-    typedef item<value_type> & item_reference;
-    typedef const item<value_type> * const_item_pointer;
-    typedef const item<value_type> & const_item_reference;
-
-    typedef cursor_base<value_type, false> cursor;
-    typedef cursor_base<value_type, true> const_cursor;
-    typedef root_cursor_base<value_type, false> root_cursor;
-    typedef root_cursor_base<value_type, true> const_root_cursor;
-    typedef linear_cursor_base<value_type, false> linear_cursor;
-    typedef linear_cursor_base<value_type, true> const_linear_cursor;
-
-    // Semiregular
-    // default constructable: multivector a;
-    multivector() {
-        root_.value = value_type();
-        root_.parent = (item<value_type> *)(-1);
-    } 
-
-    // copy constructable: multivector a = b;
-    multivector(const multivector & b) : root_(b.root_) { };
-
-    multivector(multivector && b) NOEXCEPT {
-        root_ = std::move(b.root_);
-    };
-
-    // Conversions
-    multivector(cursor a) : root_(a.item_ref()) {
-        root_.value = value_type(); // weird
-        root_.parent = (item<value_type> *)(-1);
-    }
-
-    // initialization list
-    multivector(std::initializer_list<init_list_type<value_type>> l) {
-        root_.value = value_type();
-        root_.parent = (item<value_type> *)(-1);
-        for (const auto & e : l) e.add(root());
-    }
-
-    multivector(std::initializer_list<init_list_type<const char *>> l) {
-        root_.value = value_type();
-        root_.parent = (item<value_type> *)(-1);
-        for (const auto & e : l) e.add(root());
-    }
-
-    // assignment
-    multivector& operator=(const multivector& b) {
-        root_ = b.root_;
-        return *this;
-    }
-
-    multivector& operator=(multivector&& b) NOEXCEPT {
-        root_ = std::move(b.root_);
-        return *this;
-    }
-
-    // Regular
-    // equality
-    friend bool operator==(const multivector & a, const multivector & b) {
-        return a.root_ == b.root_;
-    }
-
-    // not equal
-    friend bool operator!=(const multivector & a, const multivector & b) {
-        return !(a == b);
-    }
-
-    // TotallyOrdered
-    friend bool operator<(const multivector & a, const multivector & b) {
-        return a.root_ < b.root_;
-    }
-
-    friend bool operator>(const multivector& a, const multivector& b) {
-        return b < a;
-    }
-    friend bool operator<=(const multivector& a, const multivector& b) {
-        return !(b < a);
-    }
-    friend bool operator>=(const multivector& a, const multivector& b) {
-        return !(a < b);
-    } 
-
-    item_reference operator[](int index) { return root()[index]; }
-    const_item_reference operator[](int index) const { return root()[index]; }
-
-    //! clear
-    void clear() { root_.clear(); }
-    void pop_back() { root().pop_back(); }
-
-    bool empty() const { return root_.empty(); }
-    cursor root() { return cursor(nullptr, &root_); }
-    const_cursor root() const { return const_cursor(nullptr, &root_); }
-    root_cursor rend() { return typename item<value_type>::root_cursor(&root_); }
-
-    size_t size() const { return root_.item_count(); }
-    cursor begin() { return root().begin(); }
-    const_cursor begin() const { return root().begin(); }
-    const_cursor cbegin() const { return root().begin(); }
-
-    cursor end() { return root().end(); }
-    const_cursor end() const { return root().end(); }
-    const_cursor cend() const { return root().end(); }
-
-    item<value_type> root_;
-};
+## <a name="linear_cursor"/> multivector<T>::linear_cursor
+
+A linear cursor is also a forward iterator.  It traverses a multivector in a preorder fashion.
+
+The following code:
+
+```c++
+    auto m = ict::multivector<int>{1, { 2, { 3 }}};
+    for (multivector<int>::linear_cursor i = m.begin(); i!=m.end(); ++i) std::cout << *i << '\n';
+```
+will output:
+```
+    1
+    2
+    3
+```
+
+Notice the automatic conversion from one type of cursor to another.
+
+There are no special operations for the linear cursor other than those of an input iterator.
+
+## <a name="multivector"/> multivector<T>
+
+The multivector is a totally ordered container class for hierarchies.  It supports the following vector operations:
+
+```c++
+    item_reference operator[](int index) 
+    const_item_reference operator[](int index) const 
+
+    void clear() 
+    void pop_back() 
+
+    bool empty() const 
+
+    size_t size() const 
+    cursor begin() 
+    const_cursor begin() const 
+    const_cursor cbegin() const 
+
+    cursor end() 
+    const_cursor end() const 
+    const_cursor cend() const 
+```
+
+There is an additional constructor that takes a cursor:
+
+```c++
+    multivector(cursor a)
+```
+
+Additional operations supported:
+
+```c++
+    cursor root()
+    const_cursor root() const 
+    root_cursor rend() // return a root_cursor starting at the last item
+```
 
 template <typename T>
 inline std::ostringstream & operator<<(std::ostringstream & ss, item<T> & a) {
