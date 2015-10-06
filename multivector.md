@@ -41,19 +41,14 @@ For cursors, `begin()` returns a cursor to the first child, and `end()` returns 
 So for multivectors, there can be many different `begin()` and `end()` cursors.  All cursors that are part 
 of the same multivector are comparable.
 
-## <a name="cursor"/> ict::rake<T>::cursor and ict::rake<T>::const_cursor
+## <a name="cursor"/> ict::multivector<T>::cursor 
 
 In addition to normal random-access iterator operations, cursors provide the following functions:
 
+
+Here are vector operations that are currently supported for cursors:
+
 ```c++
-struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, ValueType> {
-    cursor_base leaf() 
-
-    cursor_base operator[](difference_type i) const { return begin() + i; }
-
-    bool empty() const { return it_->empty(); }
-
-    // begin and end
     cursor_type begin() 
     cursor_type begin() const 
     cursor_type cbegin() const 
@@ -63,6 +58,7 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
 
     root_cursor_type rbegin() const 
 
+    bool empty() const 
     size_t size() const 
 
     void reserve(size_t n)
@@ -75,83 +71,57 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
 
     template <class... Args>
     void emplace_back(Args&&... args) 
+```
 
-    void promote_last()
-    bool first_item() const 
+Additional operations provided for cursors:
 
-    cursor_base parent() const 
-    bool is_root() const 
+```c++
+    cursor_base leaf() // returns the last child or itself if it is empty()
+
+    // return a child cursor 
+    cursor_base operator[](difference_type i) const 
+
+    bool first_item() const // return true if this is the first child (rename to first_child???)
+    cursor_base parent() const  // return a cursor to parent
+    bool is_root() const // true if this is the root cursor
 }
 ```
 
-## <a name="root_cursor"/> ict::rake<T>::root_cursor and ict::rake<T>::const_root_cursor
+## <a name="root_cursor"/> multivector<T>::root_cursor
 
-// Forward iterator
-// operator++ just goes up and to the left until the root.
-template <typename ValueType, bool is_const_cursor>    
-struct root_cursor_base : public std::iterator<std::forward_iterator_tag, ValueType> {
-    typedef ValueType value_type;
-    typedef item<ValueType> item_type;
+A root cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
 
-    typedef typename std::conditional<is_const_cursor, const ValueType *, ValueType *>::type pointer;
-    typedef typename std::conditional<is_const_cursor, const ValueType &, ValueType &>::type reference;
+For example:
 
-    typedef typename std::conditional<is_const_cursor, const item_type *, item_type *>::type item_pointer;
-    typedef typename std::conditional<is_const_cursor, const item_type &, item_type &>::type item_reference;
+```c++
+    auto m = ict::multivector<int>{1, {2, { 10, 11, 12}, 3, 4, 5}};
+    auto last = m.root().leaf(); // points to 5
+    while (!last.is_root()) std::cout << *last << '\n';
+```c++
+will print out
+```
+    5
+    4
+    3
+    2
+    1
+```
 
-    typedef cursor_base<ValueType, is_const_cursor> cursor_type;
-    typedef cursor_type & cursor_reference;
-    typedef cursor_type * cursor_pointer;
-    typedef const cursor_type & const_cursor_reference;
+`root_cursor` supports the following vector operations:
 
-    typedef root_cursor_base root_cursor_type;
-    typedef root_cursor_type & root_cursor_reference;
-    typedef root_cursor_type * root_cursor_pointer;
-    typedef const root_cursor_type & const_root_cursor_reference;
+```c++
+    // vector operations
+    bool empty() const
+    size_t size() const
+    cursor begin()
+    cursor begin() const
+    cursor cbegin() const
+```
 
-    typedef int difference_type;
-
-    // constructors
-    root_cursor_base() {}
-    root_cursor_base(const cursor_reference b) : it_(b.it_) {}
-    root_cursor_base(const root_cursor_base<ValueType, false>& b) : it_(b.it_) {}
-    root_cursor_base(const item_pointer it) : it_{it} {}
-
-    // cursor operations
-    reference operator*() const { return it_->value; }
-    pointer operator->() const { return &(it_->value); }
-
-    item_reference item_ref() const { return *it_; }
-    item_pointer item_ptr() const { return &(*it_); }
-
-    root_cursor_reference operator++() {
-        if (it_->parent == 0) --it_;
-        else it_ = it_->parent;
-        return *this;
-    }
-
-    root_cursor_type operator++(int) {
-        root_cursor_base temp=*this;
-        ++*this;
-        return temp;
-    }
-
-    bool operator==(const_root_cursor_reference it) const { return it_ == it.it_; }
-
-    bool operator!=(const_root_cursor_reference it) const { return !operator==(it); }
-
-    // cursor specific operations
-    bool empty() const { return it_->empty(); }
-    size_t size() const { return it_->size(); }
-    cursor_type begin() { return it_->begin(); }
-    cursor_type begin() const { return it_->begin(); }
-    cursor_type cbegin() const { return it_->begin(); }
-    bool is_root() const { return it_->is_root(); }
-
-    friend struct root_cursor_base<ValueType, false>;
-
-    item_pointer it_;
-};
+Additional operations in addition to forward iterators:
+```c++
+    bool is_root() const
+```
 
 template <typename ValueType, bool is_const_cursor>    
 struct linear_cursor_base : public std::iterator<std::forward_iterator_tag, ValueType> {
