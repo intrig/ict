@@ -20,21 +20,21 @@ you need also.
 
 ## ict::bitstring
 
-A [bitstring](bitstring.md) provides a way to access arbitrarily sized data at a bit level.  Bitstrings smaller than 64
+A `bitstring` provides a way to access arbitrarily sized data at a bit level.  Bitstrings smaller than 64
 bits require no memory allocation.  Functions are provided to convert bitstrings to and from ASCII hex or binary strings
 and integers.  Corresponding input and output streams for bits are provided with `ict::ibitstream` and
 `ict::obitstream`.  This enables you to easily dissect or catenate bitstrings without being concerned with byte
 alignment.
 
-**[ict::bitstring Tutorial and Reference](bitstring.md)**
+**[ict::bitstring reference](bitstring.md)**
 
 ## ict::multivector
 
-A [multivector](multivector.md) is a generic container that behaves just like a `std::vector` except its iterators also
+A `multivector` is a generic container that behaves just like a `std::vector` except its iterators also
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
-**[ict::multivector Tutorial and Reference](multivector.md)**
+**[ict::multivector reference](multivector.md)**
 
 ## Building unit tests and examples
 
