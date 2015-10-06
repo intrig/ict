@@ -2,7 +2,6 @@
 
 ```c++
 #include <ict/bitstring.h>
-
 namespace ict
 ```
 
@@ -11,8 +10,7 @@ bitstrings to and from strings and integers.  The bitstring unit test provides u
 
 Input and output bit streams can be used for writing and reading bits to and from a stream.
 
-Example usage can be found in the unit tests: [bitstringunit.cpp](unit/bitstring/bitstringunit.cpp) and
-[convert.cpp](unit/bitstring/convert.cpp).
+Example usage can be found in the examples directory.
 
 * [ict::bitstring](#bitstring)
 * [ict::ibitstream](#ibitstream)
@@ -38,7 +36,7 @@ ASCII         | meaning
 `@FF`         | error! binary numbers must be 1 or 0
 `#F`          | error! hexadecimal numbers must be byte aligned
 `@1 101 01`   | binary 110101
-`AA BB CC DD` | hexadecimal AABBCDEE
+`AA BB CC DD` | hexadecimal AABBCCDD
 
 ```c++
 struct bitstring {
