@@ -97,7 +97,7 @@ For example:
     auto m = ict::multivector<int>{1, {2, { 10, 11, 12}, 3, 4, 5}};
     auto last = m.root().leaf(); // points to 5
     while (!last.is_root()) std::cout << *last << '\n';
-```c++
+```
 will print out
 ```
     5
