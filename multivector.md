@@ -256,7 +256,15 @@ for the following example:
 
 The following holds true:
 
-find call          |     return result
+find call                                         |     return result
+----------------------------------------------------------------
+`auto c = ict::find(tree.root(), "two")`          | `*c == "two"`
+`auto c = ict::find(tree.root(), "two/four")`     | `*c == "four"`
+`auto c = ict::find(tree.root(), "two/four")`     | `*c == "four"`
+`auto c = ict::find(tree.root(), "two/six")`      | `c == tree.end()`
+`auto c = ict::find(tree.root(), "two/four/one")` | `c == tree.end()`
+`auto c = ict::find(tree.root(), "two/five/one")` | `*c == "one"`
+`auto c = ict::find(tree.root(), "two/five/two")` | `*c == "two"`
 
 
 // find and rfind algorithms
