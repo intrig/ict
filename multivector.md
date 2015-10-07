@@ -190,7 +190,7 @@ Additional operations supported:
 The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.  The path
 is specified using an XPath-like syntax.
 
-for the following example:
+For the following example:
 ```c++
         auto tree = ict::multivector<std::string> 
         { "one", 
