@@ -56,7 +56,7 @@ Here are vector operations that are currently supported for cursors:
     cursor_type end() const 
     cursor_type cend() const 
 
-    root_cursor_type rbegin() const 
+    root_cursor_type rbegin() const // return a root_cursor, see below
 
     bool empty() const 
     size_t size() const 
@@ -96,8 +96,7 @@ For example:
 ```c++
     auto m = ict::multivector<int>{1, {2, { 10, 11, 12}, 3, 4, 5}};
     
-    // get a cursor to the last item, and then convert it to a root_cursor.
-    auto last = ict::multivector<int>::root_cursor(m.root().leaf()); // points to 5
+    auto last = m.rbegin(); // points to 5
     while (!last.is_root()) std::cout << *last << '\n';
 ```
 will print out
