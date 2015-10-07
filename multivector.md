@@ -9,8 +9,6 @@ A multivector is a generic container that behaves just like a `std::vector` exce
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
-The current implementation includes only a subset of the features found std::vector and described below. 
-
 A simple mutlivector can be created with:
 
 ```c++
@@ -18,9 +16,10 @@ A simple mutlivector can be created with:
     // print it out using convenience function:
 
     std::cout << ict::to_text(m);
+```
+and the output:
 
-
-    // and the output:
+```c++
     1
     2
       10
@@ -30,8 +29,9 @@ A simple mutlivector can be created with:
     3
 ```
 
-In the above example, the values 1, 2, and 3 make a *sibling vector*,  and are considered the top level children.  
-10, 11, and 12 make up a another sibling vector and 2 is their *parent*. The parent of 1 is considered the *root*.
+In the above example, the values 1, 2, and 3 make a *sibling vector*, and are considered the top level children.  1
+precedes 2 and 2 precedes 3.  10, 11, and 12 make up a another sibling vector and 2 is their *parent*. The parent of 1
+is considered the *root*.
 
 `iterators` for multivectors are called `cursors` and are the means of navigating a multivector.  They are random access
 (among siblings). Unlike regular iterators they have the vector functions you would expect: `begin()`, `end()`,
@@ -40,6 +40,8 @@ In the above example, the values 1, 2, and 3 make a *sibling vector*,  and are c
 For cursors, `begin()` returns a cursor to the first child, and `end()` returns a cursor after the last child.
 So for multivectors, there can be many different `begin()` and `end()` cursors.  All cursors that are part 
 of the same multivector are comparable.
+
+The current implementation includes only a subset of the features found std::vector and described below. 
 
 ## <a name="cursor"/> ict::multivector<T>::cursor 
 
