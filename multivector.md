@@ -58,7 +58,7 @@ Here are vector operations that are currently supported for cursors:
     cursor_type end() const 
     cursor_type cend() const 
 
-    root_cursor_type rbegin() const // return a root_cursor, see below
+    root_cursor_type rbegin() const // return a root_cursor starting at the last child, see below
 
     bool empty() const 
     size_t size() const 
@@ -128,7 +128,7 @@ Additional operations in addition to forward iterators:
 
 ## <a name="linear_cursor"/> multivector<T>::linear_cursor
 
-A linear cursor is also a forward iterator.  It traverses a multivector in a preorder fashion.
+A linear cursor is also a forward iterator.  It traverses a multivector in a depth-first order.
 
 The following code:
 
@@ -184,40 +184,20 @@ Additional operations supported:
     root_cursor rend() // return a root_cursor starting at the last item
 ```
 
-template <typename T>
-inline std::ostringstream & operator<<(std::ostringstream & ss, item<T> & a) {
-    ss << a.value  << " (" <<  &a << ", " << a.parent << ")";
-    return ss;
-}
+## <a name="functions"/>Functions
 
-template <typename T>
-inline std::ostringstream & operator<<(std::ostringstream & ss, typename item<T>::cursor & a) {
-    ss << a->value << " (" <<  &(*a) << ", " << a->parent << ")";
-    return ss;
-}
-
-// multivector algorithms
-
+```c++
 // return the root cursor of a multivector given a cursor
 template <typename Cursor>
-Cursor get_root(Cursor start) {
-    auto r = typename Cursor::root_cursor_type(start);
-    while (!r.is_root()) ++r;
-    return r;
-}
+Cursor get_root(Cursor start)
 
 // return the previous cursor, either a sibling or parent
 template <typename Cursor>
-Cursor previous(Cursor self) {
-    auto r = typename Cursor::root_cursor_type(self);
-    ++r;
-    return r;
-}
-
+Cursor previous(Cursor self)
 
 // recursively descend and perform an action on each item
 template <typename Cursor, typename Action>
-void recurse(Cursor parent, Action action) {
+void recurse(Cursor parent, Action action) 
     for (auto i = parent.begin(); i != parent.end(); ++i) {
         action(i, parent);
         recurse(i, action);
@@ -234,101 +214,22 @@ void recurse(Cursor parent, ActionDown action_down, ActionUp action_up, int leve
     }
 }
 
-
-// verify the internal integrity of the multivector
-template <typename T>
-void verify(T parent) {
-    recurse(parent, [](T self, T) {
-        size_t count = 0;
-        if (self.empty() && self.size() != 0) IT_PANIC("empty cursor has non-zero size");
-        if (!self.empty()) {
-            if (self[0].it_->parent == 0) IT_PANIC("parent set to 0");
-            if (self[0].it_->parent != &(self.item_ref())) {
-                IT_PANIC("incorrect first child " << self[0].it_->parent << ", " << &(*self));
-            }
-
-            ++count;
-            for (auto i = self.begin() + 1; i != self.end(); ++i, ++count) {
-                if (i.item_ref().parent != 0) IT_PANIC("non-first child of self is not zero");
-            }
-
-            if (count != self.size()) IT_PANIC("incorrect size");
-        }
-        get_root(self); // make sure this doesn't seg fault
-    });
-}
-
-template <typename T>
-inline void verify(const multivector<T> & tree) {
-    if (tree.root().item_ref().parent != (item<T> *)(-1)) {
-        IT_PANIC("root parent is not valid: " << tree.root().item_ref().parent);
-    }
-    verify(tree.root());
-}
-
-// convert to a compact string 
+// convert to a compact string, similar to an initializer list.
 template <typename T> 
-inline std::string compact_string(T parent) {
-    std::ostringstream ss;
-    recurse(parent, 
-        [&](T self, T parent, int) {
-            ss << *self;
-            if (!self.empty()) ss << " {";
-            else if (self != --parent.end()) ss << ' ';
-        }, 
-
-        [&](T self, T, int) {
-            if (!self.empty()) ss << "} ";
-    });
-
-    // convert all "} }" patterns to "}}"
-    auto x = ss.str();
-    ict::replace(x, " }", "}");
-    ict::normalize(x);
-    return x;
-}
+inline std::string compact_string(T parent)
 
 template <typename T>
-inline std::string compact_string(const multivector<T> & tree) {
-    return compact_string(tree.root());
-}
+inline std::string compact_string(const multivector<T> & tree)
 
 // convert to a table string
 template <typename T>
-inline std::string cursor_to_text(T parent) {
-    std::ostringstream ss;
-    recurse(parent, 
-        [&](T self, T, int level) {
-            ss << ict::spaces(level * 2) << *self << '\n';
-        },
-
-        [&](T, T, int) { } // nothing to do on the way up
-    );
-    return ss.str();
-}
+inline std::string cursor_to_text(T parent)
 
 template <typename T>
-std::string to_text(const multivector<T> & tree) {
-    return ict::cursor_to_text(tree.root());
-}
+std::string to_text(const multivector<T> & tree) 
+```
 
-template <typename T>
-std::string to_debug_text(const multivector<T> & tree) {
-    typedef typename multivector<T>::const_cursor cursor_type;
-    std::ostringstream ss;
-    auto r = tree.root();
-    ss << *r << " " << r.item_ref().parent << '\n';
-    recurse(r, 
-        [&](cursor_type self, cursor_type, int level) {
-            ss << ict::spaces(level * 2) << *self << " ";
-            ss << self.it_->parent << '\n';
-        },
-
-        [&](cursor_type, cursor_type, int) { } // nothing to do on the way up
-    );
-    return ss.str();
-}
-
+## <a name="find"/> Find Algorithm
 
 // find and rfind algorithms
 struct path {
@@ -508,3 +409,8 @@ inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a) {
     return ss;
 }
 }
+
+## links
+
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3700.html
+
