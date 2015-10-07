@@ -89,7 +89,7 @@ Additional operations provided for cursors:
 }
 ```
 
-## <a name="root_cursor"/> multivector<T>::root_cursor
+## <a name="root_cursor"/> multivector&lt;T&gt;::root_cursor
 
 A root cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
 
@@ -126,7 +126,7 @@ Additional operations in addition to forward iterators:
     bool is_root() const
 ```
 
-## <a name="linear_cursor"/> multivector<T>::linear_cursor
+## <a name="linear_cursor"/> multivector&lt;T&gt;::linear_cursor
 
 A linear cursor is also a forward iterator.  It traverses a multivector in a depth-first order.
 
@@ -147,7 +147,7 @@ Notice the automatic conversion from one type of cursor to another.
 
 There are no special operations for the linear cursor other than those of an input iterator.
 
-## <a name="multivector"/> multivector<T>
+## <a name="multivector"/> multivector&lt;T&gt;
 
 The multivector is a totally ordered container class for hierarchies.  It supports the following vector operations:
 
