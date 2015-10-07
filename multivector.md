@@ -185,51 +185,6 @@ Additional operations supported:
     root_cursor rend() // return a root_cursor starting at the last item
 ```
 
-## <a name="functions"/>Functions
-
-```c++
-// return the root cursor of a multivector given a cursor
-template <typename Cursor>
-Cursor get_root(Cursor start)
-
-// return the previous cursor, either a sibling or parent
-template <typename Cursor>
-Cursor previous(Cursor self)
-
-// recursively descend and perform an action on each item
-template <typename Cursor, typename Action>
-void recurse(Cursor parent, Action action) 
-    for (auto i = parent.begin(); i != parent.end(); ++i) {
-        action(i, parent);
-        recurse(i, action);
-    }
-}
-
-// recursively descend and perform an action on each item the way down and up
-template <typename Cursor, typename ActionDown, typename ActionUp>
-void recurse(Cursor parent, ActionDown action_down, ActionUp action_up, int level = 0) {
-    for (auto i = parent.begin(); i != parent.end(); ++i) {
-        action_down(i, parent, level);
-        recurse(i, action_down, action_up, level + 1);
-        action_up(i, parent, level);
-    }
-}
-
-// convert to a compact string, similar to an initializer list.
-template <typename T> 
-inline std::string compact_string(T parent)
-
-template <typename T>
-inline std::string compact_string(const multivector<T> & tree)
-
-// convert to a table string
-template <typename T>
-inline std::string cursor_to_text(T parent)
-
-template <typename T>
-std::string to_text(const multivector<T> & tree) 
-```
-
 ## <a name="find"/> Find Algorithm
 
 The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.  The path
@@ -278,32 +233,71 @@ inline std::string name_of(const T & a) { return a.name; }
 
 You can specialize the `name_of` function for your custom types.
 
+```c++
 template <typename Cursor>
 inline Cursor find(Cursor parent, const path & path) 
 
+// find using a root cursor.
 template <typename Cursor>
 inline Cursor rfind(Cursor first, const path & path)
+```
 
+## <a name="functions"/>Functions
 
-// return the path of a cursor
-template <typename T, typename C = typename T::is_cursor> 
-inline std::string path_string(T c) {
-    std::ostringstream ss;
-    path_string(ss, c);
-    return ss.str();
+```c++
+// return the root cursor of a multivector given a cursor
+template <typename Cursor>
+Cursor get_root(Cursor start)
+
+// return the previous cursor, either a sibling or parent
+template <typename Cursor>
+Cursor previous(Cursor self)
+
+// recursively descend and perform an action on each item
+template <typename Cursor, typename Action>
+void recurse(Cursor parent, Action action) 
+    for (auto i = parent.begin(); i != parent.end(); ++i) {
+        action(i, parent);
+        recurse(i, action);
+    }
 }
 
-template <typename Cursor> 
-inline void promote_last(Cursor parent) {
-    parent.promote_last();
+// recursively descend and perform an action on each item the way down and up
+template <typename Cursor, typename ActionDown, typename ActionUp>
+void recurse(Cursor parent, ActionDown action_down, ActionUp action_up, int level = 0) {
+    for (auto i = parent.begin(); i != parent.end(); ++i) {
+        action_down(i, parent, level);
+        recurse(i, action_down, action_up, level + 1);
+        action_up(i, parent, level);
+    }
 }
+
+// convert to a compact string, similar to an initializer list.
+template <typename T> 
+inline std::string compact_string(T parent)
 
 template <typename T>
-inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a) {
-    ss << to_text(a);
-    return ss;
-}
-}
+inline std::string compact_string(const multivector<T> & tree)
+
+// convert to a table string
+template <typename T>
+inline std::string cursor_to_text(T parent)
+
+template <typename T>
+std::string to_text(const multivector<T> & tree) 
+```
+
+  
+// return the path of a cursor
+template <typename T, typename C = typename T::is_cursor> 
+inline std::string path_string(T c)
+
+template <typename Cursor> 
+inline void promote_last(Cursor parent)
+
+// print multivector using the to_text() function
+template <typename T>
+inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a)
 
 ## links
 
