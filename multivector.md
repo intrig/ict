@@ -43,7 +43,7 @@ of the same multivector are comparable.
 
 The current implementation includes only a subset of the features found std::vector and described below. 
 
-## <a name="cursor"/> ict::multivector<T>::cursor 
+## <a name="cursor"/> multivector<T>::cursor 
 
 In addition to normal random-access iterator operations, cursors provide the following functions:
 
@@ -102,7 +102,7 @@ For example:
     while (!last.is_root()) std::cout << *last << '\n';
 ```
 will print out
-```
+```c++
     5
     4
     3
