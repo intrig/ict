@@ -257,7 +257,7 @@ for the following example:
 The following holds true:
 
 find call                                         |     return result
-----------------------------------------------------------------
+--------------------------------------------------|-------------
 `auto c = ict::find(tree.root(), "two")`          | `*c == "two"`
 `auto c = ict::find(tree.root(), "two/four")`     | `*c == "four"`
 `auto c = ict::find(tree.root(), "two/four")`     | `*c == "four"`
