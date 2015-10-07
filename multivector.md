@@ -9,7 +9,7 @@ A multivector is a generic container that behaves just like a `std::vector` exce
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
-A simple mutlivector can be created with:
+A simple mutlivector can be created and displayed with:
 
 ```c++
     auto m = ict::multivector<int>{1, 2, {10, 11, 12, {100}}, 3}
@@ -57,8 +57,9 @@ Here are vector operations that are currently supported for cursors:
     cursor_type end() 
     cursor_type end() const 
     cursor_type cend() const 
-
-    root_cursor_type rbegin() const // return a root_cursor starting at the last child, see below
+    
+    // return a root_cursor starting at the last child, see below
+    root_cursor_type rbegin() const 
 
     bool empty() const 
     size_t size() const 
@@ -145,7 +146,7 @@ will output:
 
 Notice the automatic conversion from one type of cursor to another.
 
-There are no special operations for the linear cursor other than those of an input iterator.
+There are no operations for the linear cursor other than those of an input iterator.
 
 ## <a name="multivector"/> multivector&lt;T&gt;
 
@@ -230,6 +231,33 @@ std::string to_text(const multivector<T> & tree)
 ```
 
 ## <a name="find"/> Find Algorithm
+
+The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.  The path
+is specified using an XPath-like syntax.
+
+for the following example:
+```c++
+        auto tree = ict::multivector<std::string> 
+        { "one", 
+          "two", 
+          { "four", 
+            "five", 
+            { "one", 
+              "two", 
+              { "six", 
+                "seven" 
+              }, 
+              "three" 
+            }
+          }, 
+          "three" 
+        };
+```
+
+The following holds true:
+
+find call          |     return result
+
 
 // find and rfind algorithms
 struct path {
