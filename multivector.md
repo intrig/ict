@@ -43,7 +43,7 @@ of the same multivector are comparable.
 
 The current implementation includes only a subset of the features found std::vector and described below. 
 
-## <a name="cursor"/> multivector<T>::cursor 
+## <a name="cursor"/> multivector&lt;T&gt;::cursor 
 
 In addition to normal random-access iterator operations, cursors provide the following functions:
 
