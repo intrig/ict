@@ -285,19 +285,19 @@ inline std::string cursor_to_text(T parent)
 
 template <typename T>
 std::string to_text(const multivector<T> & tree) 
-```
 
-  
 // return the path of a cursor
 template <typename T, typename C = typename T::is_cursor> 
 inline std::string path_string(T c)
 
+// Replace the last child child with the children of the last child.  This should be rewritten to not be so specific.
 template <typename Cursor> 
 inline void promote_last(Cursor parent)
 
 // print multivector using the to_text() function
 template <typename T>
 inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a)
+```
 
 ## links
 
