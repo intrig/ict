@@ -73,7 +73,7 @@ Here are vector operations that are currently supported for cursors:
     void emplace_back(Args&&... args) 
 ```
 
-Additional operations provided for cursors:
+Additional cursor operations:
 
 ```c++
     // return a child cursor 
@@ -120,7 +120,7 @@ will print out
     cursor cbegin() const
 ```
 
-Additional operations in addition to forward iterators:
+Additional ascending cursor operations:
 ```c++
     bool is_root() const
 ```
@@ -172,21 +172,22 @@ The multivector is a totally ordered container class for hierarchies.  It suppor
 There is an additional constructor that takes a cursor:
 
 ```c++
+    // a will become the root of a new multivector, its contents will be copied.
     multivector(cursor a)
 ```
 
 Additional operations supported:
 
 ```c++
+    // return the parent of the first item.
     cursor root()
     const_cursor root() const 
-    root_cursor rend() // return a root_cursor starting at the last item
 ```
 
 ## <a name="find"/> Find Algorithm
 
 The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.  The path
-is specified using an XPath-like syntax.
+is specified with a string.
 
 For the following example:
 ```c++

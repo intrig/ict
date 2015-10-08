@@ -573,7 +573,6 @@ struct multivector {
     bool empty() const { return root_.empty(); }
     cursor root() { return cursor(nullptr, &root_); }
     const_cursor root() const { return const_cursor(nullptr, &root_); }
-    ascending_cursor rend() { return typename item<value_type>::ascending_cursor(&root_); }
 
     size_t size() const { return root_.item_count(); }
     cursor begin() { return root().begin(); }
