@@ -289,18 +289,26 @@ std::string to_text(const multivector<T> & tree)
 template <typename T, typename C = typename T::is_cursor> 
 inline std::string path_string(T c)
 
+// returns the last child of c or c if it is empty()
+inline Cursor leaf(Cursor c) 
+
 // Replace the last child child with the children of the last child.  
 // This should be rewritten to not be so specific.
-template <typename Cursor> 
 inline void promote_last(Cursor parent)
+
+// return an ascending cursor.  It points to the last child of parent.
+inline typename Cursor::ascending_cursor_type ascending_begin(Cursor parent)
+
+// return a linear cursor to the first child
+inline typename Cursor::linear_type linear_begin(Cursor parent)
+
+// return a linear cursor to one past the last child
+inline typename Cursor::linear_type linear_end(Cursor parent)
 
 // print multivector using the to_text() function
 template <typename T>
 inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a)
 
-// returns the last child of c or c if it is empty()
-template <typename Cursor>
-inline Cursor leaf(Cursor c) 
 ```
 
 ## links
