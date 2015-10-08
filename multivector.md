@@ -79,12 +79,10 @@ Here are vector operations that are currently supported for cursors:
 Additional operations provided for cursors:
 
 ```c++
-    cursor_base leaf() // returns the last child or itself if it is empty()
-
     // return a child cursor 
     cursor_base operator[](difference_type i) const 
 
-    bool first_item() const // return true if this is the first child (rename to first_child???)
+    bool is_first_child() const // return true if this is the first child 
     cursor_base parent() const  // return a cursor to parent
     bool is_root() const // true if this is the root cursor
 }
@@ -290,13 +288,18 @@ std::string to_text(const multivector<T> & tree)
 template <typename T, typename C = typename T::is_cursor> 
 inline std::string path_string(T c)
 
-// Replace the last child child with the children of the last child.  This should be rewritten to not be so specific.
+// Replace the last child child with the children of the last child.  
+// This should be rewritten to not be so specific.
 template <typename Cursor> 
 inline void promote_last(Cursor parent)
 
 // print multivector using the to_text() function
 template <typename T>
 inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a)
+
+// returns the last child of c or c if it is empty()
+template <typename Cursor>
+inline Cursor leaf(Cursor c) 
 ```
 
 ## links

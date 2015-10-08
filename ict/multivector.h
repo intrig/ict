@@ -84,11 +84,6 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
         return *this;
     }
 
-    cursor_base leaf() {
-        if (empty()) return *this;
-        return --end();
-    }
-
     cursor_base operator--(int) {
         cursor_base temp=*this;
         --*this;
@@ -155,7 +150,7 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
         it_->emplace_back(std::forward<Args>(args)...);
     }
 
-    bool first_item() const { return it_->parent != nullptr; }
+    bool is_first_child() const { return it_->parent != nullptr; }
 
     cursor_base parent() const {
         return cursor_base(&it_->parent_item()->parent_item()->nodes_, it_->parent_item());
@@ -465,7 +460,7 @@ struct init_list_type {
         if (is_list()) {
             if (l.begin()->is_list()) {
                 // create a default constructed T and add it if "{{" occurs in initializer list
-                parent.leaf().emplace_back();
+                leaf(parent).emplace_back();
             }
             for ( const auto & e: l) e.add(--parent.end());
         } else {
@@ -901,6 +896,12 @@ inline std::string path_string(T c) {
     std::ostringstream ss;
     path_string(ss, c);
     return ss.str();
+}
+
+template <typename Cursor>
+inline Cursor leaf(Cursor c) {
+    if (c.empty()) return c;
+    return --c.end();
 }
 
 template <typename Cursor> 
