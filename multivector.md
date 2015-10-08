@@ -85,9 +85,9 @@ Additional operations provided for cursors:
 }
 ```
 
-## <a name="root_cursor"/> multivector&lt;T&gt;::root_cursor
+## <a name="ascending_cursor"/> multivector&lt;T&gt;::ascending_cursor
 
-A root cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
+An ascending cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
 
 For example:
 
@@ -109,7 +109,7 @@ will print out
     1
 ```
 
-`root_cursor` supports the following vector operations:
+`ascending_cursor` supports the following vector operations:
 
 ```c++
     // vector operations
