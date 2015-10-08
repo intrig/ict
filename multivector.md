@@ -292,7 +292,7 @@ inline std::string path_string(T c)
 // returns the last child of c or c if it is empty()
 inline Cursor leaf(Cursor c) 
 
-// Replace the last child child with the children of the last child.  
+// Replace the last child with the children of the last child.  
 // This should be rewritten to not be so specific.
 inline void promote_last(Cursor parent)
 
@@ -311,7 +311,20 @@ inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a)
 
 ```
 
-## links
+## <a name ="references"/>References
 
+Below are other tree implementations and papers I looked at while developing the multivector.  In general, they provide
+more capability than the multivector, but are node based.
+
+`multivector` has some commonalty with the boost property tree:
+http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
+
+Adobe forest:
+http://stlab.adobe.com/classadobe_1_1forest.html
+
+tree.hh:
+http://tree.phi-sci.com/documentation.html
+
+Hierarchical Data Structures and Related Concepts for the C++ Standard Library:
 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3700.html
 
