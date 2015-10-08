@@ -22,6 +22,8 @@ class multivector_unit
         ut.add(&multivector_unit::moving);
         ut.add(&multivector_unit::linear);
         ut.add(&multivector_unit::promote);
+        ut.add(&multivector_unit::ascending);
+        ut.add(&multivector_unit::ascending2);
     }
 
     void empty_multivectors();
@@ -39,4 +41,6 @@ class multivector_unit
     void moving();
     void linear();
     void promote();
+    void ascending();
+    void ascending2();
 };

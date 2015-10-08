@@ -557,8 +557,8 @@ void multivector_unit::moving() {
 template <typename T>
 void compare_linear(const ict::multivector<T> & a, const std::vector<T> b) {
     typedef typename ict::multivector<T>::const_linear_cursor linear_type;
-    auto first = linear_type(a.root().begin());
-    auto last = linear_type(a.root().end());
+    auto first = ict::linear_begin(a.root());
+    auto last = ict::linear_end(a.root());
     IT_ASSERT(std::equal(first, last, b.begin()));
 }
 
@@ -613,6 +613,34 @@ void multivector_unit::promote() {
         IT_ASSERT_MSG(ict::to_text(a), a == b);
     }
 }
+
+void multivector_unit::ascending() {
+    auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
+    auto last = ict::ascending_begin(m.root()); // points to 5
+    IT_ASSERT_MSG(*last, *last == 4);
+    std::ostringstream os;
+    while (!last.is_root()) {
+        os << *last << ' ';
+        ++last;
+    }
+    auto s = os.str();
+    IT_ASSERT_MSG(s, s == "4 3 2 1 ");
+
+}
+
+void multivector_unit::ascending2() {
+    std::ostringstream os;
+    auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
+    auto last = ict::ascending_begin(m.root()[0][0]);
+    // last points to 102
+    IT_ASSERT_MSG(*last, *last == 102);
+    while (!last.is_root()) {
+        os << *last << ' ';
+        ++last;
+    }
+    IT_ASSERT_MSG(os.str(), os.str() == "102 101 100 10 1 ");
+}
+
 
 int main (int, char **) {
     multivector_unit test;

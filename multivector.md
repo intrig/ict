@@ -58,9 +58,6 @@ Here are vector operations that are currently supported for cursors:
     cursor_type end() const 
     cursor_type cend() const 
     
-    // return a root_cursor starting at the last child, see below
-    root_cursor_type rbegin() const 
-
     bool empty() const 
     size_t size() const 
 
@@ -95,17 +92,20 @@ A root cursor is a forward cursor.  `operator++` just goes up and to the left un
 For example:
 
 ```c++
-    auto m = ict::multivector<int>{1, {2, { 10, 11, 12}, 3, 4, 5}};
-    
-    auto last = m.rbegin(); // points to 5
-    while (!last.is_root()) std::cout << *last << '\n';
+    auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
+    auto last = ict::ascending_begin(m.root()[0][0]);
+    // last points to 102
+    while (!last.is_root()) {
+        std::cout << *last << '\n';
+        ++last;
+    }
 ```
 will print out
 ```c++
-    5
-    4
-    3
-    2
+    102
+    101
+    100
+    10
     1
 ```
 
@@ -133,7 +133,7 @@ The following code:
 
 ```c++
     auto m = ict::multivector<int>{1, { 2, { 3 }}};
-    for (multivector<int>::linear_cursor i = m.begin(); i!=m.end(); ++i) std::cout << *i << '\n';
+    for (auto i = ict::linear_begin(m.root());  i!=m.end(); ++i) std::cout << *i << '\n';
 ```
 will output:
 ```

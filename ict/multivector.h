@@ -20,7 +20,7 @@ struct linear_cursor_base;
 
 // forward declare root cursor
 template <typename ValueType, bool is_const_cursor>    
-struct root_cursor_base;
+struct ascending_cursor_base;
 
 // Random Access (among siblings)
 template <typename ValueType, bool is_const_cursor>
@@ -43,10 +43,10 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
     typedef cursor_type * cursor_pointer;
     typedef const cursor_type & const_cursor_reference;
 
-    typedef root_cursor_base<ValueType, is_const_cursor> root_cursor_type;
-    typedef root_cursor_type & root_cursor_reference;
-    typedef root_cursor_type * root_cursor_pointer;
-    typedef const root_cursor_type & const_root_cursor_reference;
+    typedef ascending_cursor_base<ValueType, is_const_cursor> ascending_cursor_type;
+    typedef ascending_cursor_type & ascending_cursor_reference;
+    typedef ascending_cursor_type * ascending_cursor_pointer;
+    typedef const ascending_cursor_type & const_ascending_cursor_reference;
 
     typedef linear_cursor_base<ValueType, is_const_cursor> linear_type;
 
@@ -54,7 +54,7 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
 
     // constructors
     cursor_base() : v(nullptr), it_(nullptr) {}
-    cursor_base(const root_cursor_reference b) : it_(b.it_) {
+    cursor_base(const ascending_cursor_reference b) : it_(b.it_) {
         v = &b.it_->parent_item()->nodes_;
     }
     cursor_base(const cursor_base<ValueType, false>& b) : v(b.v), it_(b.it_) {}
@@ -130,7 +130,9 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
     cursor_type end() const { return cursor_base(it_->vec_pointer(), it_->end_ptr()); }
     cursor_type cend() const { return cursor_base(it_->vec_pointer(), it_->end_ptr()); }
 
-    root_cursor_type rbegin() const { return --end(); }
+#if 0
+    ascending_cursor_type rbegin() const { return --end(); }
+#endif
 
     size_t size() const { return it_->size(); }
 
@@ -166,7 +168,7 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
 // Forward iterator
 // operator++ just goes up and to the left until the root.
 template <typename ValueType, bool is_const_cursor>    
-struct root_cursor_base : public std::iterator<std::forward_iterator_tag, ValueType> {
+struct ascending_cursor_base : public std::iterator<std::forward_iterator_tag, ValueType> {
     typedef ValueType value_type;
     typedef item<ValueType> item_type;
 
@@ -181,18 +183,18 @@ struct root_cursor_base : public std::iterator<std::forward_iterator_tag, ValueT
     typedef cursor_type * cursor_pointer;
     typedef const cursor_type & const_cursor_reference;
 
-    typedef root_cursor_base root_cursor_type;
-    typedef root_cursor_type & root_cursor_reference;
-    typedef root_cursor_type * root_cursor_pointer;
-    typedef const root_cursor_type & const_root_cursor_reference;
+    typedef ascending_cursor_base ascending_cursor_type;
+    typedef ascending_cursor_type & ascending_cursor_reference;
+    typedef ascending_cursor_type * ascending_cursor_pointer;
+    typedef const ascending_cursor_type & const_ascending_cursor_reference;
 
     typedef int difference_type;
 
     // constructors
-    root_cursor_base() {}
-    root_cursor_base(const cursor_reference b) : it_(b.it_) {}
-    root_cursor_base(const root_cursor_base<ValueType, false>& b) : it_(b.it_) {}
-    root_cursor_base(const item_pointer it) : it_{it} {}
+    ascending_cursor_base() {}
+    ascending_cursor_base(const cursor_reference b) : it_(b.it_) {}
+    ascending_cursor_base(const ascending_cursor_base<ValueType, false>& b) : it_(b.it_) {}
+    ascending_cursor_base(const item_pointer it) : it_{it} {}
 
     // cursor operations
     reference operator*() const { return it_->value; }
@@ -201,21 +203,21 @@ struct root_cursor_base : public std::iterator<std::forward_iterator_tag, ValueT
     item_reference item_ref() const { return *it_; }
     item_pointer item_ptr() const { return &(*it_); }
 
-    root_cursor_reference operator++() {
+    ascending_cursor_reference operator++() {
         if (it_->parent == 0) --it_;
         else it_ = it_->parent;
         return *this;
     }
 
-    root_cursor_type operator++(int) {
-        root_cursor_base temp=*this;
+    ascending_cursor_type operator++(int) {
+        ascending_cursor_base temp=*this;
         ++*this;
         return temp;
     }
 
-    bool operator==(const_root_cursor_reference it) const { return it_ == it.it_; }
+    bool operator==(const_ascending_cursor_reference it) const { return it_ == it.it_; }
 
-    bool operator!=(const_root_cursor_reference it) const { return !operator==(it); }
+    bool operator!=(const_ascending_cursor_reference it) const { return !operator==(it); }
 
     // cursor specific operations
     bool empty() const { return it_->empty(); }
@@ -225,7 +227,7 @@ struct root_cursor_base : public std::iterator<std::forward_iterator_tag, ValueT
     cursor_type cbegin() const { return it_->begin(); }
     bool is_root() const { return it_->is_root(); }
 
-    friend struct root_cursor_base<ValueType, false>;
+    friend struct ascending_cursor_base<ValueType, false>;
 
     item_pointer it_;
 };
@@ -486,8 +488,8 @@ struct multivector {
 
     typedef cursor_base<value_type, false> cursor;
     typedef cursor_base<value_type, true> const_cursor;
-    typedef root_cursor_base<value_type, false> root_cursor;
-    typedef root_cursor_base<value_type, true> const_root_cursor;
+    typedef ascending_cursor_base<value_type, false> ascending_cursor;
+    typedef ascending_cursor_base<value_type, true> const_ascending_cursor;
     typedef linear_cursor_base<value_type, false> linear_cursor;
     typedef linear_cursor_base<value_type, true> const_linear_cursor;
 
@@ -571,7 +573,7 @@ struct multivector {
     bool empty() const { return root_.empty(); }
     cursor root() { return cursor(nullptr, &root_); }
     const_cursor root() const { return const_cursor(nullptr, &root_); }
-    root_cursor rend() { return typename item<value_type>::root_cursor(&root_); }
+    ascending_cursor rend() { return typename item<value_type>::ascending_cursor(&root_); }
 
     size_t size() const { return root_.item_count(); }
     cursor begin() { return root().begin(); }
@@ -602,7 +604,7 @@ inline std::ostringstream & operator<<(std::ostringstream & ss, typename item<T>
 // return the root cursor of a multivector given a cursor
 template <typename Cursor>
 Cursor get_root(Cursor start) {
-    auto r = typename Cursor::root_cursor_type(start);
+    auto r = typename Cursor::ascending_cursor_type(start);
     while (!r.is_root()) ++r;
     return r;
 }
@@ -610,7 +612,7 @@ Cursor get_root(Cursor start) {
 // return the previous cursor, either a sibling or parent
 template <typename Cursor>
 Cursor previous(Cursor self) {
-    auto r = typename Cursor::root_cursor_type(self);
+    auto r = typename Cursor::ascending_cursor_type(self);
     ++r;
     return r;
 }
@@ -793,8 +795,8 @@ inline std::string name_of(const int & value) { return ict::to_string(value); }
 namespace util {
     template <typename Cursor, typename Op, typename Test>
     inline Cursor rfind_x(Cursor first, const std::string & name, Op op, Test test) {
-        typedef typename Cursor::root_cursor_type root_cursor;
-        auto c = root_cursor(first);
+        typedef typename Cursor::ascending_cursor_type ascending_cursor;
+        auto c = ascending_cursor(first);
         while (!c.is_root()) {
             if (op(*c) == name && test(*c)) return c;
             ++c;
@@ -852,11 +854,11 @@ inline Cursor find(Cursor parent, const path & path) {
 
 template <typename Cursor, typename Op, typename Test>
 inline Cursor rfind(Cursor first, const path & path, Op op, Test test) {
-    typedef typename Cursor::root_cursor_type root_cursor;
+    typedef typename Cursor::ascending_cursor_type ascending_cursor;
     if (!path.absolute()) IT_PANIC("path must be absolute for rfind()");
     if (path.size() == 1) return util::rfind_x(first, *path.begin(), op, test);
     
-    auto rfirst = root_cursor(first);
+    auto rfirst = ascending_cursor(first);
 
     while (!rfirst.is_root()) {
         if (op(*rfirst) == *path.begin()) {
@@ -907,6 +909,21 @@ inline Cursor leaf(Cursor c) {
 template <typename Cursor> 
 inline void promote_last(Cursor parent) {
     parent.promote_last();
+}
+
+template <typename Cursor> 
+inline typename Cursor::ascending_cursor_type ascending_begin(Cursor parent) {
+    return --parent.end();
+}
+
+template <typename Cursor> 
+inline typename Cursor::linear_type linear_begin(Cursor parent) {
+    return parent.begin();
+}
+
+template <typename Cursor> 
+inline typename Cursor::linear_type linear_end(Cursor parent) {
+    return parent.end();
 }
 
 template <typename T>
