@@ -9,10 +9,10 @@ A multivector is a generic container that behaves just like a `std::vector` exce
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
+* [multivector&lt;T&gt;](#multivector_struct)
 * [multivector&lt;T&gt;::cursor](#cursor)
 * [multivector&lt;T&gt;::ascending_cursor](#ascending_cursor)
 * [multivector&lt;T&gt;::linear_cursor](#linear_cursor)
-* [multivector&lt;T&gt;](#multivector_struct)
 * [Find Algorithm](#find)
 * [Functions](#functions)
 * [References](#references)
@@ -50,6 +50,36 @@ So for multivectors, there can be many different `begin()` and `end()` cursors. 
 of the same multivector are comparable.
 
 The current implementation includes only a subset of the features found `std::vector` and described below. 
+
+## <a name="multivector_struct"/> multivector&lt;T&gt;
+
+The multivector is a totally ordered container class for hierarchies.  It supports the following vector operations:
+
+```c++
+    item_reference operator[](int index) 
+    const_item_reference operator[](int index) const 
+
+    void clear() 
+    void pop_back() 
+
+    bool empty() const 
+
+    size_t size() const 
+    cursor begin() 
+    const_cursor begin() const 
+    const_cursor cbegin() const 
+
+    cursor end() 
+    const_cursor end() const 
+    const_cursor cend() const 
+```
+
+There is an additional constructor that takes a cursor:
+
+```c++
+    // c will become the root of a new multivector, its contents will be copied.
+    multivector(cursor c)
+```
 
 ## <a name="cursor"/> multivector&lt;T&gt;::cursor 
 
@@ -156,36 +186,6 @@ will output:
 Notice the automatic conversion from one type of cursor to another.
 
 There are no operations for the linear cursor other than those of an input iterator.
-
-## <a name="multivector_struct"/> multivector&lt;T&gt;
-
-The multivector is a totally ordered container class for hierarchies.  It supports the following vector operations:
-
-```c++
-    item_reference operator[](int index) 
-    const_item_reference operator[](int index) const 
-
-    void clear() 
-    void pop_back() 
-
-    bool empty() const 
-
-    size_t size() const 
-    cursor begin() 
-    const_cursor begin() const 
-    const_cursor cbegin() const 
-
-    cursor end() 
-    const_cursor end() const 
-    const_cursor cend() const 
-```
-
-There is an additional constructor that takes a cursor:
-
-```c++
-    // c will become the root of a new multivector, its contents will be copied.
-    multivector(cursor c)
-```
 
 Additional operations supported:
 
