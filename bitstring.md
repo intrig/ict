@@ -28,8 +28,8 @@ The following table provides examples on how to represent a bitstring in ASCII:
 ASCII         | meaning
 --------------|--------------
 `@1110`       | binary 1110
-`#1110`       | hexadecimal 1100
-`1110`        | hexadecimal 1100
+`#1100`       | hexadecimal 1100
+`1100`        | hexadecimal 1100
 `FF`          | hexadecimal FF
 `@FF`         | error! binary numbers must be 1 or 0
 `#F`          | error! hexadecimal numbers must be byte aligned
