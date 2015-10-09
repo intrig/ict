@@ -15,7 +15,7 @@ Example usage can be found in the examples directory.
 * [ict::bitstring](#bitstring)
 * [ict::ibitstream](#ibitstream)
 * [ict::obitstream](#obitstream)
-* [ict::Related Functions](#functions)
+* [Related Functions](#functions)
 
 ## <a name="bitstring"/> ict::bitstring
 
@@ -174,7 +174,7 @@ struct obitstream {
 };
 ```
 
-## <a name="functions"/> Related Functions and Algorithms
+## <a name="functions"/> Related Functions
 
 ```c++
 inline void reverse_bytes(T & number)

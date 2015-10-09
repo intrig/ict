@@ -9,6 +9,14 @@ A multivector is a generic container that behaves just like a `std::vector` exce
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
+* [multivector&lt;T&gt;::cursor](#cursor)
+* [multivector&lt;T&gt;::ascending_cursor](#ascending_cursor)
+* [multivector&lt;T&gt;::linear_cursor](#linear_cursor)
+* [multivector&lt;T&gt;](#multivector)
+* [Find Algorithm](#find)
+* [Functions](#functions)
+* [References](#references)
+
 A simple mutlivector can be created and displayed with:
 
 ```c++
@@ -84,6 +92,9 @@ Additional cursor operations:
     bool is_root() const // true if this is the root cursor
 }
 ```
+
+Cursor validity is similar to that of vectors.  If a sibling vector gets resized, then all its cursors are invalidated.
+But any parent cursor is still valid.
 
 ## <a name="ascending_cursor"/> multivector&lt;T&gt;::ascending_cursor
 
@@ -302,7 +313,7 @@ inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a)
 
 ```
 
-## <a name ="references"/>References
+## <a name="references"/>References
 
 Below are other tree implementations and papers I looked at while developing the multivector.  In general, they provide
 more capability than the multivector, but are node based.
