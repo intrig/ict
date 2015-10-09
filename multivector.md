@@ -197,8 +197,7 @@ Additional operations supported:
 
 ## <a name="find"/> Find Algorithm
 
-The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.  The path
-is specified with a string.
+The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.
 
 ```c++
 inline Cursor find(Cursor parent, const path & path) 

@@ -9,7 +9,7 @@ concentrate on your task at hand, not wrestle with the tools you are using. The 
 library.
 
 The header files contain the complete implementation so you will not need to compile any source files.  **ict** is
-released under the MIT license allowing you to include it in your open and proprietary software.
+released under the permissive MIT license.
 
 Initially, two components are available, with more to come: `ict::bitstring` and `ict::multivector`.  Below is a brief
 description and links to their respective documentation.  
@@ -36,8 +36,9 @@ heirarchies that benefit from both cache friendly locality of reference and C++1
 
 **[ict::multivector reference](multivector.md)**
 
-## Building unit tests and examples
+## Building unit tests
 
-Just type `make` at the top level to invoke the cmake based build system.  And `make test` will run the unit tests.
+Although using the tools does not require any source files, running the unit tests does.  Just type `make` at the top
+level to invoke the cmake based build system.  And `make test` will run the unit tests.
 
 
