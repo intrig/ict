@@ -135,6 +135,13 @@ void bitstring_unit::obs() {
     t = bs.bits();
     std::string t2 = "@" +  ict::to_bin_string(t.begin(), t.end(), t.bit_size()); 
     IT_ASSERT_MSG(ss.str() << " == " << t2, ss.str() == t2);
+    {
+        ict::obitstream os;
+        os << ict::bitstring("@111");
+        os << ict::bitstring("@000");
+        auto bits = os.bits(); // bits = @111000
+        IT_ASSERT(bits == "@111000");
+    }
 }
 
 void bitstring_unit::ibs_constraint() {
