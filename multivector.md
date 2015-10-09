@@ -29,11 +29,11 @@ and the output:
     3
 ```
 
-In the above example, the values 1, 2, and 3 make a *sibling vector*, and are considered the top level children.  1
+In the above example, the values 1, 2, and 3 make a *sibling vector*, and are considered the top level *children*.  1
 precedes 2 and 2 precedes 3.  10, 11, and 12 make up a another sibling vector and 2 is their *parent*. The parent of 1
 is considered the *root*.
 
-`iterators` for multivectors are called `cursors` and are the means of navigating a multivector.  They are random access
+`iterators` for multivectors are called `cursors` and are the means of navigation.  They are random access
 (among siblings). Unlike regular iterators they have the vector functions you would expect: `begin()`, `end()`,
 `emplace()`, etc.
 
@@ -41,7 +41,7 @@ For cursors, `begin()` returns a cursor to the first child, and `end()` returns 
 So for multivectors, there can be many different `begin()` and `end()` cursors.  All cursors that are part 
 of the same multivector are comparable.
 
-The current implementation includes only a subset of the features found std::vector and described below. 
+The current implementation includes only a subset of the features found `std::vector` and described below. 
 
 ## <a name="cursor"/> multivector&lt;T&gt;::cursor 
 
@@ -172,8 +172,8 @@ The multivector is a totally ordered container class for hierarchies.  It suppor
 There is an additional constructor that takes a cursor:
 
 ```c++
-    // a will become the root of a new multivector, its contents will be copied.
-    multivector(cursor a)
+    // c will become the root of a new multivector, its contents will be copied.
+    multivector(cursor c)
 ```
 
 Additional operations supported:
@@ -188,6 +188,15 @@ Additional operations supported:
 
 The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.  The path
 is specified with a string.
+
+```c++
+inline Cursor find(Cursor parent, const path & path) 
+
+// find using an ascending cursor.
+inline Cursor rfind(Cursor first, const path & path)
+```
+
+`ict::path` is a struct that takes a string in its constructor.
 
 For the following example:
 ```c++
@@ -232,24 +241,13 @@ inline std::string name_of(const T & a) { return a.name; }
 
 You can specialize the `name_of` function for your custom types.
 
-```c++
-template <typename Cursor>
-inline Cursor find(Cursor parent, const path & path) 
-
-// find using a root cursor.
-template <typename Cursor>
-inline Cursor rfind(Cursor first, const path & path)
-```
-
 ## <a name="functions"/>Functions
 
 ```c++
 // return the root cursor of a multivector given a cursor
-template <typename Cursor>
 Cursor get_root(Cursor start)
 
 // return the previous cursor, either a sibling or parent
-template <typename Cursor>
 Cursor previous(Cursor self)
 
 // recursively descend and perform an action on each item
@@ -272,22 +270,15 @@ void recurse(Cursor parent, ActionDown action_down, ActionUp action_up, int leve
 }
 
 // convert to a compact string, similar to an initializer list.
-template <typename T> 
-inline std::string compact_string(T parent)
-
-template <typename T>
+inline std::string compact_string(Cursor parent)
 inline std::string compact_string(const multivector<T> & tree)
 
 // convert to a table string
-template <typename T>
-inline std::string cursor_to_text(T parent)
-
-template <typename T>
+inline std::string cursor_to_text(Cursor parent)
 std::string to_text(const multivector<T> & tree) 
 
 // return the path of a cursor
-template <typename T, typename C = typename T::is_cursor> 
-inline std::string path_string(T c)
+inline std::string path_string(Cursor c)
 
 // returns the last child of c or c if it is empty()
 inline Cursor leaf(Cursor c) 
