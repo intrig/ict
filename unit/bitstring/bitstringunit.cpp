@@ -171,6 +171,15 @@ void bitstring_unit::ibs_constraint() {
         IT_ASSERT_MSG(ibs.remaining(), ibs.remaining() == 15);
     }
     IT_ASSERT(ibs.remaining() == 27);
+
+    {
+        auto bits = ict::bitstring(27); // bits.bit_size() = 27
+        ict::ibitstream is(bits); // is.remaining() = 27
+        {
+            ict::constraint c(is, 15); // is.remaining() = 15
+        }
+        // is.remaining() == 27
+    }
 }
 
 void bitstring_unit::ibs() {

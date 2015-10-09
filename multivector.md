@@ -49,7 +49,7 @@ For cursors, `begin()` returns a cursor to the first child, and `end()` returns 
 So for multivectors, there can be many different `begin()` and `end()` cursors.  All cursors that are part 
 of the same multivector are comparable.
 
-The current implementation includes only a subset of the features found `std::vector` and described below. 
+The implementation currently includes only a limited subset of the features found `std::vector` and is described below. 
 
 ## <a name="multivector_struct"/> multivector&lt;T&gt;
 

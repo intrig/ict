@@ -149,11 +149,12 @@ The only way to create an `ibitstream` is to initialize its constructor with a `
 
 **Constraints and Marks**
 
+A constraint is use to temporarily restrict the length of the bitstring.  A mark is used to mark the current index in
+the bitstring.  Calling `last_mark()` will return the index of the last mark set.
+
 Instead of using the ibitstream `constrain()` and `unconstrain()`, or `mark()` and `unmark()`, a single `constraint` or
 `bitmarker` object initialized with the `ibitstream` can be created that uses RAII.
 
-A constraint is use to temporarily restrict the length of the bitstring.  A mark is used to mark the current idnex in
-the bitstring.  Calling `last_mark()` will return the index of the last mark set.
 
 ```c++
 struct constraint {
