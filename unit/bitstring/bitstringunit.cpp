@@ -187,6 +187,14 @@ void bitstring_unit::ibs() {
     IT_ASSERT(is2.remaining() == 0);
     IT_ASSERT(a == "@00");
 
+    {
+        auto bits = ict::bitstring("@111000");
+        ict::ibitstream is(bits);
+        auto a = is.read(3); // a = @111
+        auto b = is.read(3); // b = @000
+        IT_ASSERT(a == "@111");
+        IT_ASSERT(b == "@000");
+    }
 }
 
 

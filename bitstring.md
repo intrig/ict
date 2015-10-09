@@ -106,6 +106,14 @@ struct bitstring {
 An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
 a convenient way to read bits from a bitstring (a protocol message, for example).
 
+Example usage:
+```c++
+        auto bits = ict::bitstring("@111000");
+        ict::ibitstream is(bits);
+        auto a = is.read(3); // a = @111
+        auto b = is.read(3); // b = @000
+```
+
 ```c++
 struct ibitstream {
 ```
