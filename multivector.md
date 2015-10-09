@@ -12,7 +12,7 @@ heirarchies that benefit from both cache friendly locality of reference and C++1
 * [multivector&lt;T&gt;::cursor](#cursor)
 * [multivector&lt;T&gt;::ascending_cursor](#ascending_cursor)
 * [multivector&lt;T&gt;::linear_cursor](#linear_cursor)
-* [multivector&lt;T&gt;](#multivector)
+* [multivector&lt;T&gt;](#multivector_struct)
 * [Find Algorithm](#find)
 * [Functions](#functions)
 * [References](#references)
@@ -157,7 +157,7 @@ Notice the automatic conversion from one type of cursor to another.
 
 There are no operations for the linear cursor other than those of an input iterator.
 
-## <a name="multivector"/> multivector&lt;T&gt;
+## <a name="multivector_struct"/> multivector&lt;T&gt;
 
 The multivector is a totally ordered container class for hierarchies.  It supports the following vector operations:
 
