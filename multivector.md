@@ -21,8 +21,8 @@ A simple mutlivector can be created and displayed with:
 
 ```c++
     auto m = ict::multivector<int>{1, 2, {10, 11, 12, {100}}, 3}
-    // print it out using convenience function:
 
+    // print it out using convenience function:
     std::cout << ict::to_text(m);
 ```
 and the output:
