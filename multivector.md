@@ -202,9 +202,10 @@ Additional operations supported:
 The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.
 
 ```c++
+// returns parent.end() if not found.
 inline Cursor find(Cursor parent, const path & path) 
 
-// find using an ascending cursor.
+// reverse find, returns root cursor if not found.  Path must be absolute.
 inline Cursor rfind(Cursor first, const path & path)
 ```
 
