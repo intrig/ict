@@ -249,7 +249,7 @@ descendents by preceding the path with `//`;
 
 ```c+++
 template <typename T> 
-inline std::string name_of(const T & a) { return a.name; }
+inline std::string name_of(const T & a);
 ```
 
 You can specialize the `name_of` function for your custom types.
