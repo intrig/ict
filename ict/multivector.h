@@ -6,7 +6,6 @@
 #include <type_traits>
 #include <functional>
 #include <ict/exception.h>
-#include <ict/string64.h>
 
 namespace ict {
 
@@ -18,7 +17,7 @@ struct item;
 template <typename ValueType, bool is_const_iterator>    
 struct linear_cursor_base;
 
-// forward declare root cursor
+// forward declare ascending cursor
 template <typename ValueType, bool is_const_cursor>    
 struct ascending_cursor_base;
 
@@ -91,8 +90,6 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
     }
 
     bool operator==(const_cursor_reference b) const { 
-        //assert(v);
-        //assert(b.v);
         return v == b.v && it_ == b.it_; 
     }
     bool operator!=(const_cursor_reference b) const { return !operator==(b); }
@@ -129,10 +126,6 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
     cursor_type end() { return cursor_base(it_->vec_pointer(), it_->end_ptr()); }
     cursor_type end() const { return cursor_base(it_->vec_pointer(), it_->end_ptr()); }
     cursor_type cend() const { return cursor_base(it_->vec_pointer(), it_->end_ptr()); }
-
-#if 0
-    ascending_cursor_type rbegin() const { return --end(); }
-#endif
 
     size_t size() const { return it_->size(); }
 

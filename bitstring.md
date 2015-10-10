@@ -220,15 +220,16 @@ inline std::string to_string(const bitstring & bits);
 // Output stream operator, uses to_string() above.
 inline std::ostream& operator<<(std::ostream& os, const bitstring & bits)
 
-// Copy a range of bits from one address and bit offset to another.  This is the the thing that actually does 
-// something.  The API should be improved by using array_view
-inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length);
-
 // set a bit
 inline void set_bit(unsigned char * buf, unsigned index, bool val);
 
 // get a bit
 inline bool bit(unsigned char * buf, unsigned index);
+
+// Eventually, you have to write code that actually does something.  This is it.  Copy a range of bits from one address
+// and bit offset to another.  The API should be improved by using array_view.  See issue #1
+inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length);
+
 ```
 
 }

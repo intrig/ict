@@ -14,7 +14,6 @@ class multivector_unit
         ut.add(&multivector_unit::complicated);
         ut.add(&multivector_unit::iterators);
         ut.add(&multivector_unit::non_pod);
-        ut.add(&multivector_unit::generate);
         ut.add(&multivector_unit::initializer_list);
         ut.add(&multivector_unit::find_find_find);
         ut.add(&multivector_unit::find_if);
@@ -33,7 +32,6 @@ class multivector_unit
     void complicated();
     void iterators();
     void non_pod();
-    void generate();
     void initializer_list();
     void find_find_find();
     void find_if();

@@ -345,61 +345,6 @@ std::ostream & operator<<(std::ostream & os, const Custom & c) {
     return os;
 }
 
-#if 0
-void generate_from_node(ict::multivector<Custom>::cursor c, IT::Node node) {
-    for (auto n = node; !n.empty(); n = n.next()) {
-        auto i = c.emplace(n.name(), n.length(), n, n.description());
-        if (!n.child().empty()) generate_from_node(i, n.child());
-    }
-}
-#endif
-
-void multivector_unit::generate() {
-#if 0
-    IT::Spec spec("icd.xddl");
-    IT::Message m(spec);
-
-    m = IT::BitString("0300022220000101391799aeebb3680741110bf600f1100001010000000102e0e000140201d011270e8080210a0100000a8106000000005200f11000013103c540f4");
-
-    IT_ASSERT(!m.empty());
-    ict::multivector<Custom> msg;
-    generate_from_node(msg.root(), m.root().child());
-    ict::verify(msg);
-
-    //std::cout << ict::to_text(msg) << "\n";
-
-    auto j = ict::find(msg.root(), "c1");
-    IT_ASSERT(j != msg.root().end());
-    IT_ASSERT(j->name == "c1");
-
-    auto a = ict::find(msg.root(), "TimestampIncl");
-    IT_ASSERT(a != msg.root().end());
-    IT_ASSERT(a->name == "TimestampIncl");
-    IT_ASSERT(*a == "TimestampIncl");
-    
-    a = ict::find(msg.root(), ict::path("/TimestampIncl"));
-    IT_ASSERT_MSG(ict::path("/TimestampIncl"), a != msg.root().end());
-    IT_ASSERT_MSG(a->name, a->name == "TimestampIncl");
-    IT_ASSERT(*a == "TimestampIncl");
-    
-    a = ict::find(msg.root(), ict::path("//c1"));
-    IT_ASSERT(a != msg.root().end());
-    IT_ASSERT(a->name == "c1");
-    IT_ASSERT(*a == "c1");
-
-    a = ict::find(msg.root(), "not_here");
-    IT_ASSERT(a == msg.root().end());
-
-    a = ict::find(msg.root(), ict::path("//rrc-TransactionIdentifier"));
-    IT_ASSERT(a != msg.root().end());
-    IT_ASSERT(*a == "rrc-TransactionIdentifier");
-
-    a = ict::find(msg.root(), ict::path("//c1/choice"));
-    IT_ASSERT(a != msg.root().end());
-    IT_ASSERT(*a == "choice");
-#endif
-}
-
 void multivector_unit::initializer_list() {
    auto tree = ict::multivector<int>{ 1, 2, {4, 5, 6, {7, 8, 9}}, 5, {7}, 3 };
    IT_ASSERT(ict::compact_string(tree) == "1 2 {4 5 6 {7 8 9}} 5 {7} 3");
