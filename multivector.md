@@ -49,7 +49,7 @@ For cursors, `begin()` returns a cursor to the first child, and `end()` returns 
 So for multivectors, there can be many different `begin()` and `end()` cursors.  All cursors that are part 
 of the same multivector are comparable.
 
-The implementation currently includes only a limited subset of the features found `std::vector` and is described below. 
+The implementation currently includes only a **limited subset** of the features found `std::vector` and is described below. 
 
 ## <a name="multivector_struct"/> multivector&lt;T&gt;
 
@@ -89,12 +89,12 @@ In addition to normal random-access iterator operations, cursors provide the fol
 Here are vector operations that are currently supported for cursors:
 
 ```c++
-    cursor_type begin() 
-    cursor_type begin() const 
-    cursor_type cbegin() const 
-    cursor_type end() 
-    cursor_type end() const 
-    cursor_type cend() const 
+    cursor begin() 
+    cursor begin() const 
+    cursor cbegin() const 
+    cursor end() 
+    cursor end() const 
+    cursor cend() const 
     
     bool empty() const 
     size_t size() const 
@@ -104,9 +104,11 @@ Here are vector operations that are currently supported for cursors:
     void clear()
     void pop_back()
 
+    // emplace a value at the end and return a cursor to it.
     template <class... Args>
-    cursor_base emplace(Args&&... args) 
+    cursor emplace(Args&&... args) 
 
+    // emplace a value at the end.
     template <class... Args>
     void emplace_back(Args&&... args) 
 ```
@@ -115,10 +117,10 @@ Additional cursor operations:
 
 ```c++
     // return a child cursor 
-    cursor_base operator[](difference_type i) const 
+    cursor operator[](difference_type i) const 
 
     bool is_first_child() const // return true if this is the first child 
-    cursor_base parent() const  // return a cursor to parent
+    cursor parent() const  // return a cursor to parent
     bool is_root() const // true if this is the root cursor
 }
 ```
