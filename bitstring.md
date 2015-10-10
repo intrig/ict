@@ -228,7 +228,7 @@ inline bool bit(unsigned char * buf, unsigned index);
 ```
 
 Eventually, you have to write code that actually does something.  This is it.  Copy a range of bits from one address
-and bit offset to another.  The API should be improved by using array_view.  See (issue #1)[https://github.com/intrig/ict/issues/1].
+and bit offset to another.  The API should be improved by using array_view.  See [issue #1](https://github.com/intrig/ict/issues/1).
 
 ```c++
 inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length);
