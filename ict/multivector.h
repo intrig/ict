@@ -5,7 +5,6 @@
 #include <string>
 #include <type_traits>
 #include <functional>
-#include <ict/exception.h>
 
 namespace ict {
 
@@ -635,19 +634,21 @@ template <typename T>
 void verify(T parent) {
     recurse(parent, [](T self, T) {
         size_t count = 0;
-        if (self.empty() && self.size() != 0) IT_PANIC("empty cursor has non-zero size");
+        if (self.empty() && self.size() != 0) std::runtime_error("empty cursor has non-zero size");
         if (!self.empty()) {
-            if (self[0].it_->parent == 0) IT_PANIC("parent set to 0");
+            if (self[0].it_->parent == 0) std::runtime_error("parent set to 0");
             if (self[0].it_->parent != &(self.item_ref())) {
-                IT_PANIC("incorrect first child " << self[0].it_->parent << ", " << &(*self));
+                std::ostringstream os;
+                os << "incorrect first child " << self[0].it_->parent << ", " << &(*self);
+                std::runtime_error(os.str());
             }
 
             ++count;
             for (auto i = self.begin() + 1; i != self.end(); ++i, ++count) {
-                if (i.item_ref().parent != 0) IT_PANIC("non-first child of self is not zero");
+                if (i.item_ref().parent != 0) std::runtime_error("non-first child of self is not zero");
             }
 
-            if (count != self.size()) IT_PANIC("incorrect size");
+            if (count != self.size()) std::runtime_error("incorrect size");
         }
         get_root(self); // make sure this doesn't seg fault
     });
@@ -656,7 +657,9 @@ void verify(T parent) {
 template <typename T>
 inline void verify(const multivector<T> & tree) {
     if (tree.root().item_ref().parent != (item<T> *)(-1)) {
-        IT_PANIC("root parent is not valid: " << tree.root().item_ref().parent);
+        std::ostringstream os;
+        os << "root parent is not valid: " << tree.root().item_ref().parent;
+        std::runtime_error(os.str());
     }
     verify(tree.root());
 }
@@ -734,16 +737,16 @@ struct path {
 
     path(const std::string & path_string) {
         auto ps = path_string;
-        if (ps.size() == 0) IT_PANIC("invalid empty path");
+        if (ps.size() == 0) std::runtime_error("invalid empty path");
         abs = true;
         if (ps[0] == '/') { 
             abs = true;
             ps.erase(0, 1);
-            if (ps.size() == 0) IT_PANIC("a lone '/' is an invalid path");
+            if (ps.size() == 0) std::runtime_error("a lone '/' is an invalid path");
             if (ps[0] == '/') { 
                 abs = false;
                 ps.erase(0, 1);
-                if (ps.size() == 0) IT_PANIC("a lone '//' is an invalid path");
+                if (ps.size() == 0) std::runtime_error("a lone '//' is an invalid path");
             }
         }
         p = ict::escape_split(ps, '/');
@@ -847,7 +850,7 @@ inline Cursor find(Cursor parent, const path & path) {
 template <typename Cursor, typename Op, typename Test>
 inline Cursor rfind(Cursor first, const path & path, Op op, Test test) {
     typedef typename Cursor::ascending_cursor_type ascending_cursor;
-    if (!path.absolute()) IT_PANIC("path must be absolute for rfind()");
+    if (!path.absolute()) std::runtime_error("path must be absolute for rfind()");
     if (path.size() == 1) return util::rfind_x(first, *path.begin(), op, test);
     
     auto rfirst = ascending_cursor(first);
