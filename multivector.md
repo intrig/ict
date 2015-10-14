@@ -7,7 +7,7 @@ namespace ict
 
 A multivector is a generic container that behaves just like a `std::vector` except its iterators also
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
-heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
+hierarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
 * [multivector&lt;T&gt;](#multivector_struct)
 * [multivector&lt;T&gt;::cursor](#cursor)
