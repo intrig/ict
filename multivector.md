@@ -37,8 +37,8 @@ and the output:
     3
 ```
 
-In the above example, the values 1, 2, and 3 make a *sibling vector*, and are considered the top level *children*.  1
-precedes 2 and 2 precedes 3.  10, 11, and 12 make up a another sibling vector and 2 is their *parent*. The parent of 1
+In the above example, the values 1, 2, and 3 make a *sub-vector*, and are considered the top level *children*.  1
+precedes 2 and 2 precedes 3.  10, 11, and 12 make up a another sub-vector and 2 is their *parent*. The parent of 1
 is considered the *root*.
 
 `iterators` for multivectors are called `cursors` and are the means of navigation.  They are random access
