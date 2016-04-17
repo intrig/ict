@@ -1,5 +1,9 @@
 #pragma once
+//-- Copyright 2015 Intrig
+//-- see https://github.com/intrig/xenon for license
 
+#include <ict/ict.h>
+#include <sstream>
 #include <exception>
 #include <vector>
 #include <string>
@@ -52,7 +56,7 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
 
     // constructors
     cursor_base() : v(nullptr), it_(nullptr) {}
-    cursor_base(const ascending_cursor_reference b) : it_(b.it_) {
+    cursor_base(ascending_cursor_reference b) : it_(b.it_) {
         v = &b.it_->parent_item()->nodes_;
     }
     cursor_base(const cursor_base<ValueType, false>& b) : v(b.v), it_(b.it_) {}
@@ -184,7 +188,7 @@ struct ascending_cursor_base : public std::iterator<std::forward_iterator_tag, V
 
     // constructors
     ascending_cursor_base() {}
-    ascending_cursor_base(const cursor_reference b) : it_(b.it_) {}
+    ascending_cursor_base(cursor_reference b) : it_(b.it_) {}
     ascending_cursor_base(const ascending_cursor_base<ValueType, false>& b) : it_(b.it_) {}
     ascending_cursor_base(const item_pointer it) : it_{it} {}
 
@@ -306,7 +310,7 @@ struct item {
         if (!nodes_.empty()) nodes_[0].parent = this;
     }
 
-    item(item && b) NOEXCEPT : parent(0) {
+    item(item && b) noexcept : parent(0) {
         parent = b.parent;
         value = std::move(b.value);
         nodes_ = std::move(b.nodes_);
@@ -326,7 +330,7 @@ struct item {
         return *this;
     }
 
-    item& operator=(item && b) NOEXCEPT {
+    item& operator=(item && b) noexcept {
         value = std::move(b.value);
         nodes_ = std::move(b.nodes_);
         if (!nodes_.empty()) nodes_[0].parent = this;
@@ -495,7 +499,7 @@ struct multivector {
     // copy constructable: multivector a = b;
     multivector(const multivector & b) : root_(b.root_) { };
 
-    multivector(multivector && b) NOEXCEPT {
+    multivector(multivector && b) noexcept {
         root_ = std::move(b.root_);
     };
 
@@ -524,7 +528,7 @@ struct multivector {
         return *this;
     }
 
-    multivector& operator=(multivector&& b) NOEXCEPT {
+    multivector& operator=(multivector&& b) noexcept {
         root_ = std::move(b.root_);
         return *this;
     }
@@ -557,6 +561,11 @@ struct multivector {
 
     item_reference operator[](int index) { return root()[index]; }
     const_item_reference operator[](int index) const { return root()[index]; }
+
+    template <class... Args>
+    void emplace_back(Args&&... args) {
+        root().emplace_back(std::forward<Args>(args)...);
+    }
 
     //! clear
     void clear() { root_.clear(); }
@@ -715,6 +724,7 @@ std::string to_debug_text(const multivector<T> & tree) {
     typedef typename multivector<T>::const_cursor cursor_type;
     std::ostringstream ss;
     auto r = tree.root();
+    //to_debug_text(ss, *r);
     ss << *r << " " << r.item_ref().parent << '\n';
     recurse(r, 
         [&](cursor_type self, cursor_type, int level) {
@@ -921,9 +931,11 @@ inline typename Cursor::linear_type linear_end(Cursor parent) {
     return parent.end();
 }
 
+#if 0 // this may not be a good idea
 template <typename T>
 inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a) {
     ss << to_text(a);
     return ss;
 }
+#endif
 }
