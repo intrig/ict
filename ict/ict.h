@@ -1,4 +1,6 @@
 #pragma once
+//-- Copyright 2015 Intrig
+//-- see https://github.com/intrig/xenon for license
 #include <cstring>
 #include <string>
 #include <fstream>
@@ -22,20 +24,13 @@
 #include <bitset>
 
 #ifdef _MSC_VER
-#define NOEXCEPT
 
+#pragma warning(push)
 // This warning appears with std::copy and other std functions called with pointers
 #pragma warning(disable : 4996) // unsafe call
 
 #pragma warning(disable : 4005) // macro redefiniton
-#  if defined(ITDLL)
-#   define ITEXPORT  __declspec(dllexport)
-#  else
-#   define ITEXPORT  __declspec(dllimport)
-#  endif // ITDLL
-#else
-# define NOEXCEPT noexcept
-# define ITEXPORT
+
 #endif // _MSC_VER
 
 namespace ict {
@@ -53,6 +48,15 @@ std::string to_string(const T & value)
 #endif
 }
 
+// TODO: untested and unused
+inline void remove_consecutive(std::string & s, char ch) {
+    auto new_end = std::unique(s.begin(), s.end(), 
+        [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); });
+    s.erase(new_end, s.end());   
+}
+
+
+// split on a single character
 template <typename T>
 inline std::vector<std::string> split(const T & source, char c) {
     std::vector<std::string> l;
@@ -70,26 +74,67 @@ inline std::vector<std::string> split(const T & source, char c) {
     return l;
 }
 
+// split on any of the supplied characters
+template <typename T>
+inline std::vector<std::string> split(const T & source, const char * s, bool include_del = false) {
+    std::vector<std::string> l;
+    if (source.size() == 0) return l;
+
+    auto first = 0;
+    auto last = source.size();
+
+    while (first != last) {
+        auto i = source.find_first_of(s, first);
+        if (i == std::string::npos) {
+            auto s = source.substr(first);
+            if (!s.empty()) l.push_back(s);
+            first = last;
+        } else {
+            auto s = std::string(source.begin() + first, source.begin() + i + (include_del == true));
+            l.push_back(s);
+            first = i;
+            ++first;
+        }
+    }
+    return l;
+}
+
+namespace util {
+template <typename T>
+T read_line(T first, T last, std::string & line) {
+    while (first != last && *first != '\n') {
+        line += *first;
+        ++first;
+    }
+    line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+    line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
+
+    if (first == last) return first;
+    ++first; // skip the \n
+    return first;
+}
+
+}
 template <typename T>
 // T is a ForwardIterator
 inline std::vector<std::string> line_split(T first, T last) {
     std::vector<std::string> lines;
     std::string line;
     while (first != last) {
-        if (*first == '\n' || *first == '\r') {
-            while ((first != last) && (*first == '\n' || *first == '\r')) ++first;
-            if (!line.empty()) {
-                lines.push_back(line);
-                line.clear();
-            }
-        }
-        if (first != last) {
-            line += *first;
-            ++first;
-        }
+        first = util::read_line(first, last, line);
+        lines.push_back(line);
+        line.clear();
     }
-    if (!line.empty()) lines.push_back(line);
     return lines;
+}
+
+inline std::string line_join(const std::vector<std::string> & v) {
+    std::string x;
+    for (auto & l : v) {
+        x += l;
+        x+= '\n';
+    }
+    return x;
 }
 
 
@@ -269,28 +314,16 @@ inline bool file_exists(std::string const & filename) {
     return ifile.good();
 }
 
-inline size_t find_last_of(const std::string & str, char c) {
-    if (str.empty()) return std::string::npos;
-    auto first = str.begin();
-    auto last = str.end();
-    --last;
-    while (last >= first) {
-        if (*last == c) return last - first;
-        --last;
-    }
-    return std::string::npos;
-}
-
 inline std::string filebase(const std::string & value) {
     std::string s = value;
-    size_t n = find_last_of(value, '.');
+    size_t n = value.find_last_of('.');
     return s.substr(0, n);
 }
 
 template <typename S>
 inline std::string extension(const S & filename) {
     std::string f = filename;
-    auto index = find_last_of(f, '.');
+    auto index = f.find_last_of('.');
     if (index != std::string::npos) return f.substr(index);
     return "";
 }
@@ -299,7 +332,7 @@ template <typename S>
 inline void extension(S & filename, const char * new_ext) {
     std::string f = filename.c_str();
     std::string n = new_ext;
-    auto index = find_last_of(f, '.');
+    auto index = f.find_last_of('.');
     if (index != std::string::npos) f.replace(index, std::string::npos, n);
     filename = f.c_str();
 }
@@ -412,6 +445,10 @@ inline bool ends_with(std::string const & value, std::string const & ending)
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
+inline bool contains(const std::string & src, const char * value) {
+    return src.find(value) != std::string::npos;
+}
+
 inline bool contains(const char * src, const char * value) {
     return std::string(src).find(value) != std::string::npos;
 }
@@ -442,17 +479,16 @@ inline std::vector<char> read_file(const char * filename) {
 }
 
 template <typename T>
-inline void write_file(T first, T last, const std::string name) {
-    std::string n = name.c_str();
-    std::ofstream s(n, std::ios::out | std::ios::binary);
-    if (!s) IT_THROW("Can't open file \"" << n << "\" for writing.");
+inline void write_file(T first, T last, const std::string & name) {
+    std::ofstream s(name, std::ios::out | std::ios::binary);
+    if (!s) IT_THROW("Can't open file \"" << name << "\" for writing.");
     s.write(&(*first), last - first);
 }
 
-// TODO: remove this version
-template <typename S, typename T>
-inline void write_file(S name, const T & data) {
-    write_file(&data.front(), &data.back() + 1, name);
+inline void write_file(const std::vector<std::string> & lines, const std::string & name) {
+    std::ofstream s(name, std::ios::out | std::ios::binary);
+    for (auto & l : lines) s << l << "\n";
+
 }
 
 inline bool system_bigendian() {
@@ -466,8 +502,7 @@ struct url {
     url() {};
 
     url(const std::string & x) {
-        //size_t i = x.find_last_of('/');
-        size_t i = find_last_of(x, '/');
+        size_t i = x.find_last_of('/');
         if (i != std::string::npos) {
             ++i;
             path = x.substr(0, i);
@@ -515,6 +550,7 @@ inline std::ostream & operator<<(std::ostream &os, const url & x) {
     return os;
 }
 
+// create an absolute url from a base file and a relative one
 inline url relative_url(url const & base, url const & x) {
     std::ostringstream os;
     os << base.path << x.path;
@@ -608,23 +644,19 @@ T to_integer(String s) {
     return value;
 }
 
+// y = log2(x)
+template <typename Int> 
+// Int is a postive integer
+Int log_2(Int x) {
+    int y = 0;
+    while (x >>= 1) ++y;
+    return y;
+}
+
 inline int required_bits(int64_t lower, int64_t upper) {
-    uint64_t diff = upper - lower;
-    int count = sizeof(uint64_t) * 8;
-
-    auto v = netvar<uint64_t>(diff);
-
-    // now that it is in network byte order, just count the leading 0 bits
-    for (auto i = v.data.begin(); i!=v.data.end(); ++i) {
-        if (*i == 0) count -= 8;
-        else {
-            for (int b=0; b<7; ++b) {
-                if (!bit_is_set(*i, b)) --count;
-                else return count;
-            }
-        }
-    }
-    return count;
+    auto range = upper - lower;
+    if (range <= 0) return 0;
+    return log_2(range) + 1;
 }
 
 /** Convert a character between '0' and 'F' to 0 and 15.
@@ -710,8 +742,8 @@ inline std::string & to_bin_string(T first, T last, std::string & dest) {
     return dest;
 }
 
-template <typename T>
-inline std::string to_bin_string(T first, T last, size_t bit_size) {
+template <typename InputIterator>
+inline std::string to_bin_string(InputIterator first, InputIterator last, size_t bit_size) {
     std::string dest;
     to_bin_string(first, last, dest);
     dest.resize(bit_size);
@@ -781,6 +813,46 @@ template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
+
+template <typename T>
+inline void to_json(std::string & os, const std::vector<T> & v);
+
+inline void to_json(std::string & os, const std::string & s) {
+    os += "\"";
+    os += s; 
+    os += "\"";
+}
+
+template <typename T, typename U>
+inline void to_json(std::string & os, const T & k, const U & v) {
+    to_json(os, k);
+    os += " : ";
+    to_json(os, v);
+    os += '\n';
+}
+
+template <typename T>
+inline void to_json(std::string & os, const std::vector<T> & v) {
+    os += '[';
+    for (auto & i : v) {
+        to_json(os, i);
+        os += ", ";
+    }
+    if (!v.empty()) os.resize(os.size() - 2);
+    os += ']';
+
+}
+
+template <typename T>
+inline std::string to_json(const std::vector<T> & v) {
+    auto os = std::string();
+    to_json(os, v);
+    return os;
+}
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif // _MSC_VER
 
 } // namespace
 
