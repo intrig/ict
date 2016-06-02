@@ -337,6 +337,7 @@ inline void extension(S & filename, const char * new_ext) {
     filename = f.c_str();
 }
 
+// remove leading and trailing spaces
 template <typename S>
 inline S & normalize(S & v) {
 	if (v.empty()) return v;
@@ -376,6 +377,7 @@ inline std::string get_env_var(const char * name)
 #endif
 }
 
+// remove all spaces 
 template <typename S>
 inline S & squash(S & value)
 {
