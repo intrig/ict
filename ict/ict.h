@@ -134,6 +134,7 @@ inline std::string line_join(const std::vector<std::string> & v) {
         x += l;
         x+= '\n';
     }
+    x.pop_back();
     return x;
 }
 
@@ -461,6 +462,13 @@ inline int file_size(const std::string & filename) {
     return rc == 0 ? stat_buf.st_size : -1;
 }
 
+inline std::vector<char> read_stream(std::istream & in) {
+    std::vector<char> v;
+    char ch;
+    while (in.get(ch)) v.push_back(ch);
+    return v;
+}
+
 template <typename T>
 inline std::vector<char> read_file(const T & filename) {
     int sz = file_size(filename);
@@ -490,7 +498,6 @@ inline void write_file(T first, T last, const std::string & name) {
 inline void write_file(const std::vector<std::string> & lines, const std::string & name) {
     std::ofstream s(name, std::ios::out | std::ios::binary);
     for (auto & l : lines) s << l << "\n";
-
 }
 
 inline bool system_bigendian() {
