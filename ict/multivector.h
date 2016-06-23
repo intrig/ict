@@ -419,6 +419,16 @@ struct item {
 
     }
 
+    void insert_parent() {
+        // detach all the children;
+        auto t = nodes_;
+        nodes_.clear();
+        nodes_.emplace_back();
+        nodes_[0].parent = this;
+        nodes_[0].nodes_ = t;
+        nodes_[0].nodes_[0].parent = &nodes_[0];
+    }
+
     const_vector_pointer vec_pointer() const { return &nodes_; }
     vector_pointer vec_pointer() { return &nodes_; }
 
