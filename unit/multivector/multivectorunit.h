@@ -23,6 +23,7 @@ class multivector_unit
         ut.add(&multivector_unit::promote);
         ut.add(&multivector_unit::ascending);
         ut.add(&multivector_unit::ascending2);
+        ut.add(&multivector_unit::append_children);
     }
 
     void empty_multivectors();
@@ -41,4 +42,5 @@ class multivector_unit
     void promote();
     void ascending();
     void ascending2();
+    void append_children();
 };

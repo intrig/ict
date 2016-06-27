@@ -856,6 +856,39 @@ inline Cursor find(Cursor parent, const path & path, Op op, Test test) {
     }
 }
 
+#if 0
+void match_path(Cursor parent, path & curr_path, const path & path) {
+    for (iterator i = parent.begin(); i!= parent.end(); ++i) {
+        curr_path += name_of(i);
+        if (curr_path.has_tail(path)) f(
+    }
+}
+
+template <typename Cursor, const path & path, typename Function>
+inline Function for_each_path(cursor parent, const path & path, Op f) {
+    typedef typename Cursor::linear_type iterator;
+    path curr;
+    for (iterator i = parent.begin(); i!= parent.end(); ++i) {
+        curr = name_of(i);
+    }
+
+    if (path.absolute()) return util::find_x(parent, path.begin(), path.end(), op, test);
+    else {
+        for (iterator i = parent.begin(); i!= parent.end(); ++i) {
+            if (op(*i) == *path.begin()) {
+                if (path.begin() + 1 == path.end()) {
+                    if (test(*i)) return i;
+                } else {
+                    auto c = Cursor(i);
+                    auto x = util::find_x(c, path.begin() + 1, path.end(), op, test);
+                    if (x != c.end()) return x;
+                }
+            }
+        }
+        return parent.end();
+    }
+}
+#endif
 template <typename Cursor, typename Op>
 inline Cursor find(Cursor parent, const path & path, Op op) {
     typedef typename Cursor::value_type value_type;
@@ -939,6 +972,21 @@ inline typename Cursor::linear_type linear_begin(Cursor parent) {
 template <typename Cursor> 
 inline typename Cursor::linear_type linear_end(Cursor parent) {
     return parent.end();
+}
+
+// recursive copy all children
+template <typename Cursor>
+void append(Cursor parent, Cursor first, Cursor last) {
+    while (first != last) {
+        auto c = parent.emplace(*first);
+        append(c, first.begin(), first.end());
+        ++first;
+    }
+}
+
+template <typename Cursor>
+void append(Cursor parent, Cursor from_parent) {
+    append(parent, from_parent.begin(), from_parent.end());
 }
 
 #if 0 // this may not be a good idea

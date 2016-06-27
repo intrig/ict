@@ -586,6 +586,20 @@ void multivector_unit::ascending2() {
     IT_ASSERT_MSG(os.str(), os.str() == "102 101 100 10 1 ");
 }
 
+void multivector_unit::append_children() {
+    auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
+    auto q = ict::multivector<int>();
+    ict::append(q.root(), m.root());
+    IT_ASSERT(q == m);
+
+    auto c = q.begin().begin();
+    auto r = ict::multivector<int>{ 99, 100, 101 };
+    IT_ASSERT(*c == 10); // make sure we are where we think we are
+    ict::append(c, r.root());
+    auto s = ict::multivector<int>{1, {10, { 100, 101, 102, 99, 100, 101}}, 2, 3, 4};
+    IT_ASSERT(q == s);
+}
+
 
 int main (int, char **) {
     multivector_unit test;

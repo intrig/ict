@@ -1,4 +1,6 @@
 #pragma once
+//-- Copyright 2015 Intrig
+//-- see https://github.com/intrig/xenon for license
 #include <limits.h>
 #include <cassert>
 
@@ -119,8 +121,8 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
 }
 }
 
-inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length) {
-    util::bitarray_copy((const unsigned char *) src, srco, bit_length, (unsigned char *) dest, desto);
+inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t length) {
+    util::bitarray_copy((const unsigned char *) src, srco, length, (unsigned char *) dest, desto);
 }
 
 #define IT_BYTE(buf, index) (buf + (index / 8))
@@ -152,7 +154,7 @@ struct bitstring {
         std::copy(a.begin(), a.end(), begin());
     }
 
-    bitstring(bitstring && a) NOEXCEPT {
+    bitstring(bitstring && a) noexcept {
         bit_size_ = a.bit_size_;
         buffer_ = a.buffer_;
         if (local()) begin_ = (char *) &buffer_;
@@ -160,8 +162,8 @@ struct bitstring {
         a.bit_size_ = 0;
     }
 
-    template <typename Iter>
-    bitstring(Iter first, size_t bit_size) {
+    template <typename I>
+    bitstring(I first, size_t bit_size) {
         alloc(bit_size);
         std::copy(first, first + byte_size(), begin());
     }
@@ -205,6 +207,15 @@ struct bitstring {
 
     bitstring(const std::string & str) : bitstring(str.c_str()) { }
 
+    bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const {
+        if (index == bit_size()) return bitstring();
+        if (index > bit_size()) IT_PANIC("bitstring::substr index out of range");
+        if (len > (bit_size() - index)) len = bit_size() - index;
+        return bitstring(begin(), len, index);
+    }
+
+    inline bitstring& remove(size_t index, size_t len);
+
     ~bitstring() {
         clear();
     }
@@ -217,7 +228,7 @@ struct bitstring {
         return *this;
     }
 
-    bitstring & operator=(bitstring && b) NOEXCEPT {
+    bitstring & operator=(bitstring && b) noexcept {
         if (!local()) delete buffer_;
         bit_size_ = b.bit_size_;
         buffer_ = b.buffer_;
@@ -228,25 +239,6 @@ struct bitstring {
         return *this;
     }
 
-    friend bool operator==(const bitstring & a, const bitstring & b) {
-        // possible they are equal all but for the size (e.g., @100 and @1000)
-        if (a.bit_size() != b.bit_size()) return false;
-        return std::equal(a.begin(), a.end(), b.begin());
-    }
-
-    friend bool operator!=(const bitstring & a, const bitstring & b) {
-        return !(a == b);
-    }
-
-    bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const {
-        if (index == bit_size()) return bitstring();
-        if (index > bit_size()) IT_PANIC("bitstring::substr index out of range");
-        if (len > (bit_size() - index)) len = bit_size() - index;
-        return bitstring(begin(), len, index);
-    }
-
-    inline bitstring& remove(size_t index, size_t len);
-
     void resize(size_t s) {
         if (s > bit_size_) {
             auto bs = bitstring(s);
@@ -255,6 +247,16 @@ struct bitstring {
         } else {
             bit_size_ = s;
         }
+    }
+
+    friend bool operator==(const bitstring & a, const bitstring & b) {
+        // possible they are equal all but for the size (e.g., @100 and @1000)
+        if (a.bit_size() != b.bit_size()) return false;
+        return std::equal(a.begin(), a.end(), b.begin());
+    }
+
+    friend bool operator!=(const bitstring & a, const bitstring & b) {
+        return !(a == b);
     }
 
     bool empty() const { return bit_size() == 0; }
@@ -349,6 +351,18 @@ struct ibitstream {
     bitstring read(size_t n) {
         if (n > remaining()) n = remaining();
         return read_blind(n);
+    }
+
+    bitstring read_to(char ch) {
+        auto first = bits.begin() + index / 8; // current byte
+        auto n = 0;
+        while (*first != ch) {
+            IT_WARN("ch = " << *first);
+            ++first;
+            ++n;
+        }
+        ++n; // include ch 
+        return read_blind(n * 8);
     }
 
     // peek ahead
@@ -496,6 +510,11 @@ inline bitstring::bitstring(int base, const char * str) {
 template <typename T>
 inline void reverse_bytes(T & number) { std::reverse((char *) &number, (char *) &number + sizeof(T)); }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4800)
+#endif
+
 template <typename T>
 inline T to_integer(bitstring const & bits, bool swap = true) {
     const size_t type_size = sizeof(T) * 8;
@@ -546,6 +565,10 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
     }
     return 0;
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 // 11011 (2, 1)
 // 11
@@ -720,5 +743,9 @@ inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
     std::ostringstream os;
     os << first << rem;
     return os.str();
+}
+
+inline std::string to_bin_string(const bitstring & bits) {
+    return ict::to_bin_string(bits.begin(), bits.end(), bits.bit_size());
 }
 }

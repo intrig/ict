@@ -1,12 +1,20 @@
 all:
 	mkdir -p build
-	cd build && cmake .. && make || cd ..
+	cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cd .. && make -C build -j12
+
+debug:
+	mkdir -p build
+	cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && cd .. && make -C build -j12
+
+serial:
+	mkdir -p build
+	cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make VERBOSE=1 && cd ..
 
 clean:
 	rm -rf build
 
-test:
-	make -C build test
+test: all
+	make CTEST_OUTPUT_ON_FAILURE=1 -C build test
 
 tags:
 	mkdir -p o
