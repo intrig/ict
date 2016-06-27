@@ -975,8 +975,8 @@ inline typename Cursor::linear_type linear_end(Cursor parent) {
 }
 
 // recursive copy all children
-template <typename Cursor>
-void append(Cursor parent, Cursor first, Cursor last) {
+template <typename Cursor, typename ConstCursor>
+void append(Cursor parent, ConstCursor first, ConstCursor last) {
     while (first != last) {
         auto c = parent.emplace(*first);
         append(c, first.begin(), first.end());
@@ -984,8 +984,8 @@ void append(Cursor parent, Cursor first, Cursor last) {
     }
 }
 
-template <typename Cursor>
-void append(Cursor parent, Cursor from_parent) {
+template <typename Cursor, typename ConstCursor>
+void append(Cursor parent, ConstCursor from_parent) {
     append(parent, from_parent.begin(), from_parent.end());
 }
 
