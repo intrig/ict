@@ -108,7 +108,7 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
         return *this;
     }
 
-    cursor_base operator[](difference_type i) const { return begin() + i; }
+    reference operator[](difference_type i) const { return *(begin() + i); }
     friend cursor_base operator-(cursor_base x, difference_type i) { return x + (-i); }
     friend difference_type operator-(cursor_base& x, cursor_base& y) { return x.it_ - y.it_; }
 
@@ -346,7 +346,7 @@ struct item {
     friend bool operator==(const item & a, const item & b) {
         return (a.value == b.value) && (a.nodes_ == b.nodes_);
     }
-       
+
     // not equality
     friend bool operator!=(const item & a, const item & b) {
         return !(a == b);
@@ -655,10 +655,10 @@ void verify(T parent) {
         size_t count = 0;
         if (self.empty() && self.size() != 0) std::runtime_error("empty cursor has non-zero size");
         if (!self.empty()) {
-            if (self[0].it_->parent == 0) std::runtime_error("parent set to 0");
-            if (self[0].it_->parent != &(self.item_ref())) {
+            if (self.begin().it_->parent == 0) std::runtime_error("parent set to 0");
+            if (self.begin().it_->parent != &(self.item_ref())) {
                 std::ostringstream os;
-                os << "incorrect first child " << self[0].it_->parent << ", " << &(*self);
+                os << "incorrect first child " << self.begin().it_->parent << ", " << &(*self);
                 std::runtime_error(os.str());
             }
 
@@ -959,19 +959,14 @@ inline void promote_last(Cursor parent) {
     parent.promote_last();
 }
 
-template <typename Cursor> 
-inline typename Cursor::ascending_cursor_type ascending_begin(Cursor parent) {
-    return --parent.end();
+template <typename Cursor>
+inline typename Cursor::ascending_cursor_type to_ascending(Cursor c) {
+    return c;
 }
 
 template <typename Cursor> 
-inline typename Cursor::linear_type linear_begin(Cursor parent) {
-    return parent.begin();
-}
-
-template <typename Cursor> 
-inline typename Cursor::linear_type linear_end(Cursor parent) {
-    return parent.end();
+inline typename Cursor::linear_type to_linear(Cursor c) {
+    return c;
 }
 
 // recursive copy all children
