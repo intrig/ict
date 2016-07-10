@@ -140,8 +140,7 @@ inline std::string line_join(const std::vector<std::string> & v) {
 
 
 // if the delimiter occurs twice, then it is not a delimeter, it is a single char
-inline std::vector<std::string> escape_split(const std::string & source, char del)
-{
+inline std::vector<std::string> escape_split(const std::string & source, char del) {
     enum State { 
         ReadingName,
         FoundDelimiterOrEsc,
