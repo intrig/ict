@@ -684,17 +684,17 @@ inline void verify(const multivector<T> & tree) {
 }
 
 // convert to a compact string 
-template <typename T> 
-inline std::string compact_string(T parent) {
+template <typename Cursor> 
+inline std::string compact_string(Cursor parent) {
     std::ostringstream ss;
     recurse(parent, 
-        [&](T self, T parent, int) {
+        [&](Cursor self, Cursor parent, int) {
             ss << *self;
             if (!self.empty()) ss << " {";
             else if (self != --parent.end()) ss << ' ';
         }, 
 
-        [&](T self, T, int) {
+        [&](Cursor self, Cursor, int) {
             if (!self.empty()) ss << "} ";
     });
 
@@ -711,26 +711,26 @@ inline std::string compact_string(const multivector<T> & tree) {
 }
 
 // convert to a table string
-template <typename T>
-inline std::string cursor_to_text(T parent) {
+template <typename Cursor>
+inline std::string to_text(Cursor parent) {
     std::ostringstream ss;
     recurse(parent, 
-        [&](T self, T, int level) {
+        [&](Cursor self, Cursor, int level) {
             ss << ict::spaces(level * 2) << *self << '\n';
         },
 
-        [&](T, T, int) { } // nothing to do on the way up
+        [&](Cursor, Cursor, int) { } // nothing to do on the way up
     );
     return ss.str();
 }
 
 template <typename T>
-std::string to_text(const multivector<T> & tree) {
-    return ict::cursor_to_text(tree.root());
+inline std::string to_text(const multivector<T> & tree) {
+    return ict::to_text(tree.root());
 }
 
 template <typename T>
-std::string to_debug_text(const multivector<T> & tree) {
+inline std::string to_debug_text(const multivector<T> & tree) {
     typedef typename multivector<T>::const_cursor cursor_type;
     std::ostringstream ss;
     auto r = tree.root();
