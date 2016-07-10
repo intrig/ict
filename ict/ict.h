@@ -48,14 +48,6 @@ std::string to_string(const T & value)
 #endif
 }
 
-// TODO: untested and unused
-inline void remove_consecutive(std::string & s, char ch) {
-    auto new_end = std::unique(s.begin(), s.end(), 
-        [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); });
-    s.erase(new_end, s.end());   
-}
-
-
 // split on a single character
 template <typename T>
 inline std::vector<std::string> split(const T & source, char c) {

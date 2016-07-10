@@ -75,7 +75,7 @@ void size_one_test(const ict::multivector<int> & x) {
     IT_ASSERT(x.size() == 1);
     IT_ASSERT(!x.root().empty());
     IT_ASSERT(x.root().size() == 1);
-    IT_ASSERT(*x.root()[0] == 42);
+    IT_ASSERT(x.root()[0] == 42);
     IT_ASSERT(*x.root().begin() == 42);
     IT_ASSERT(x.root().begin().empty());
 }
@@ -130,12 +130,12 @@ void size_two_test(std::string m, ict::multivector<int> & x) {
     IT_ASSERT_MSG(m, !x.root().empty());
     IT_ASSERT_MSG(m, x.root().size() == 1);
     IT_ASSERT_MSG(m, x.root().begin().size() == 1);
-    IT_ASSERT_MSG(m, *x.root()[0] == 42);
-    IT_ASSERT_MSG(m, *x.root().begin()[0] == 43);
-    IT_ASSERT_MSG(m, *x.root()[0][0] == 43);
+    IT_ASSERT_MSG(m, x.root()[0] == 42);
+    IT_ASSERT_MSG(m, x.root().begin()[0] == 43);
+    IT_ASSERT_MSG(m, x.root().begin()[0] == 43);
     IT_ASSERT_MSG(m, !x.root().begin().empty());
     IT_ASSERT_MSG(m, x.root().begin().begin().empty());
-    IT_ASSERT_MSG(m, x.root()[0][0].empty());
+    IT_ASSERT_MSG(m, x.root().begin().begin().empty());
 }
 
 void multivector_unit::size_two() {
@@ -228,7 +228,7 @@ void multivector_unit::complicated() {
     IT_ASSERT_MSG(x, x ==
     "3 {2 {1 {0}}} 3 {2 {1 {0}}} 3 {2 {1 {0}}} 33 {34 {35}} 1 {4 {0 1} 5 {0 1} 6 {0 1}} 2 {7 {0 1} 8 {0 1} 9 {0 1}} 3 {10 {0 1} 11 {0 1} 12 {0 1}}");
 
-    *c.root()[0] = 1;
+    c.root()[0] = 1;
 
     x = ict::compact_string(c);
     IT_ASSERT_MSG(x, x ==
@@ -502,8 +502,8 @@ void multivector_unit::moving() {
 template <typename T>
 void compare_linear(const ict::multivector<T> & a, const std::vector<T> b) {
     typedef typename ict::multivector<T>::const_linear_cursor linear_type;
-    auto first = ict::linear_begin(a.root());
-    auto last = ict::linear_end(a.root());
+    auto first = ict::to_linear(a.begin());
+    auto last = ict::to_linear(a.end());
     IT_ASSERT(std::equal(first, last, b.begin()));
 }
 
@@ -561,7 +561,7 @@ void multivector_unit::promote() {
 
 void multivector_unit::ascending() {
     auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
-    auto last = ict::ascending_begin(m.root()); // points to 5
+    auto last = ict::to_ascending(--m.end()); 
     IT_ASSERT_MSG(*last, *last == 4);
     std::ostringstream os;
     while (!last.is_root()) {
@@ -576,9 +576,16 @@ void multivector_unit::ascending() {
 void multivector_unit::ascending2() {
     std::ostringstream os;
     auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
-    auto last = ict::ascending_begin(m.root()[0][0]);
+    
+    auto n = m.root().begin().begin().end();                // n points to one past 102
+    --n;                                                    // n points to 102
+    IT_ASSERT_MSG(*n, *n == 102);
+    auto last = ict::multivector<int>::ascending_cursor(n); // convert to an ascending cursor
     // last points to 102
     IT_ASSERT_MSG(*last, *last == 102);
+    auto x = ict::to_ascending(--m.begin().begin().end());
+    IT_ASSERT(*x == 102);
+    IT_ASSERT(last == x);
     while (!last.is_root()) {
         os << *last << ' ';
         ++last;

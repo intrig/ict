@@ -108,7 +108,7 @@ struct cursor_base : public std::iterator<std::bidirectional_iterator_tag, Value
         return *this;
     }
 
-    cursor_base operator[](difference_type i) const { return begin() + i; }
+    reference operator[](difference_type i) const { return *(begin() + i); }
     friend cursor_base operator-(cursor_base x, difference_type i) { return x + (-i); }
     friend difference_type operator-(cursor_base& x, cursor_base& y) { return x.it_ - y.it_; }
 
@@ -346,7 +346,7 @@ struct item {
     friend bool operator==(const item & a, const item & b) {
         return (a.value == b.value) && (a.nodes_ == b.nodes_);
     }
-       
+
     // not equality
     friend bool operator!=(const item & a, const item & b) {
         return !(a == b);
@@ -655,10 +655,10 @@ void verify(T parent) {
         size_t count = 0;
         if (self.empty() && self.size() != 0) std::runtime_error("empty cursor has non-zero size");
         if (!self.empty()) {
-            if (self[0].it_->parent == 0) std::runtime_error("parent set to 0");
-            if (self[0].it_->parent != &(self.item_ref())) {
+            if (self.begin().it_->parent == 0) std::runtime_error("parent set to 0");
+            if (self.begin().it_->parent != &(self.item_ref())) {
                 std::ostringstream os;
-                os << "incorrect first child " << self[0].it_->parent << ", " << &(*self);
+                os << "incorrect first child " << self.begin().it_->parent << ", " << &(*self);
                 std::runtime_error(os.str());
             }
 
@@ -684,17 +684,17 @@ inline void verify(const multivector<T> & tree) {
 }
 
 // convert to a compact string 
-template <typename T> 
-inline std::string compact_string(T parent) {
+template <typename Cursor> 
+inline std::string compact_string(Cursor parent) {
     std::ostringstream ss;
     recurse(parent, 
-        [&](T self, T parent, int) {
+        [&](Cursor self, Cursor parent, int) {
             ss << *self;
             if (!self.empty()) ss << " {";
             else if (self != --parent.end()) ss << ' ';
         }, 
 
-        [&](T self, T, int) {
+        [&](Cursor self, Cursor, int) {
             if (!self.empty()) ss << "} ";
     });
 
@@ -711,26 +711,26 @@ inline std::string compact_string(const multivector<T> & tree) {
 }
 
 // convert to a table string
-template <typename T>
-inline std::string cursor_to_text(T parent) {
+template <typename Cursor>
+inline std::string to_text(Cursor parent) {
     std::ostringstream ss;
     recurse(parent, 
-        [&](T self, T, int level) {
+        [&](Cursor self, Cursor, int level) {
             ss << ict::spaces(level * 2) << *self << '\n';
         },
 
-        [&](T, T, int) { } // nothing to do on the way up
+        [&](Cursor, Cursor, int) { } // nothing to do on the way up
     );
     return ss.str();
 }
 
 template <typename T>
-std::string to_text(const multivector<T> & tree) {
-    return ict::cursor_to_text(tree.root());
+inline std::string to_text(const multivector<T> & tree) {
+    return ict::to_text(tree.root());
 }
 
 template <typename T>
-std::string to_debug_text(const multivector<T> & tree) {
+inline std::string to_debug_text(const multivector<T> & tree) {
     typedef typename multivector<T>::const_cursor cursor_type;
     std::ostringstream ss;
     auto r = tree.root();
@@ -959,19 +959,14 @@ inline void promote_last(Cursor parent) {
     parent.promote_last();
 }
 
-template <typename Cursor> 
-inline typename Cursor::ascending_cursor_type ascending_begin(Cursor parent) {
-    return --parent.end();
+template <typename Cursor>
+inline typename Cursor::ascending_cursor_type to_ascending(Cursor c) {
+    return c;
 }
 
 template <typename Cursor> 
-inline typename Cursor::linear_type linear_begin(Cursor parent) {
-    return parent.begin();
-}
-
-template <typename Cursor> 
-inline typename Cursor::linear_type linear_end(Cursor parent) {
-    return parent.end();
+inline typename Cursor::linear_type to_linear(Cursor c) {
+    return c;
 }
 
 // recursive copy all children
