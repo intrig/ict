@@ -1,5 +1,5 @@
 #pragma once
-//-- Copyright 2015 Intrig
+//-- Copyright 2016 Intrig
 //-- see https://github.com/intrig/xenon for license
 
 #include <ict/ict.h>
