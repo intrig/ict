@@ -15,8 +15,6 @@ class multivector_unit
         ut.add(&multivector_unit::iterators);
         ut.add(&multivector_unit::non_pod);
         ut.add(&multivector_unit::initializer_list);
-        ut.add(&multivector_unit::find_find_find);
-        ut.add(&multivector_unit::find_if);
         ut.add(&multivector_unit::totally_ordered);
         ut.add(&multivector_unit::moving);
         ut.add(&multivector_unit::linear);
@@ -34,8 +32,6 @@ class multivector_unit
     void iterators();
     void non_pod();
     void initializer_list();
-    void find_find_find();
-    void find_if();
     void totally_ordered();
     void moving();
     void linear();
