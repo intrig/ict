@@ -609,7 +609,7 @@ inline std::ostringstream & operator<<(std::ostringstream & ss, typename item<T>
     return ss;
 }
 
-// multivector algorithms
+// multivector functions
 
 // return the root cursor of a multivector given a cursor
 template <typename Cursor>

@@ -160,13 +160,6 @@ void multivector_unit::size_two() {
     IT_ASSERT(b == c);
 
 
-#if 0
-    // now let's mutuate one
-    b.root()[0] == 33;
-
-    IT_ASSERT(b.root()[0] == 33);
-    IT_ASSERT(b.root().begin().begin()[0] == 42);
-#endif
 }
 
 template <typename T>
@@ -353,124 +346,6 @@ void multivector_unit::initializer_list() {
    IT_ASSERT(ict::compact_string(tree2) == "1 2 {0 {4 5 6 {7 8 9}}} 5 {7} 3");
 }
 
-#if 0
-template <typename Cursor>
-Cursor test_path(Cursor parent, const std::string & path_string, const std::string & result) {
-    auto p = ict::path(path_string);
-    //IT_WARN("testing " << path_string << " : " << p);
-    auto i = ict::find(parent, p);
-    //auto i = ict::xfind(parent, p, [](const std::string & a, const std::string & b){ return a == b; });
-    if (result.empty()) {
-        IT_ASSERT_MSG(p << " not expected to be found starting at " << *parent, i == parent.end());
-    } else {
-        IT_ASSERT_MSG(p << " expected to be found starting at " << *parent, i != parent.end());
-        IT_ASSERT(*i == result);
-    }
-    return i;
-}
-
-template <typename Cursor>
-Cursor test_rpath(Cursor first, const std::string & path_string, const std::string & result) {
-    auto p = ict::path(path_string);
-    auto i = ict::rfind(first, p);
-    if (result.empty()) {
-        IT_ASSERT_MSG("\"" << *i <<"\" not expected to be found starting at " << *first << " with path " << p, i.is_root());
-    } else {
-        IT_ASSERT_MSG(p << " expected to be found starting at " << *first, !i.is_root());
-        IT_ASSERT(*i == result);
-    }
-    return i;
-}
-
-void multivector_unit::find_find_find() {
-    {
-        auto tree = ict::multivector<std::string> { "one", "two", { "four", "five" }, "three" };
-        //IT_WARN('\n' << ict::to_text(tree));
-        auto i = ict::find(tree.root(), "two/four");
-        IT_ASSERT(i != tree.root().end());
-        IT_ASSERT(*i == "four");
-        i = ict::find(tree.root(), "two/five");
-        IT_ASSERT(i != tree.root().end());
-        IT_ASSERT(*i == "five");
-        i = ict::find(tree.root(), "six");
-        IT_ASSERT_MSG(*i, i == tree.root().end());
-        i = ict::find(tree.root(), "two/six");
-        IT_ASSERT_MSG(*i, i == tree.root().end());
-        i = ict::find(tree.root(), "two/three");
-        IT_ASSERT_MSG(*i, i == tree.root().end());
-    }    
-    {
-        auto tree = ict::multivector<std::string> 
-        { "one", 
-          "two", 
-          { "four", 
-            "five", 
-            { "one", 
-              "two", 
-              { "six", 
-                "seven" 
-              }, 
-              "three" 
-            }
-          }, 
-          "three" 
-        };
-
-        //IT_WARN('\n' << ict::to_text(tree));
-        test_path(tree.root(), "two", "two");
-        test_path(tree.root(), "two/four", "four");
-        test_path(tree.root(), "two/four", "four");
-        test_path(tree.root(), "two/six", "");
-        test_path(tree.root(), "two/four/one", "");
-        test_path(tree.root(), "two/five/one", "one");
-        test_path(tree.root(), "two/five/two", "two");
-        auto c = test_path(tree.root(), "two/five/two/seven", "seven");
-        auto r = ict::get_root(c);
-        IT_ASSERT(r.is_root());
-        test_rpath(c, "five", "five");
-        test_rpath(c, "five/one", "one");
-        test_rpath(c, "five/six", "");
-        test_rpath(c, "two/four", "four");
-
-        test_path(tree.root(), "two/five/two/seven/three", "");
-
-    }
-}
-
-void multivector_unit::find_if() {
-    auto tree = ict::multivector<std::string> 
-    { "one", 
-      "two", 
-      { "four", 
-        "five", 
-        { "one", 
-          "two", 
-          "wow", 
-          { "six", 
-            "seven" 
-          }, 
-          "three" 
-        }
-      }, 
-      "three" 
-    };
-    auto c = ict::find(tree.root(), "three");
-    IT_ASSERT(c != tree.root().end());
-    IT_ASSERT(*c == "three");
-
-    c = ict::find(tree.root(), "two/five");
-    IT_ASSERT(c != tree.root().end());
-    IT_ASSERT(*c == "five");
-
-    c = ict::find(tree.root(), "two/five/wow");
-    IT_ASSERT(c != tree.root().end());
-    IT_ASSERT(*c == "wow");
-
-    c = ict::find(tree.root(), "two/five/wow/seven");
-    IT_ASSERT(c != tree.root().end());
-    IT_ASSERT(*c == "seven");
-}
-#endif
 void multivector_unit::totally_ordered() {
     auto a = ict::multivector<std::string>{ "a" };
     auto b = ict::multivector<std::string>{ "b" };
@@ -488,14 +363,6 @@ void multivector_unit::totally_ordered() {
     auto a3 = ict::multivector<std::string>{ "a", { "b", "c", "d", { "e", "f", "g" } } };
     auto a4 = ict::multivector<std::string>{ "a", { "b", "c", "d", { "e", "f", "g" } } };
     IT_ASSERT(a3 == a4);
-#if 0
-    auto i = ict::find(a4.root(), "a/d/g");
-    IT_ASSERT(i != a4.root().end());
-    IT_ASSERT(*i == "g");
-    *i = "h";
-    IT_ASSERT(a3 != a4);
-    IT_ASSERT(a3 < a4);
-#endif
 }
 
 void multivector_unit::moving() {
