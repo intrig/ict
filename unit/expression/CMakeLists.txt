@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+add_executable(expression expressionunit.cpp)
+add_definitions(-std=c++11)
+include_directories(../..)
+enable_testing()
+add_test(expression expression)

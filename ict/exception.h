@@ -1,6 +1,11 @@
 #pragma once
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
+
+inline std::runtime_error create_exception(const std::string & desc)  {
+    return std::runtime_error(desc); 
+}
 
 #ifdef ANDROID
 #include <android/log.h>
@@ -48,14 +53,14 @@ do { \
 
 namespace ict {
 
-class exception {
+class xml_exception : public std::exception {
     public:
-    exception(const std::string & desc, const char *src_file = "", int src_line = 0, 
+    xml_exception(const std::string & desc, const char *src_file = "", int src_line = 0, 
         const char * xml_file = "", int xml_line = 0, int xml_column = -1) :
         desc(desc), src_file(src_file), src_line(src_line), xml_file(xml_file), xml_line(xml_line), 
         xml_column(xml_column) {}
 
-    const char * what() const {
+    const char * what() const noexcept {
         std::ostringstream s;
         if (!src_file.empty()) s << "[" << src_file << ":" << src_line << "] ";
         s << desc;
@@ -68,6 +73,7 @@ class exception {
         return what_.c_str();
     }
 
+
     std::string desc;
     std::string src_file;
     int src_line;
@@ -75,7 +81,38 @@ class exception {
     int xml_line;
     int xml_column;
 
+    mutable std::string what_;
+};
+
+class exception : public std::exception {
+    public:
+    exception(const std::string & desc, const char *src_file = "", int src_line = 0, 
+        const char * xml_file = "", int xml_line = 0, int xml_column = -1) :
+        desc(desc), src_file(src_file), src_line(src_line), xml_file(xml_file), xml_line(xml_line), 
+        xml_column(xml_column) {}
+
+    const char * what() const noexcept {
+        std::ostringstream s;
+        if (!src_file.empty()) s << "[" << src_file << ":" << src_line << "] ";
+        s << desc;
+        if (!xml_file.empty()) {
+            s << " in [" << xml_file << ":" << xml_line;
+            if (xml_column != -1) s << ":" << xml_column;
+            s << "]";
+        }
+        what_ = s.str().c_str();
+        return what_.c_str();
+    }
+
+
     private:
+    std::string desc;
+    std::string src_file;
+    int src_line;
+    std::string xml_file;
+    int xml_line;
+    int xml_column;
+
     mutable std::string what_;
 };
 }

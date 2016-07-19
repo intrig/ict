@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 add_subdirectory(multivector)
 add_subdirectory(bitstring)
+add_subdirectory(string64)
+add_subdirectory(expression)
 enable_testing()
