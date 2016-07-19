@@ -3,8 +3,15 @@
 #include <iostream>
 #include <stdexcept>
 
+namespace ict {
 inline std::runtime_error create_exception(const std::string & desc)  {
     return std::runtime_error(desc); 
+}
+inline std::runtime_error create_exception(const std::string & desc, const char * file, int line)  {
+    std::ostringstream os;
+    os << '[' << file << ':' << line << "] " << desc;
+    return std::runtime_error(os.str()); 
+}
 }
 
 #ifdef ANDROID
@@ -23,33 +30,19 @@ do { \
 } while (0)
 #endif
 
-#define IT_THROW(desc) \
+#define IT_FATAL(desc) \
 do { \
     std::ostringstream os; \
     os << desc; \
-    throw ict::exception(os.str().c_str()); \
+    throw ict::create_exception(os.str()); \
 } while (0)
 
-#define IT_PANIC(desc, ...) \
+#define IT_PANIC(desc) \
 do { \
     std::ostringstream os; \
     os << desc; \
-    throw ict::exception(os.str(), __FILE__, __LINE__, ##__VA_ARGS__ ); \
+    throw ict::create_exception(os.str(), __FILE__, __LINE__); \
 } while (0)
-
-#ifndef IT_ASSERT
-#define IT_ASSERT(condition) \
-    do { \
-    if (!(condition)) IT_PANIC(#condition); \
-    } while (0)
-#endif
-
-#ifndef IT_ASSERT_MSG
-#define IT_ASSERT_MSG(desc, condition) \
-    do { \
-    if (!(condition)) IT_PANIC(desc <<": " << #condition); \
-    } while (0)
-#endif
 
 namespace ict {
 
@@ -84,6 +77,7 @@ class xml_exception : public std::exception {
     mutable std::string what_;
 };
 
+#if 1
 class exception : public std::exception {
     public:
     exception(const std::string & desc, const char *src_file = "", int src_line = 0, 
@@ -115,4 +109,5 @@ class exception : public std::exception {
 
     mutable std::string what_;
 };
+#endif
 }

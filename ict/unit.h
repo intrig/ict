@@ -139,7 +139,7 @@ class unit_test {
 
                     if (!e.warn) return 1;
                 } 
-                catch (ict::exception & e) {
+                catch (std::exception & e) {
                     std::cerr << "\n The unit test framework caught an unexpected exception: " << e.what() << '\n';
                     return 1;
                 }

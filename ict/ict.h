@@ -215,10 +215,10 @@ inline const char * spaces(int spaces)
 inline void make_dir(std::string const & path)
 {
 #if defined(_MSC_VER)
-    if (_mkdir(path.c_str()) == ENOENT) IT_THROW("path not found " << path);
+    if (_mkdir(path.c_str()) == ENOENT) IT_PANIC("path not found " << path);
 #else
     int ret = mkdir(path.c_str(), S_IRWXU| S_IRGRP| S_IWGRP| S_IROTH| S_IWOTH);
-    if (!ret && ret != EEXIST) IT_THROW("cannot create directory " << path);
+    if (!ret && ret != EEXIST) IT_PANIC("cannot create directory " << path);
 #endif
 
 }
@@ -463,14 +463,14 @@ inline std::vector<char> read_stream(std::istream & in) {
 template <typename T>
 inline std::vector<char> read_file(const T & filename) {
     int sz = file_size(filename);
-    if (sz == -1) IT_THROW("cannot stat " << filename);
+    if (sz == -1) IT_PANIC("cannot stat " << filename);
 
     std::ifstream file(filename.c_str(), std::ios::binary);
-    if (!file.good()) IT_THROW("cannot open " << filename);
+    if (!file.good()) IT_PANIC("cannot open " << filename);
     std::vector<char> contents(sz);
     file.read((char *) contents.data(), sz);
 
-    if (file.gcount() != sz) IT_THROW("read " <<file.gcount() << " bytes, expected " << sz);
+    if (file.gcount() != sz) IT_PANIC("read " <<file.gcount() << " bytes, expected " << sz);
 
     return contents;
 }
@@ -482,7 +482,7 @@ inline std::vector<char> read_file(const char * filename) {
 template <typename T>
 inline void write_file(T first, T last, const std::string & name) {
     std::ofstream s(name, std::ios::out | std::ios::binary);
-    if (!s) IT_THROW("Can't open file \"" << name << "\" for writing.");
+    if (!s) IT_PANIC("Can't open file \"" << name << "\" for writing.");
     s.write(&(*first), last - first);
 }
 
@@ -612,7 +612,7 @@ inline bool bit_is_set(unsigned char byte, int bit_index) {
         case 6: return (byte & 0x02) != 0;
         case 7: return (byte & 0x01) != 0;
     }
-    IT_THROW("invalid bit index for byte: " << bit_index);
+    IT_PANIC("invalid bit index for byte: " << bit_index);
 }
 
 template <typename T> 
