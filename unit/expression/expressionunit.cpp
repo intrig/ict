@@ -160,7 +160,7 @@ void expr_unit::expr_sanity() {
             ict::expr_type<int64_t> e(i.expr, compile_context);
             auto r = e.value(runtime_context);
             IT_ASSERT_MSG(i.expr << " == " << r, r == i.result);
-        } catch (ict::exception & e) {
+        } catch (std::exception & e) {
             IT_FORCE_ASSERT(e.what() << " in \"" << i.expr << "\"");
         }
     }
@@ -189,7 +189,7 @@ void expr_unit::expr_fail() {
             e.value(runtime_context);
             // should be here if it was flagged as pass.
             if (i.fail == true) IT_FORCE_ASSERT(i.expr << " should have failed");
-        } catch (ict::exception & e) {
+        } catch (std::exception & e) {
             // should be here if it was flagged as fail.
             if (i.fail == false) IT_FORCE_ASSERT(e.what() << " in \"" << i.expr << "\"");
         }

@@ -297,28 +297,6 @@ void constmultivector(const ict::multivector<int> & tree) {
         std::cout << *first << "\n";
         ++first;
     }
-
-#if 0
-    std::cout << "\nprint tree using reverse const_cursor for top level nodes\n";
-    auto r= tree.root();
-    auto rb = r.rbegin();
-    print_reverse_cursor(rb);
-
-    std::cout << "\nagain, using rend()\n";
-    {
-        auto first = tree.root().rbegin();
-        auto last = tree.root().rend();
-        while (first != last) {
-            std::cout << *first << "\n";
-            ++first;
-        }
-    }
-#endif
-#if 0
-    std::cout << "\nprint tree using reverse const_cursor starting at [5][7].rbegin()\n";
-    print_reverse_cursor(tree[5][7].rbegin());
-#endif
-
 }
 
 void constness() {
@@ -347,7 +325,7 @@ int main(int argc, char **argv) {
         } ));
 
         line.parse(argc, argv);
-    } catch (ict::exception & e) {
+    } catch (std::exception & e) {
         std::cerr << e.what() << std::endl;
     }
 }

@@ -66,7 +66,7 @@ void string64_unit::string64() {
 
         try {
             a = "way to long";
-        } catch (ict::exception & e) {
+        } catch (std::exception & e) {
             IT_ASSERT(std::string(e.what()).find("way to long is to long for a string64") == std::string::npos);
         }
     }
