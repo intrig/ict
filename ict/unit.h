@@ -70,15 +70,12 @@ inline Platform hostPlatform()
 
 namespace ict {
 
-class unit_error : public std::logic_error
-{
-    public :
-
-    unit_error(const std::string & what, const char *file, int line,
-        bool warn = false) : std::logic_error(what), srcFile(file), srcLine(line), warn(warn) {}
-    virtual ~unit_error() throw() { }
-    std::string srcFile;
-    int srcLine;
+struct unit_error {
+    unit_error(const std::string & desc, const char *file, int line,
+        bool warn = false) : desc(desc), file(file), line(line), warn(warn) {}
+    std::string desc;
+    std::string file;
+    int line;
     bool warn;
 };
 
@@ -131,11 +128,11 @@ class unit_test {
 
                     }
                 } catch (unit_error & e) {
-                    std::cerr << std::endl << e.srcFile << ":" << 
-                        e.srcLine << ": ";
+                    std::cerr << std::endl << e.file << ":" << 
+                        e.line << ": ";
                     if (e.warn) std::cerr << "warning: ";
                     else std::cerr << "error: ";
-                    std::cerr << e.what() << std::endl;
+                    std::cerr << e.desc << std::endl;
 
                     if (!e.warn) return 1;
                 } 
