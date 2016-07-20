@@ -25,9 +25,7 @@ do { \
     os << ict::create_exception(os.str(), __FILE__, __LINE__).what() << '\n'; \
     __android_log_print(ANDROID_LOG_VERBOSE, "xenon", os.str().c_str()); \
 } while (0)
-
 #else
-
 #define IT_WARN(s) \
 do { \
     std::ostringstream os; \
