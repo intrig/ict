@@ -17,7 +17,7 @@ inline std::runtime_error create_exception(const std::string & desc, const char 
 }
 }
 
-// Print to stderr a description with source file and line number.  Or log on ANDROID platforms.
+// Print to std::cerr a description with source file and line number.  Or log on ANDROID platforms.
 #ifdef ANDROID
 #define IT_WARN(s) \
 do { \
