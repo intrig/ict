@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <cassert>
 
-#include <ict/ict.h>
+#include "ict.h"
 
 namespace ict {
 

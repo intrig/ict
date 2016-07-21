@@ -68,15 +68,6 @@ template <class T> class netvar {
     /** Conversion */
     void encode(T number) { *this = number; }
 
-#if 0
-    static T swap(T number) {
-        T value;
-        auto first = (char *) &number;
-        std::reverse_copy(first, first + sizeof(T), (char *) &value);
-        return value;
-    }
-#endif
-
     std::array<unsigned char, sizeof(T)> data;
 };
 } // namespace

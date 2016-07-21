@@ -1,6 +1,6 @@
 #include "bitstringunit.h"
 
-#include <ict/bitstring.h>
+#include <bitstring.h>
 
 #include <vector>
 #include <algorithm>

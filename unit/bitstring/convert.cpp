@@ -1,7 +1,7 @@
 #include "bitstringunit.h"
 
-#include <ict/bitstring.h>
-#include <ict/netvar.h>
+#include "bitstring.h"
+#include "netvar.h"
 
 #include <stdio.h>
 #include <cstdint>

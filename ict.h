@@ -19,9 +19,10 @@
 #include <sstream>
 #include <time.h>
 #include <chrono>
-#include <ict/netvar.h>
-#include <ict/exception.h>
 #include <bitset>
+
+#include "netvar.h"
+#include "exception.h"
 
 #ifdef _MSC_VER
 

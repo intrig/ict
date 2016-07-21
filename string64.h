@@ -5,7 +5,7 @@
 #include <cstring>
 #include <map>
 #include <iostream>
-#include <ict/ict.h>
+#include "ict.h"
 
 namespace ict {
 class string64 {

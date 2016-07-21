@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 add_executable(multivector multivectorunit.cpp)
 add_definitions(-std=c++11)
-include_directories(../..)
+include_directories(${CMAKE_SOURCE_DIR})
 enable_testing()
 add_test(multivector multivector)

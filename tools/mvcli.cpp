@@ -4,11 +4,10 @@
 #include <iostream>
 #include <fstream>
 #include <assert.h>
-
-#include <ict/multivector.h>
-
-#include <ict/command.h>
 #include <string>
+
+#include <multivector.h>
+#include <command.h>
 
 template <typename T>
 void add_recursive(T x, unsigned int n) {

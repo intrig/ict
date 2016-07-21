@@ -1,7 +1,7 @@
 #pragma once
 //-- Copyright 2015 Intrig
 //-- see https://github.com/intrig/xenon for license
-#include <ict/exception.h>
+#include "exception.h"
 
 #include <algorithm>
 #include <functional>

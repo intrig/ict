@@ -1,7 +1,7 @@
 #include "multivectorunit.h"
 
-#include <ict/multivector.h>
-#include <ict/bitstring.h>
+#include <multivector.h>
+#include <bitstring.h>
 
 void multivector_unit::empty_multivectors() {
     // default constructor

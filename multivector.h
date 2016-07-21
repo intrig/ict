@@ -2,7 +2,7 @@
 //-- Copyright 2016 Intrig
 //-- see https://github.com/intrig/xenon for license
 
-#include <ict/ict.h>
+#include "ict.h"
 #include <sstream>
 #include <exception>
 #include <vector>

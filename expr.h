@@ -9,8 +9,8 @@
 #include <functional>
 #include <cmath>
 
-#include <ict/exception.h>
-#include <ict/bitstring.h>
+#include "exception.h"
+#include "bitstring.h"
 
 namespace ict {
 

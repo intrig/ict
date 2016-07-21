@@ -26,7 +26,7 @@ and integers.  Corresponding input and output streams for bits are provided with
 `ict::obitstream`.  This enables you to easily dissect or catenate bitstrings without being concerned with byte
 alignment.
 
-**[ict::bitstring reference](bitstring.md)**
+**[ict::bitstring reference](docs/bitstring.md)**
 
 ## ict::multivector
 
@@ -34,7 +34,7 @@ A `multivector` is a generic container that behaves just like a `std::vector` ex
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 heirarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
-**[ict::multivector reference](multivector.md)**
+**[ict::multivector reference](docs/multivector.md)**
 
 ## Building unit tests
 
