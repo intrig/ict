@@ -1,3 +1,5 @@
+//-- Copyright 2016 Intrig
+//-- See https://github.com/intrig/ict for license.
 #include "multivectorunit.h"
 
 #include <multivector.h>

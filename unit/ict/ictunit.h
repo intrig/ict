@@ -1,4 +1,6 @@
 #pragma once
+//-- Copyright 2016 Intrig
+//-- See https://github.com/intrig/ict for license.
 #include <ict/unit.h>
 
 class ict_unit 

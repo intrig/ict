@@ -1,5 +1,5 @@
-//-- Copyright 2015 Intrig
-//-- See https://github.com/intrig/xenon for license.
+//-- Copyright 2016 Intrig
+//-- See https://github.com/intrig/ict for license.
 #include "iexprunit.h"
 
 #include <expr.h>

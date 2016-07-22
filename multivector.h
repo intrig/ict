@@ -1,6 +1,6 @@
 #pragma once
 //-- Copyright 2016 Intrig
-//-- see https://github.com/intrig/xenon for license
+//-- See https://github.com/intrig/ict for license.
 
 #include "ict.h"
 #include <sstream>

@@ -1,3 +1,5 @@
+//-- Copyright 2016 Intrig
+//-- See https://github.com/intrig/ict for license.
 #include "bitstringunit.h"
 
 #include <bitstring.h>

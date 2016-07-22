@@ -1,3 +1,5 @@
+//-- Copyright 2016 Intrig
+//-- See https://github.com/intrig/ict for license.
 #include "ictunit.h"
 
 void ict_unit::sanity()
