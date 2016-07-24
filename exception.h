@@ -24,15 +24,17 @@ inline std::runtime_error create_exception(const std::string & desc, const char 
 #define IT_WARN(s) \
 do { \
     std::ostringstream os; \
-    os << ict::create_exception(os.str(), __FILE__, __LINE__).what() << '\n'; \
-    __android_log_print(ANDROID_LOG_VERBOSE, "xenon", os.str().c_str()); \
+    os << s; \
+    auto e = ict::create_exception(os.str(), __FILE__, __LINE__); \
+    __android_log_print(ANDROID_LOG_VERBOSE, "xenon", e..what()); \
 } while (0)
 #else
 #define IT_WARN(s) \
 do { \
     std::ostringstream os; \
-    os << ict::create_exception(os.str(), __FILE__, __LINE__).what() << '\n'; \
-    std::cerr << os.str(); \
+    os << s; \
+    auto e = ict::create_exception(os.str(), __FILE__, __LINE__); \
+    std::cerr << e.what() << '\n'; \
 } while (0)
 #endif
 
