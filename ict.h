@@ -45,6 +45,7 @@ inline osstream & operator<<(osstream &os, char x) {
     os.x += x;
     return os;
 }
+
 inline osstream & operator<<(osstream &os, const std::string & x) {
     os.x += x;
     return os;
@@ -56,6 +57,11 @@ inline osstream & operator<<(osstream &os, const char * x) {
 }
 
 inline osstream & operator<<(osstream &os, int x) {
+    os.x += std::to_string(x);
+    return os;
+}
+
+inline osstream & operator<<(osstream &os, unsigned long int x) {
     os.x += std::to_string(x);
     return os;
 }
