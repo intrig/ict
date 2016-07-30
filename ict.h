@@ -36,6 +36,17 @@
 
 namespace ict {
 
+struct osstream {
+    std::string x;
+    std::string str() { return x; }
+};
+
+template <typename T>
+inline osstream & operator<<(osstream &os, T & x) {
+    os.x += x;
+    return os;
+}
+
 template <typename T>
 std::string to_string(const T & value)
 {
@@ -180,7 +191,7 @@ inline void join(Stream & os, I first, I last, const std::string & del) {
 
 template <typename I>
 inline std::string join(I first, I last, const std::string & del) {
-    std::ostringstream os;
+    ict::osstream os;
     join(os, first, last, del);
     return os.str();
 }
@@ -379,7 +390,7 @@ inline S & squash(S & value)
     value.erase(std::remove_if(value.begin(), value.end(), std::isspace), value.end());
 
 #else // but this does
-    std::ostringstream t;
+    ict::osstream t;
     for (auto c : value) if (!isspace(c)) t << c;
     value = t.str();
 
@@ -402,7 +413,7 @@ inline T & xmlize(T & value)
 {
     if (value.empty()) return value;
 
-    std::ostringstream d;
+    ict::osstream d;
     for (auto & cs : value)
     {
         switch (cs)
@@ -520,11 +531,11 @@ struct url {
 
     url(const char * x) : url(std::string(x)) {}
 
-    void str(std::ostream &os) const { 
+    void str(osstream &os) const { 
         os << path << file << anchor;
     }
     std::string str() const { 
-        std::ostringstream os;
+        ict::osstream os;
         str(os);
         return os.str();
     }
@@ -553,7 +564,7 @@ inline std::ostream & operator<<(std::ostream &os, const url & x) {
 
 // create an absolute url from a base file and a relative one
 inline url relative_url(url const & base, url const & x) {
-    std::ostringstream os;
+    ict::osstream os;
     os << base.path << x.path;
     url result;
     result.path = os.str();

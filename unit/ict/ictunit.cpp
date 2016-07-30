@@ -93,31 +93,20 @@ void ict_unit::relative_url() {
     }
 }
 
-class Foo {
-    public:
-    Foo() {
-        //IT_WARN("constructing Foo");
-    }
+void ict_unit::osstream() {
+    ict::osstream os;
+    std::ostringstream sos;
+    auto words = std::vector<std::string> { "zymosan", "zymosans", "zymoscope", "zymoses", "zymosimeter",
+        "zymosis", "zymosterol", "zymosthenic", "zymotechnic", "zymotechnical", "zymotechnics",
+        "zymotechny", "zymotic", "zymotically", "zymotize", "zymotoxic", "zymurgies",
+        "zymurgy", "zythem", "zythum", "zyzzyva", "zyzzyvas" };
 
-    ~Foo() { 
-        //IT_WARN("destroying Foo");
+    for (auto & i : words) {
+        os << i;
+        sos << i;
     }
-
-    Foo(const Foo &x) {
-        i = x.i;
-    }
-
-    Foo& operator=(const Foo&x) {
-        i = x.i;
-        return *this;
-    }
-
-    bool operator==(const Foo&x)  {
-        return i == x.i;
-    }
-
-    int i = 0;
-};
+    IT_ASSERT(os.str() == sos.str());
+}
 
 int main (int, char **)
 {

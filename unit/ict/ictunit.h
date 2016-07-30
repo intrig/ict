@@ -1,7 +1,7 @@
 #pragma once
 //-- Copyright 2016 Intrig
 //-- See https://github.com/intrig/ict for license.
-#include <ict/unit.h>
+#include <unit.h>
 
 class ict_unit 
 {
@@ -12,17 +12,19 @@ class ict_unit
         ut.add(&ict_unit::sanity);
         ut.add(&ict_unit::create_url);
         ut.add(&ict_unit::relative_url);
-        ut.add(&ict_unit::cloned);
-        ut.add(&ict_unit::cloned_derived);
-        ut.add(&ict_unit::cloned_vector);
-        ut.add(&ict_unit::cloned_multivector);
+        //ut.add(&ict_unit::cloned);
+        //ut.add(&ict_unit::cloned_derived);
+        //ut.add(&ict_unit::cloned_vector);
+        //ut.add(&ict_unit::cloned_multivector);
+        ut.add(&ict_unit::osstream);
     }
 
     void sanity();
     void create_url();
     void relative_url();
-    void cloned();
-    void cloned_derived();
-    void cloned_vector();
-    void cloned_multivector();
+    //void cloned();
+    //void cloned_derived();
+    //void cloned_vector();
+    //void cloned_multivector();
+    void osstream();
 };

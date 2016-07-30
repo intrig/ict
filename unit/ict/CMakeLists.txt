@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
-add_executable(itu ituunit.cpp)
+add_executable(itu ictunit.cpp)
 add_definitions(-std=c++11)
-include_directories(../../lib/xenon)
+include_directories(../..)
 enable_testing()
 add_test(itu itu)
