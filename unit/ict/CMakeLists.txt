@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-add_executable(itu ictunit.cpp)
+add_executable(itu cloned.cpp)
 add_definitions(-std=c++11)
 include_directories(../..)
 enable_testing()

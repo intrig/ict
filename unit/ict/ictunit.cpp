@@ -4,16 +4,16 @@
 
 void ict_unit::sanity()
 {
-    ict::url x;
+    ict::recref x;
     IT_ASSERT(x.empty());
 
-    ict::url a{"a/3GPP2/TS-23.038.xddl#4d"};
+    ict::recref a{"a/3GPP2/TS-23.038.xddl#4d"};
     IT_ASSERT(!a.empty());
 
-    ict::url b{"a/3GPP2/TS-23.038.xddl#4d"};
+    ict::recref b{"a/3GPP2/TS-23.038.xddl#4d"};
     IT_ASSERT(a == b);
 
-    ict::url c = a;
+    ict::recref c = a;
     IT_ASSERT(c == b);
 }
 
@@ -27,7 +27,7 @@ struct url_unit_type {
     std::string anchor;
 };
 
-bool operator==(const ict::url & x, const url_unit_type & y) {
+bool operator==(const ict::recref & x, const url_unit_type & y) {
 #if 0
     IT_WARN("testing equality");
     IT_WARN("x.path = " << x.path);
@@ -42,7 +42,7 @@ bool operator==(const ict::url & x, const url_unit_type & y) {
 
 void ict_unit::create_url()
 {
-    std::vector< std::pair<ict::url, url_unit_type> > url_tests = 
+    std::vector< std::pair<ict::recref, url_unit_type> > url_tests = 
         { 
             { { "just_a_file" }, {"", "just_a_file", ""} },
             { { "#4d" }, {"", "", "#4d"} },
@@ -57,9 +57,9 @@ void ict_unit::create_url()
 }
 
 struct relative_url_type {
-    ict::url base;
-    ict::url offset;
-    ict::url result;
+    ict::recref base;
+    ict::recref offset;
+    ict::recref result;
 };
     
 

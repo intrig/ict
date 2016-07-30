@@ -539,69 +539,6 @@ inline bool system_bigendian() {
     return (*(char*)&i) == 0;
 }
 
-struct url {
-    url() {};
-
-    url(const std::string & x) {
-        size_t i = x.find_last_of('/');
-        if (i != std::string::npos) {
-            ++i;
-            path = x.substr(0, i);
-        } else i = 0;
-
-        // the rest is filename and anchor
-        size_t j = x.find('#', i);
-
-        if (j != std::string::npos) file = x.substr(i, j - i);
-        else file = x.substr(i);
-
-        if (j != std::string::npos) anchor = x.substr(j);
-    }
-
-    url(const char * x) : url(std::string(x)) {}
-
-    void str(osstream &os) const { 
-        os << path << file << anchor;
-    }
-    std::string str() const { 
-        ict::osstream os;
-        str(os);
-        return os.str();
-    }
-
-    bool empty() const { return path.empty() && file.empty() && anchor.empty(); };
-
-    bool is_local() const { return path.empty() && file.empty() && !anchor.empty(); }
-
-    bool friend operator<(const url& a, const url& b) {
-        return a.str() < b.str();
-    }
-
-    std::string path; // the path, inluding the trailing '/', e.g., "3GPP/"
-    std::string file; // the filename, e.g. "TS-23.040.xddl"
-    std::string anchor;  // the anchor, e.g., "#10.5.3.8"
-};
-
-inline bool operator==(const url & x, const url & y) {
-    return (x.path == y.path) && (x.file == y.file) && (x.anchor == y.anchor);
-}
-
-inline std::ostream & operator<<(std::ostream &os, const url & x) {
-    os << x.str();
-    return os;
-}
-
-// create an absolute url from a base file and a relative one
-inline url relative_url(url const & base, url const & x) {
-    ict::osstream os;
-    os << base.path << x.path;
-    url result;
-    result.path = os.str();
-    result.file = x.file.empty() ? base.file : x.file;
-    result.anchor = x.anchor;
-    return result;
-}
-
 class timer {
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time, stop_time;
