@@ -106,6 +106,10 @@ void ict_unit::osstream() {
         sos << i;
     }
     IT_ASSERT(os.str() == sos.str());
+
+    os << 1;
+    sos << 1;
+    IT_ASSERT_MSG(os.str() << " == " << sos.str(), os.str() == sos.str());
 }
 
 int main (int, char **)

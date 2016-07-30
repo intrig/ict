@@ -188,7 +188,7 @@ struct bitstring {
 
     bitstring(int base, const char * str); 
 
-    bitstring(const char * str) {
+    bitstring(const std::string & str) {
         std::string s(str);
         ict::squash(s);
 
@@ -205,7 +205,7 @@ struct bitstring {
         }
     }
 
-    bitstring(const std::string & str) : bitstring(str.c_str()) { }
+    bitstring(const char * str) : bitstring(std::string(str)) {}
 
     bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const {
         if (index == bit_size()) return bitstring();
