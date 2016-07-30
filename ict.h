@@ -42,7 +42,7 @@ struct osstream {
 };
 
 template <typename T>
-inline osstream & operator<<(osstream &os, T & x) {
+inline osstream & operator<<(osstream &os, const T & x) {
     os.x += x;
     return os;
 }
