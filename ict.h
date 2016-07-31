@@ -39,8 +39,14 @@ namespace ict {
 // output string string with 80% functionality and 20X performance over std::ostringstream, and easier to spell.
 struct osstream {
     std::string x;
-    std::string && str() { 
+    // Move the internal string to avoid copying.  the stream is in an undefined state after this.  It is meant to be
+    // the last thing you do.
+    std::string && take() { 
         return std::move(x);
+    }
+    // Copy the current string
+    std::string str() { 
+        return x;
     }
 };
 
