@@ -36,50 +36,31 @@
 
 namespace ict {
 
+// output string string with 80% functionality and 20X performance over std::ostringstream, and easier to spell.
 struct osstream {
     std::string x;
     std::string str() { return x; }
 };
 
-inline osstream & operator<<(osstream &os, char x) {
-    os.x += x;
-    return os;
-}
-
-inline osstream & operator<<(osstream &os, const std::string & x) {
-    os.x += x;
-    return os;
-}
-
-inline osstream & operator<<(osstream &os, const char * x) {
-    os.x += x;
-    return os;
-}
-
-inline osstream & operator<<(osstream &os, int x) {
-    os.x += std::to_string(x);
-    return os;
-}
-
-inline osstream & operator<<(osstream &os, unsigned long int x) {
-    os.x += std::to_string(x);
-    return os;
-}
-
-inline osstream & operator<<(osstream &os, long int x) {
-    os.x += std::to_string(x);
-    return os;
-}
-
-inline osstream & operator<<(osstream &os, long long x) {
-    os.x += std::to_string(x);
-    return os;
-}
-
 // one weird trick to make sure there are no implicit conversions
 template <typename T>
 inline osstream & operator<<(osstream &os, T x) = delete;
 
+namespace util {
+    template <typename S, typename T>
+    S & append(S & os, const T & x) {
+        os.x += x;
+        return os;
+    }
+}
+
+inline osstream & operator<<(osstream &os, char x) { return util::append(os, x); }
+inline osstream & operator<<(osstream &os, const std::string & x) { return util::append(os, x); }
+inline osstream & operator<<(osstream &os, const char * x) { return util::append(os, x); }
+inline osstream & operator<<(osstream &os, int x) { return util::append(os, x); }
+inline osstream & operator<<(osstream &os, unsigned long int x) { return util::append(os, x); }
+inline osstream & operator<<(osstream &os, long int x) { return util::append(os, x); }
+inline osstream & operator<<(osstream &os, long long x) { return util::append(os, x); }
 
 template <typename T>
 std::string to_string(const T & value)
