@@ -71,6 +71,11 @@ inline osstream & operator<<(osstream &os, long int x) {
     return os;
 }
 
+inline osstream & operator<<(osstream &os, long long x) {
+    os.x += std::to_string(x);
+    return os;
+}
+
 // one weird trick to make sure there are no implicit conversions
 template <typename T>
 inline osstream & operator<<(osstream &os, T x) = delete;
