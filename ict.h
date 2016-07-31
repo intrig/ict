@@ -39,7 +39,9 @@ namespace ict {
 // output string string with 80% functionality and 20X performance over std::ostringstream, and easier to spell.
 struct osstream {
     std::string x;
-    std::string str() { return x; }
+    std::string && str() { 
+        return std::move(x);
+    }
 };
 
 // one weird trick to make sure there are no implicit conversions
