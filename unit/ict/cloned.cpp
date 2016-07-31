@@ -2,7 +2,7 @@
 //-- See https://github.com/intrig/ict for license.
 #include "ictunit.h"
 #include <cloned_ptr.h>
-#include <ict/multivector.h>
+#include <multivector.h>
 
 struct base_type {
     base_type() {}

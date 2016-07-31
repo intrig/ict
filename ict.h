@@ -44,14 +44,15 @@ struct osstream {
     }
 };
 
-// one weird trick to make sure there are no implicit conversions
-template <typename T>
-inline osstream & operator<<(osstream &os, T x) = delete;
-
 namespace util {
     template <typename S, typename T>
     S & append(S & os, const T & x) {
         os.x += x;
+        return os;
+    }
+    template <typename S, typename T>
+    S & append_number(S & os, const T & x) {
+        os.x += std::to_string(x);
         return os;
     }
 }
@@ -59,10 +60,14 @@ namespace util {
 inline osstream & operator<<(osstream &os, char x) { return util::append(os, x); }
 inline osstream & operator<<(osstream &os, const std::string & x) { return util::append(os, x); }
 inline osstream & operator<<(osstream &os, const char * x) { return util::append(os, x); }
-inline osstream & operator<<(osstream &os, int x) { return util::append(os, x); }
-inline osstream & operator<<(osstream &os, unsigned long int x) { return util::append(os, x); }
-inline osstream & operator<<(osstream &os, long int x) { return util::append(os, x); }
-inline osstream & operator<<(osstream &os, long long x) { return util::append(os, x); }
+inline osstream & operator<<(osstream &os, int x) { return util::append_number(os, x); }
+inline osstream & operator<<(osstream &os, unsigned long int x) { return util::append_number(os, x); }
+inline osstream & operator<<(osstream &os, long int x) { return util::append_number(os, x); }
+inline osstream & operator<<(osstream &os, long long x) { return util::append_number(os, x); }
+
+// one weird trick to make sure there are no implicit conversions
+template <typename T>
+inline osstream & operator<<(osstream &os, T x) = delete;
 
 template <typename T>
 std::string to_string(const T & value)

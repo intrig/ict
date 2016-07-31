@@ -9,12 +9,14 @@ class ict_unit
     void register_tests(ict::unit_test<ict_unit> & ut) {
         ut.skip();
         ut.cont();
+        ut.add(&ict_unit::osstream);
         ut.add(&ict_unit::cloned);
         ut.add(&ict_unit::cloned_derived);
         ut.add(&ict_unit::cloned_vector);
         ut.add(&ict_unit::cloned_multivector);
     }
 
+    void osstream();
     void cloned();
     void cloned_derived();
     void cloned_vector();
