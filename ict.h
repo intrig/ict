@@ -23,6 +23,7 @@
 
 #include "netvar.h"
 #include "exception.h"
+#include "osstream.h"
 
 #ifdef _MSC_VER
 
@@ -35,45 +36,6 @@
 #endif // _MSC_VER
 
 namespace ict {
-
-// output string string with 80% functionality and 20X performance over std::ostringstream, and easier to spell.
-struct osstream {
-    std::string x;
-    // Move the internal string to avoid copying.  the stream is in an undefined state after this.  It is meant to be
-    // the last thing you do.
-    std::string && take() { 
-        return std::move(x);
-    }
-    // Copy the current string
-    std::string str() { 
-        return x;
-    }
-};
-
-namespace util {
-    template <typename S, typename T>
-    S & append(S & os, const T & x) {
-        os.x += x;
-        return os;
-    }
-    template <typename S, typename T>
-    S & append_number(S & os, const T & x) {
-        os.x += std::to_string(x);
-        return os;
-    }
-}
-
-inline osstream & operator<<(osstream &os, char x) { return util::append(os, x); }
-inline osstream & operator<<(osstream &os, const std::string & x) { return util::append(os, x); }
-inline osstream & operator<<(osstream &os, const char * x) { return util::append(os, x); }
-inline osstream & operator<<(osstream &os, int x) { return util::append_number(os, x); }
-inline osstream & operator<<(osstream &os, unsigned long int x) { return util::append_number(os, x); }
-inline osstream & operator<<(osstream &os, long int x) { return util::append_number(os, x); }
-inline osstream & operator<<(osstream &os, long long x) { return util::append_number(os, x); }
-
-// one weird trick to make sure there are no implicit conversions
-template <typename T>
-inline osstream & operator<<(osstream &os, T x) = delete;
 
 template <typename T>
 std::string to_string(const T & value)
@@ -219,7 +181,7 @@ inline void join(Stream & os, I first, I last, const std::string & del) {
 
 template <typename I>
 inline std::string join(I first, I last, const std::string & del) {
-    ict::osstream os;
+    osstream os;
     join(os, first, last, del);
     return os.str();
 }
@@ -229,7 +191,7 @@ inline std::string join(const C & cont, const std::string & del = "") {
     return join(cont.begin(), cont.end(), del);
 }
 
-// replace all occurances of a with b in string x.  Return x.
+// replace all occurances of a with b in string x.  Return reference to x.
 inline std::string & replace(std::string & x, std::string const & a, std::string const & b) {
     size_t pos = 0;
     while((pos = x.find(a, pos)) != std::string::npos) {
@@ -458,14 +420,6 @@ inline T & xmlize(T & value)
     value = d.str();
     return value;
 }
-
-#if 0
-template <typename T>
-inline T xmlize(T value) {
-    T svalue(value);
-    return xmlize(value);
-}
-#endif
 
 inline bool starts_with(std::string const & src, std::string const & value)
 {
@@ -776,14 +730,6 @@ template <typename T>
 inline std::string to_hex_string(T first, T last) {
     std::string dest;
     return to_hex_string(first, last, dest);
-}
-
-// copy a string.  If truncate false, throw an exception if size_dest is too small, else truncate.
-inline int safe_str_copy(char * dest, size_t size_dest, const char * src, size_t n, bool truncate=false) {
-    if (size_dest <= n) { if (truncate) n = size_dest - 1; else return 1; }
-    std::copy(src, src + n, dest);
-    dest[n] = '\0';
-    return 0;
 }
 
 template<typename T, typename... Args>
