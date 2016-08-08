@@ -183,7 +183,7 @@ template <typename I>
 inline std::string && join(I first, I last, const std::string & del) {
     osstream os;
     join(os, first, last, del);
-    return os.take();
+    return os.x;
 }
 
 template <typename C>
