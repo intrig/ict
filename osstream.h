@@ -48,6 +48,8 @@ inline osstream & operator<<(osstream &os, int x) { return util::append_number(o
 inline osstream & operator<<(osstream &os, unsigned long int x) { return util::append_number(os, x); }
 inline osstream & operator<<(osstream &os, long int x) { return util::append_number(os, x); }
 inline osstream & operator<<(osstream &os, long long x) { return util::append_number(os, x); }
+#ifdef WIN32
 inline osstream & operator<<(osstream &os, size_t x) { return util::append_number(os, x); }
+#endif
 
 }

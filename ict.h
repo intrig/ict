@@ -187,7 +187,7 @@ inline std::string join(I first, I last, const std::string & del) {
 }
 
 template <typename C>
-inline std::string && join(const C & cont, const std::string & del = "") {
+inline std::string join(const C & cont, const std::string & del = "") {
     return join(cont.begin(), cont.end(), del);
 }
 
