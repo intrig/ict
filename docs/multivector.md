@@ -1,33 +1,64 @@
-# Multivector
-
+#  Multivector Tutorial and Reference
 ```c++
 #include <ict/multivector.h>
-namespace ict 
 ```
+*namespace ict*
 
-A multivector is a generic container that behaves just like a `std::vector` except its iterators also
+* 1 [Introduction ](#1)
+    * 1.1 [Example ](#1.1)
+    * 1.2 [Download ](#1.2)
+* 2 [Cursors ](#2)
+    * 2.1 [multivector<T>::cursor ](#2.1)
+* 3 [multivector<T>::ascending_cursor ](#3)
+* 4 [multivector<T>::linear_cursor ](#4)
+* 5 [Functions ](#5)
+    * 5.1 [get_root ](#5.1)
+    * 5.2 [previous ](#5.2)
+    * 5.3 [recurse ](#5.3)
+    * 5.4 [recurse (2) ](#5.4)
+    * 5.5 [compact_string ](#5.5)
+    * 5.6 [to_text ](#5.6)
+    * 5.7 [leaf ](#5.7)
+    * 5.8 [promote_last ](#5.8)
+    * 5.9 [to_ascending ](#5.9)
+    * 5.10 [to_linear ](#5.10)
+    * 5.11 [append ](#5.11)
+* 6 [References ](#6)
+
+##<a name="1"/>1 Introduction 
+
+
+Often, our data structures require more complexity than `std::vector` provides, and that's when we shift to using a node
+based structure.  Perhaps its one we write (and maintain) ourselves, or one found in the reference section below.  
+
+A multivector attempts to provide a hierarchical data structure with the convenience of a `std::vector`.
+
+It is a generic container that behaves just like a `std::vector` except its iterators also
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
 hierarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
-* [multivector&lt;T&gt;](#multivector_struct)
-* [multivector&lt;T&gt;::cursor](#cursor)
-* [multivector&lt;T&gt;::ascending_cursor](#ascending_cursor)
-* [multivector&lt;T&gt;::linear_cursor](#linear_cursor)
-* [Find Algorithm](#find)
-* [Functions](#functions)
-* [References](#references)
+A multivector is not an all-purpose tree representation.  It is optimised to handle trees with nodes that are 
+likely to have siblings and less likely to have children.  This is exactly the kind of trees we find through computer
+programming: HTML, XML, user interface window hierarchies, telecom messages, configurators, *more examples*, etc. 
 
-A simple mutlivector can be created and displayed with:
+###<a name="1.1"/>1.1 Example 
+
+
+A simple multivector of integers can be created with:
 
 ```c++
-    auto m = ict::multivector<int>{1, 2, {10, 11, 12, {100}}, 3}
+    auto m = ict::multivector<int>{1, 2, {10, 11, 12, {100}}, 3};
+```
 
-    // print it out using convenience function:
+and displayed with using a convenience function:
+
+```c++
     std::cout << ict::to_text(m);
 ```
+
 and the output:
 
-```c++
+```
     1
     2
       10
@@ -49,42 +80,54 @@ For cursors, `begin()` returns a cursor to the first child, and `end()` returns 
 So for multivectors, there can be many different `begin()` and `end()` cursors.  All cursors that are part 
 of the same multivector are comparable.
 
-The implementation currently includes only a **limited subset** of the features found `std::vector` and is described below. 
+The implementation currently includes a **subset** of the features found `std::vector` and is described
+below. 
 
-## <a name="multivector_struct"/> multivector&lt;T&gt;
 
 The multivector is a totally ordered container class for hierarchies.  It supports the following vector operations:
 
 ```c++
-    item_reference operator[](int index) 
-    const_item_reference operator[](int index) const 
+item_reference operator[](int index) 
+const_item_reference operator[](int index) const 
 
-    void clear() 
-    void pop_back() 
+void clear() 
+void pop_back() 
 
-    bool empty() const 
+bool empty() const 
 
-    size_t size() const 
-    cursor begin() 
-    const_cursor begin() const 
-    const_cursor cbegin() const 
+size_t size() const 
+cursor begin() 
+const_cursor begin() const 
+const_cursor cbegin() const 
 
-    cursor end() 
-    const_cursor end() const 
-    const_cursor cend() const 
+cursor end() 
+const_cursor end() const 
+const_cursor cend() const 
 ```
 
 There is an additional constructor that takes a cursor:
 
 ```c++
-    // c will become the root of a new multivector, its contents will be copied.
-    multivector(cursor c)
+multivector(cursor c)
 ```
 
-## <a name="cursor"/> multivector&lt;T&gt;::cursor 
+`c` will become the root of a new multivector, its contents will be copied.
+
+###<a name="1.2"/>1.2 Download 
+
+
+`multivector.h` is part of the Intrig C++ Toolkit and can be found at <https://github.com/intrig/ict>.
+
+##<a name="2"/>2 Cursors 
+
+
+Cursors share both the properties of `std::vector` and a std::vector's iterator.  This in effect makes a cursor
+behave like a multivector.  There are three kinds of cursors, described in the following sections.
+
+###<a name="2.1"/>2.1 multivector<T>::cursor 
+
 
 In addition to normal random-access iterator operations, cursors provide the following functions:
-
 
 Here are vector operations that are currently supported for cursors:
 
@@ -113,222 +156,221 @@ Here are vector operations that are currently supported for cursors:
     void emplace_back(Args&&... args) 
 ```
 
-Additional cursor operations:
+Additional cursor navigation operations are available:
 
 ```c++
-    // return a child cursor 
-    cursor operator[](difference_type i) const 
-
-    bool is_first_child() const // return true if this is the first child 
-    cursor parent() const  // return a cursor to parent
-    bool is_root() const // true if this is the root cursor
-}
+// return a child cursor 
+bool is_first_child() const // return true if this is the first child 
+cursor parent() const // return a cursor to parent
+bool is_root() const // true if this is the root cursor
 ```
 
 Cursor validity is similar to that of vectors.  If a sibling vector gets resized, then all its cursors are invalidated.
 But any parent cursor is still valid.
 
-## <a name="ascending_cursor"/> multivector&lt;T&gt;::ascending_cursor
+##<a name="3"/>3 multivector<T>::ascending_cursor 
+
 
 An ascending cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
 
 For example:
 
 ```c++
-    auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
-    auto last = ict::ascending_begin(m.root()[0][0]);
-    // last points to 102
-    while (!last.is_root()) {
-        std::cout << *last << '\n';
-        ++last;
-    }
+auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
+auto n = m.begin().begin().end();  // n points to one past 102
+--n;                               // n points to 102
+auto last = ict::multivector<int>::ascending_cursor(n); // convert to an ascending cursor
+
+while (!last.is_root()) {
+    std::cout << *last << '\n';
+    ++last;
+}
 ```
+
 will print out
-```c++
-    102
-    101
-    100
-    10
-    1
+
 ```
+102
+101
+100
+10
+1
+```
+
+The above code segment that assigns the `last` cursor could be written more concisely using the `to_ascending()`
+function:
+
+    auto last = ict::to_ascending(--m.begin().begin().end());
 
 `ascending_cursor` supports the following vector operations:
 
 ```c++
-    // vector operations
-    bool empty() const
-    size_t size() const
-    cursor begin()
-    cursor begin() const
-    cursor cbegin() const
+// vector operations
+bool empty() const
+size_t size() const
+cursor begin()
+cursor begin() const
+cursor cbegin() const
 ```
 
 Additional ascending cursor operations:
-```c++
-    bool is_root() const
-```
 
-## <a name="linear_cursor"/> multivector&lt;T&gt;::linear_cursor
+```c++
+bool is_root() const
+```
+##<a name="4"/>4 multivector<T>::linear_cursor 
+
 
 A linear cursor is also a forward iterator.  It traverses a multivector in a depth-first order.
 
 The following code:
 
 ```c++
-    auto m = ict::multivector<int>{1, { 2, { 3 }}};
-    for (auto i = ict::linear_begin(m.root());  i!=m.end(); ++i) std::cout << *i << '\n';
+auto m = ict::multivector<int>{1, { 2, { 3 }, 4}};
+for (auto i = ict::to_linear(m.begin());  i!=m.end(); ++i) std::cout << *i << '\n';
 ```
+
 will output:
+
 ```
-    1
-    2
-    3
+1
+2
+3
+4
 ```
 
 Notice the automatic conversion from one type of cursor to another.
 
 There are no operations for the linear cursor other than those of an input iterator.
 
-Additional operations supported:
+##<a name="5"/>5 Functions 
+
+
+The multivector functions act upon one or more template cursor parameters that must satisfy the cursor 
+definition above.
+
+###<a name="5.1"/>5.1 get_root 
+
 
 ```c++
-    // return the parent of the first item.
-    cursor root()
-    const_cursor root() const 
-```
-
-## <a name="find"/> Find Algorithm
-
-The `find` algorithm presented here for multivectors will find an item in a multivector based on a path.
-
-```c++
-// returns parent.end() if not found.
-inline Cursor find(Cursor parent, const path & path) 
-
-// reverse find, returns root cursor if not found.  Path must be absolute.
-inline Cursor rfind(Cursor first, const path & path)
-```
-
-`ict::path` is a struct that takes a string in its constructor.
-
-For the following example:
-```c++
-        auto tree = ict::multivector<std::string> 
-        { "one", 
-          "two", 
-          { "four", 
-            "five", 
-            { "one", 
-              "two", 
-              { "six", 
-                "seven" 
-              }, 
-              "three" 
-            }
-          }, 
-          "three" 
-        };
-```
-
-The following holds true:
-
-find call                                         |     return result
---------------------------------------------------|-------------
-`auto c = ict::find(tree.root(), "two")`          | `*c == "two"`
-`auto c = ict::find(tree.root(), "two/four")`     | `*c == "four"`
-`auto c = ict::find(tree.root(), "two/four")`     | `*c == "four"`
-`auto c = ict::find(tree.root(), "two/six")`      | `c == tree.end()`
-`auto c = ict::find(tree.root(), "two/four/one")` | `c == tree.end()`
-`auto c = ict::find(tree.root(), "two/five/one")` | `*c == "one"`
-`auto c = ict::find(tree.root(), "two/five/two")` | `*c == "two"`
-
-The paths above are relative to a parent cursor.  A search can be done that finds a path anywhere among the 
-descendents by preceding the path with `//`;
-
-`find` uses the following template function to determine what to use for the path:
-
-```c+++
-template <typename T> 
-inline std::string name_of(const T & a);
-```
-
-You can specialize the `name_of` function for your custom types.
-
-## <a name="functions"/>Functions
-
-```c++
-// return the root cursor of a multivector given a cursor
+template <typename Cursor>
 Cursor get_root(Cursor start)
+```
 
-// return the previous cursor, either a sibling or parent
+Return the root cursor of a multivector given a cursor.  This is a log2(n) operation.
+###<a name="5.2"/>5.2 previous 
+
+```c++
+template <typename Cursor>
 Cursor previous(Cursor self)
+```
 
-// recursively descend and perform an action on each item
+Return the previous cursor, either a sibling or parent.
+###<a name="5.3"/>5.3 recurse 
+
+```c++
 template <typename Cursor, typename Action>
 void recurse(Cursor parent, Action action) 
-    for (auto i = parent.begin(); i != parent.end(); ++i) {
-        action(i, parent);
-        recurse(i, action);
-    }
-}
-
-// recursively descend and perform an action on each item the way down and up
-template <typename Cursor, typename ActionDown, typename ActionUp>
-void recurse(Cursor parent, ActionDown action_down, ActionUp action_up, int level = 0) {
-    for (auto i = parent.begin(); i != parent.end(); ++i) {
-        action_down(i, parent, level);
-        recurse(i, action_down, action_up, level + 1);
-        action_up(i, parent, level);
-    }
-}
-
-// convert to a compact string, similar to an initializer list.
-inline std::string compact_string(Cursor parent)
-inline std::string compact_string(const multivector<T> & tree)
-
-// convert to a table string
-inline std::string cursor_to_text(Cursor parent)
-std::string to_text(const multivector<T> & tree) 
-
-// return the path of a cursor
-inline std::string path_string(Cursor c)
-
-// returns the last child of c or c if it is empty()
-inline Cursor leaf(Cursor c) 
-
-// Replace the last child with the children of the last child.  
-// This should be rewritten to not be so specific.
-inline void promote_last(Cursor parent)
-
-// return an ascending cursor.  It points to the last child of parent.
-inline typename Cursor::ascending_cursor_type ascending_begin(Cursor parent)
-
-// return a linear cursor to the first child
-inline typename Cursor::linear_type linear_begin(Cursor parent)
-
-// return a linear cursor to one past the last child
-inline typename Cursor::linear_type linear_end(Cursor parent)
-
-// print multivector using the to_text() function
-template <typename T>
-inline std::ostream & operator<<(std::ostream & ss, const multivector<T> & a)
-
 ```
 
-## <a name="references"/>References
+Recursively descend and perform an action on each item.  The action must have a signature of:
 
-Below are other tree implementations and papers I looked at while developing the multivector.  In general, they provide
+`void action(Cursor current, Cursor parent)`;
+
+`current` is the current item visited, and `parent` is its parent.
+
+The following example will print out all the items in a multivector:
+
+```c++
+typedef ict::multivector<int>::cursor int_cursor;
+auto m = ict::multivector<int>{1, { 2, { 3 }}};
+ict::recurse(m.root(), [](int_cursor c, int_cursor) { std::cout << *c << '\n'; }
+```
+###<a name="5.4"/>5.4 recurse (2) 
+
+
+```c++
+template <typename Cursor, typename Action>
+void recurse(Cursor parent, Action action_down, Action action_up, int level = 0) 
+```
+
+This version of recurse is similar to the above, except it also performs and action on the way up.
+Also, the current depth in the tree will be provided.
+
+###<a name="5.5"/>5.5 compact_string 
+
+```c++
+inline std::string compact_string(Cursor parent);
+inline std::string compact_string(const multivector<T> & tree);
+```
+
+Conveniently return a compact string representation of a multivector.  It uses the above recurse method.
+
+```c++
+auto m = ict::multivector<int>{1, { 2, { 3 }}};
+std::cout << ict::compact_string(m.root());
+```
+
+prints:
+
+`{1 {2 {3}}}`
+###<a name="5.6"/>5.6 to_text 
+
+```c++
+inline std::string to_text(Cursor parent)
+inline std::string to_text(const multivector<T> & tree) 
+```
+
+Convert to a table string.  An example is provided in the introduction.
+
+###<a name="5.7"/>5.7 leaf 
+
+
+`inline Cursor leaf(Cursor c)`
+
+Returns the last child of c or c if it is empty().
+###<a name="5.8"/>5.8 promote_last 
+
+
+`inline void promote_last(Cursor parent)`
+
+Replace the last child with the children of the last child.  This should be rewritten to not be so specific.  There
+should be a detach() ability that removes a subtree as a multivector.
+
+###<a name="5.9"/>5.9 to_ascending 
+
+`inline typename Cursor::ascending_cursor_type to_ascending(Cursor parent)`
+
+Convert a cursor to an ascending cursor.
+###<a name="5.10"/>5.10 to_linear 
+
+`inline typename Cursor::linear_type to_linear(Cursor parent)`
+
+Convert a cursor to a linear cursor.
+###<a name="5.11"/>5.11 append 
+
+```c++
+template <typename Cursor, typename ConstCursor>
+void append(Cursor parent, ConstCursor first, ConstCursor last) 
+
+template <typename Cursor, typename ConstCursor>
+void append(Cursor parent, ConstCursor from_parent)
+```
+
+Append (i.e., copy) the children of one cursor to the children of another.  The the children will be
+appended to any existing children.
+##<a name="6"/>6 References 
+
+
+Below are other tree implementations and papers I looked at while developing multivector.  In general, they provide
 more capability than the multivector, but are node based.
 
-`multivector` has some commonalty with the boost property tree:
-http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
+* multivector has some commonalty with the boost property tree:
+  [boost property tree](http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html)
 
-Adobe forest:
-http://stlab.adobe.com/classadobe_1_1forest.html
+* [Adobe forest](http://stlab.adobe.com/classadobe_1_1forest.html)
 
-tree.hh:
-http://tree.phi-sci.com/documentation.html
+* [tree.hh](http://tree.phi-sci.com/documentation.html)
 
-Hierarchical Data Structures and Related Concepts for the C++ Standard Library:
-http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3700.html
+* [Hierarchical Data Structures and Related Concepts for the C++ Standard Library](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3700.html)
 
