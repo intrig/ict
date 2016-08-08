@@ -180,14 +180,14 @@ inline void join(Stream & os, I first, I last, const std::string & del) {
 }
 
 template <typename I>
-inline std::string join(I first, I last, const std::string & del) {
+inline std::string && join(I first, I last, const std::string & del) {
     osstream os;
     join(os, first, last, del);
-    return os.str();
+    return os.take();
 }
 
 template <typename C>
-inline std::string join(const C & cont, const std::string & del = "") {
+inline std::string && join(const C & cont, const std::string & del = "") {
     return join(cont.begin(), cont.end(), del);
 }
 
