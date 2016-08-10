@@ -40,5 +40,3 @@ heirarchies that benefit from both cache friendly locality of reference and C++1
 
 Although using the tools does not require any source files, running the unit tests does.  Just type `make` at the top
 level to invoke the cmake based build system.  And `make test` will run the unit tests.
-
-
