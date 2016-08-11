@@ -14,6 +14,11 @@ struct bit_view {
     size_t bit;
 };
 
+struct const_bit_view {
+    const char * byte;
+    size_t bit;
+};
+
 namespace util {
 
 // this was once a macro
@@ -31,9 +36,11 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
     }
 }
 
-inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_len,
-                    unsigned char *dst_org, int dst_offset)
-{
+inline void bitarray_copy(bit_view dest, const_bit_view src, size_t src_len) {
+    const unsigned char * src_org = (const unsigned char *) src.byte;
+    int src_offset = src.bit;
+    unsigned char *dst_org = (unsigned char *) dest.byte;
+    int dst_offset = dest.bit;
     static const unsigned char reverse_mask[] =
         { 0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff };
     static const unsigned char reverse_mask_xor[] =
@@ -128,14 +135,24 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
         }
     }
 }
+
+#if 0
+inline void bitarray_copy(bit_view dest, const_bit_view src, size_t length) {
+    const unsigned char * src_org = (const unsigned char *) src.byte;
+    int src_offset = src.bit;
+    unsigned char *dst_org = (unsigned char *) dest.byte;
+    int dst_offset = dest.bit;
+    bitarray_copy(src_org, src_offset, length, dst_org, dst_offset);
+}
+#endif
+}
+
+inline void bit_copy(bit_view dest, const_bit_view src, size_t length) {
+     util::bitarray_copy(dest, src, length);
 }
 
 inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t length) {
-    util::bitarray_copy((const unsigned char *) src, srco, length, (unsigned char *) dest, desto);
-}
-
-inline void bit_copy(bit_view & dest, bit_view const & src, size_t length) {
-    bit_copy(dest.byte, dest.bit, src.byte, src.bit, length);
+    bit_copy({dest, desto}, {src, srco}, length);
 }
 
 template <typename T, typename S>
@@ -186,21 +203,16 @@ struct bitstring {
 
     bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
         alloc(bit_size);
-        util::bitarray_copy((const unsigned char *)first, source_offset, bit_size, (unsigned char *)begin(), 0);
+        bit_copy({begin(), 0}, {first, source_offset}, bit_size);
     }
 
+#if 0
     bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset) {
         alloc(bit_size);
         std::fill(begin(), end(), 0);
-
-        const unsigned char * src_org = (const unsigned char *)first;
-        int src_offset = source_offset;
-        int src_len = bit_size - source_offset;
-        unsigned char * dst_org = (unsigned char *) begin();
-        int dst_offset = dest_offset;
-
-        util::bitarray_copy(src_org, src_offset, src_len, dst_org, dst_offset);
+        util::bitarray_copy({ begin(), (size_t) dest_offset }, { first, (size_t) source_offset}, bit_size - source_offset);
     }
+#endif
 
     bitstring(int base, const char * str); 
 
@@ -463,7 +475,7 @@ struct obitstream {
     obitstream& operator<<(const bitstring & b) {
         while (((index + b.bit_size() + 8) / 8) > data.size()) data.resize(data.size() + 1024);
 
-        util::bitarray_copy((const unsigned char *) b.begin(), 0, b.bit_size(), (unsigned char *) &(data[0]), index);
+        bit_copy({&(data[0]), (size_t) index}, {b.begin(), 0}, b.bit_size());
         index += b.bit_size();
         return *this;
     }
@@ -566,7 +578,7 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
                 // we are converting a bitstring to a bigger type.  So copy the bitstring into the last 
                 // bits of the number,
                 // leaving the first bits as zero.  Then swap and return.
-                bit_copy((char *)&number, type_size - bits.bit_size(), bits.begin(), 0, bits.bit_size());
+                bit_copy({ (char *)&number, type_size - bits.bit_size()} , { bits.begin(), 0 }, bits.bit_size());
                 if (swap) reverse_bytes<T>(number);
                 return (T) number;
                 break;
