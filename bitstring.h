@@ -2,25 +2,34 @@
 //-- Copyright 2016 Intrig
 //-- See https://github.com/intrig/ict for license.
 #include <limits.h>
+#include <random>
 #include <cassert>
 
 #include "ict.h"
 
 namespace ict {
 
+struct bit_view {
+    char * byte;
+    size_t bit;
+};
+
 namespace util {
 
-#define PREPARE_FIRST_COPY()                                      \
-    do {                                                          \
-    if (src_len >= (CHAR_BIT - dst_offset_modulo)) {              \
-        *dst     &= reverse_mask[dst_offset_modulo];              \
-        src_len -= CHAR_BIT - dst_offset_modulo;                  \
-    } else {                                                      \
-        *dst     &= reverse_mask[dst_offset_modulo]               \
-              | reverse_mask_xor[dst_offset_modulo + src_len];    \
-         c       &= reverse_mask[dst_offset_modulo + src_len];    \
-        src_len = 0;                                              \
-    } } while (0)
+// this was once a macro
+template <typename A, typename B, typename C, typename D, typename E, typename F>
+inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, D const & reverse_mask, 
+    E const & reverse_mask_xor, F & c) {
+    if (src_len >= (CHAR_BIT - dst_offset_modulo)) {
+        *dst     &= reverse_mask[dst_offset_modulo];
+        src_len -= CHAR_BIT - dst_offset_modulo;
+    } else {
+        *dst     &= reverse_mask[dst_offset_modulo]
+              | reverse_mask_xor[dst_offset_modulo + src_len];
+         c       &= reverse_mask[dst_offset_modulo + src_len];
+        src_len = 0;
+    }
+}
 
 inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_len,
                     unsigned char *dst_org, int dst_offset)
@@ -50,7 +59,7 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
 
                 c = reverse_mask_xor[dst_offset_modulo]     & *src++;
 
-                PREPARE_FIRST_COPY();
+                prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
                 *dst++ |= c;
             }
 
@@ -90,7 +99,7 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
                 c = *src >> bit_diff_rs     &
                     reverse_mask_xor[dst_offset_modulo];
             }
-            PREPARE_FIRST_COPY();
+            prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
             *dst++ |= c;
 
             /*
@@ -125,16 +134,23 @@ inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, s
     util::bitarray_copy((const unsigned char *) src, srco, length, (unsigned char *) dest, desto);
 }
 
-#define IT_BYTE(buf, index) (buf + (index / 8))
-#define IT_BIT_INDEX(index) (index % 8)
+inline void bit_copy(bit_view & dest, bit_view const & src, size_t length) {
+    bit_copy(dest.byte, dest.bit, src.byte, src.bit, length);
+}
+
+template <typename T, typename S>
+inline T * it_byte(T * buf, S & index) { return buf + (index / 8); }
+
+template <typename S>
+inline S it_bit_index(S & index) { return (index % 8); }
 
 inline void set_bit(unsigned char * buf, unsigned index, bool val) {
-    if (val) *(IT_BYTE(buf, index)) |= (1 << (7 - IT_BIT_INDEX(index))); 
-    else *(IT_BYTE(buf, index)) &= ~(0x80 >> IT_BIT_INDEX(index));
+    if (val) *(it_byte(buf, index)) |= (1 << (7 - it_bit_index(index))); 
+    else *(it_byte(buf, index)) &= ~(0x80 >> it_bit_index(index));
 }
 
 inline bool bit(unsigned char * buf, unsigned index) {
-    return (*IT_BYTE(buf, index) >> (7 - IT_BIT_INDEX(index))) & 1;
+    return (*it_byte(buf, index) >> (7 - it_bit_index(index))) & 1;
 }
 
 struct bitstring {
@@ -719,7 +735,16 @@ inline bitstring & pad_right(bitstring & bits, size_t new_width) {
     return bits;
 }
 
+
 } // namespace util
+
+inline bitstring random_bitstring(size_t bit_len) {
+    std::random_device engine;
+    auto bytes = bit_len / 8 + 1;
+    auto v = std::vector<unsigned char>(bytes);
+    for (auto & b : v) b = engine();
+    return ict::bitstring(v.begin(), bit_len);
+}
 
 inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
 {
