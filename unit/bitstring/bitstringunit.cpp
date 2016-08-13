@@ -643,6 +643,17 @@ void bitstring_unit::modern_sms_difficult()
     IT_ASSERT(ict::gsm7(sm) == result.c_str());
 }
 
+void bitstring_unit::iterators() {
+    bitstring::bit_iterator first;
+    ++first;
+    first++;
+    auto x = *first;
+    --first;
+    first--;
+
+}
+
+
 }
 int main (int, char **) {
     ict::bitstring_unit test;

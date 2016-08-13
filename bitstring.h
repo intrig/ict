@@ -19,7 +19,121 @@ struct const_bit_view {
     size_t bit;
 };
 
+
 namespace util {
+
+template <typename T>
+struct bit_base {
+    bit_base(T byte, size_t bit) : byte(byte), bit(bit) {}
+    void increment() {
+        if (bit == 7) {
+            bit = 0;
+            ++byte;
+        } else {
+            ++bit;
+        }
+    }
+    void decrement() {
+        if (bit == 0) {
+            bit = 7;
+            --byte;
+        } else {
+            --bit;
+        }
+    }
+
+    size_t difference(T & b) {
+        auto bytes = byte - b.byte;
+        auto bits = bit - b.bit;
+        return (bytes * 8) + bits;
+    }
+    T byte;
+    size_t bit;
+};
+
+template <typename T>
+struct bit_iterator {
+    using bit_type = bit_base<T>;
+    bit_iterator() : value(nullptr, 0) {}
+    bit_iterator(const bit_iterator & b) : value(b.value) {}
+    bit_type & operator*() const { return value; }
+    bit_type * operator->() const { return &(operator*()); }
+
+    bit_iterator& operator++() { 
+        value.increment();
+        return *this;
+    }
+
+    bit_iterator operator++(int) {
+        bit_iterator tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
+    bit_iterator& operator--() { 
+        value.decrement();
+        return *this;
+    }
+
+    bit_iterator operator--(int) {
+        bit_iterator tmp = *this;
+        --*this;
+        return tmp;
+    }
+
+    bit_iterator& operator+=(size_t n) {
+        return *this; // TODO implement
+    }
+
+    bit_iterator& operator-=(size_t n) {
+        return *this; // TODO implement
+    }
+
+    friend bit_iterator operator+(bit_iterator x, size_t n) { return x += n; }
+    friend bit_iterator operator+(size_t n, bit_iterator x) { return x += n; }
+    friend bit_iterator operator-(bit_iterator x, size_t n) { return x -= n; }
+    friend bit_iterator operator-(size_t n, bit_iterator x) { return x -= n; }
+
+    friend size_t operator-(const bit_iterator & a, const bit_iterator & b) {
+        return a.value.difference(b.value);
+    }
+
+    bit_type operator[](size_t n) const { return *(*this + n); }
+
+    friend bool operator==(const bit_iterator & a, const bit_iterator & b) {
+        return a.value == b.value;
+    }
+
+    friend bool operator!=(const bit_iterator & a, const bit_iterator & b) {
+        return !(a.value == b.value);
+    }
+
+    friend bool operator<(const bit_iterator & a, const bit_iterator & b) {
+        return b - a > 0;
+    }
+    friend bool operator>(const bit_iterator & a, const bit_iterator & b) {
+        return b < a;
+    }
+
+    friend bool operator<=(const bit_iterator & a, const bit_iterator & b) {
+        return !(b < a);
+    }
+    friend bool operator>=(const bit_iterator & a, const bit_iterator & b) {
+        return !(a < b);
+    }
+    mutable bit_type value;
+};
+
+#if 0
+struct const_bit_iterator {
+    using bit_type = bit_base<const char *>;
+    const_bit_iterator() : byte(nullptr), bit(0) {}
+    const_bit_iterator(const const_bit_iterator & b) : byte(b.byte), bit(b.bit) {}
+    const_bit_iterator(const bit_iterator & b) : byte(b.byte), bit(b.bit) {}
+    bit_type value;
+};
+#endif
+
 
 // this was once a macro
 template <typename A, typename B, typename C, typename D, typename E, typename F>
@@ -36,7 +150,9 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
     }
 }
 
-inline void bitarray_copy(bit_view dest, const_bit_view src, size_t src_len) {
+}
+
+inline void bit_copy(bit_view dest, const_bit_view src, size_t src_len) {
     const unsigned char * src_org = (const unsigned char *) src.byte;
     int src_offset = src.bit;
     unsigned char *dst_org = (unsigned char *) dest.byte;
@@ -66,7 +182,7 @@ inline void bitarray_copy(bit_view dest, const_bit_view src, size_t src_len) {
 
                 c = reverse_mask_xor[dst_offset_modulo]     & *src++;
 
-                prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
+                util::prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
                 *dst++ |= c;
             }
 
@@ -106,7 +222,7 @@ inline void bitarray_copy(bit_view dest, const_bit_view src, size_t src_len) {
                 c = *src >> bit_diff_rs     &
                     reverse_mask_xor[dst_offset_modulo];
             }
-            prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
+            util::prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
             *dst++ |= c;
 
             /*
@@ -136,25 +252,6 @@ inline void bitarray_copy(bit_view dest, const_bit_view src, size_t src_len) {
     }
 }
 
-#if 0
-inline void bitarray_copy(bit_view dest, const_bit_view src, size_t length) {
-    const unsigned char * src_org = (const unsigned char *) src.byte;
-    int src_offset = src.bit;
-    unsigned char *dst_org = (unsigned char *) dest.byte;
-    int dst_offset = dest.bit;
-    bitarray_copy(src_org, src_offset, length, dst_org, dst_offset);
-}
-#endif
-}
-
-inline void bit_copy(bit_view dest, const_bit_view src, size_t length) {
-     util::bitarray_copy(dest, src, length);
-}
-
-inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t length) {
-    bit_copy({dest, desto}, {src, srco}, length);
-}
-
 template <typename T, typename S>
 inline T * it_byte(T * buf, S & index) { return buf + (index / 8); }
 
@@ -171,6 +268,8 @@ inline bool bit(unsigned char * buf, unsigned index) {
 }
 
 struct bitstring {
+    using bit_iterator = util::bit_iterator<char *>;
+    using const_bit_iterator = util::bit_iterator<const char *>;
     typedef char * pointer;
 
     // Regular
@@ -205,14 +304,6 @@ struct bitstring {
         alloc(bit_size);
         bit_copy({begin(), 0}, {first, source_offset}, bit_size);
     }
-
-#if 0
-    bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset) {
-        alloc(bit_size);
-        std::fill(begin(), end(), 0);
-        util::bitarray_copy({ begin(), (size_t) dest_offset }, { first, (size_t) source_offset}, bit_size - source_offset);
-    }
-#endif
 
     bitstring(int base, const char * str); 
 
