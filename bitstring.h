@@ -24,7 +24,8 @@ namespace util {
 
 template <typename T>
 struct bit_base {
-    bit_base(T byte, size_t bit) : byte(byte), bit(bit) {}
+    bit_base(T byte, size_t bit) : byte(byte + (bit / 8)), bit(bit % 8) {}
+    
     void increment() {
         if (bit == 7) {
             bit = 0;
@@ -33,6 +34,21 @@ struct bit_base {
             ++bit;
         }
     }
+    void increment(size_t n) {
+        bit += n;
+        if (bit > 7) {
+            byte += bit / 8;
+            bit = bit % 8;
+        }
+    }
+
+    void decrement(size_t n) {
+        auto t = byte * 8 + bit; // TODO: overflow 
+        t -= n;
+        byte = t / 8;
+        bit = t % 8;
+    }
+
     void decrement() {
         if (bit == 0) {
             bit = 7;
@@ -42,10 +58,14 @@ struct bit_base {
         }
     }
 
-    size_t difference(T & b) {
+    size_t difference(const bit_base & b) {
         auto bytes = byte - b.byte;
         auto bits = bit - b.bit;
         return (bytes * 8) + bits;
+    }
+
+    bool identical(const bit_base & b) {
+        return byte == b.byte && bit == b.bit;
     }
     T byte;
     size_t bit;
@@ -55,6 +75,7 @@ template <typename T>
 struct bit_iterator {
     using bit_type = bit_base<T>;
     bit_iterator() : value(nullptr, 0) {}
+    bit_iterator(T p, size_t b) : value(p, b) {}
     bit_iterator(const bit_iterator & b) : value(b.value) {}
     bit_type & operator*() const { return value; }
     bit_type * operator->() const { return &(operator*()); }
@@ -82,11 +103,13 @@ struct bit_iterator {
     }
 
     bit_iterator& operator+=(size_t n) {
-        return *this; // TODO implement
+        value.increment(n);
+        return *this;
     }
 
     bit_iterator& operator-=(size_t n) {
-        return *this; // TODO implement
+        value.decrement(n);
+        return *this;
     }
 
     friend bit_iterator operator+(bit_iterator x, size_t n) { return x += n; }
@@ -101,7 +124,7 @@ struct bit_iterator {
     bit_type operator[](size_t n) const { return *(*this + n); }
 
     friend bool operator==(const bit_iterator & a, const bit_iterator & b) {
-        return a.value == b.value;
+        return a.value.identical(b.value);
     }
 
     friend bool operator!=(const bit_iterator & a, const bit_iterator & b) {
@@ -267,9 +290,10 @@ inline bool bit(unsigned char * buf, unsigned index) {
     return (*it_byte(buf, index) >> (7 - it_bit_index(index))) & 1;
 }
 
+using bit_iterator = util::bit_iterator<char *>;
+using const_bit_iterator = util::bit_iterator<const char *>;
+
 struct bitstring {
-    using bit_iterator = util::bit_iterator<char *>;
-    using const_bit_iterator = util::bit_iterator<const char *>;
     typedef char * pointer;
 
     // Regular
@@ -386,6 +410,9 @@ struct bitstring {
 
     pointer data() const { return begin(); }
 
+    bit_iterator bit_begin() const { return bit_iterator(begin(), 0); }
+    bit_iterator bit_end() const { return bit_iterator(begin(), bit_size() + 1); } // one past the end
+
     size_t byte_size() const { 
         return ((bit_size_ % 8) !=0) + bit_size_ / 8;
     }
@@ -426,6 +453,14 @@ struct bitstring {
     pointer buffer_;
     pointer begin_;
 };
+
+inline bit_iterator bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
+    --last;
+    auto n = last - first;
+    bit_copy({result->byte, result->bit}, {first->byte, first->bit}, n);
+    return result + n + 1;
+}
+
 
 inline std::string to_string(const bitstring & bits) {
     std::string dest;

@@ -644,7 +644,27 @@ void bitstring_unit::modern_sms_difficult()
 }
 
 void bitstring_unit::iterators() {
-    bitstring::bit_iterator first;
+    bit_iterator first;
+    IT_ASSERT(first == bit_iterator());
+    ++first;
+    first++;
+    auto x = *first;
+    --first;
+    first--;
+    IT_ASSERT(first == bit_iterator());
+
+    {
+        auto bs = bitstring("@111001");
+        auto x = bitstring(bs.bit_size());
+        ict::bit_copy(bs.bit_begin(), bs.bit_end(), x.bit_begin());
+        IT_ASSERT(bs == x);
+    }
+
+
+}
+
+void bitstring_unit::const_iterators() {
+    const_bit_iterator first;
     ++first;
     first++;
     auto x = *first;
