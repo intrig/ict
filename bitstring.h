@@ -28,19 +28,27 @@ struct bit_base {
     bit_base(T byte, size_t bit) : byte(byte + (bit / 8)), bit(bit % 8) {}
     
     void increment() {
+#if 1
+        ++bit;
+#else // seems like we don't have to do this
         if (bit == 7) {
             bit = 0;
             ++byte;
         } else {
             ++bit;
         }
+#endif
     }
     void increment(size_t n) {
+#if 1
+        bit += n;
+#else
         bit += n;
         if (bit > 7) {
             byte += bit / 8;
             bit = bit % 8;
         }
+#endif
     }
 
     void decrement(size_t n) {
@@ -341,7 +349,7 @@ struct bitstring {
 
     bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
         alloc(bit_size);
-#if 0
+#if 1
         auto f = bit_iterator(first, source_offset);
         bit_copy(f, f + bit_size, bit_begin());
 #else
@@ -505,14 +513,25 @@ struct ibitstream {
 
     ibitstream(const bitstring & bits) : bits(bits) {
         index = 0;
+        bit_index = bits.bit_begin();
         end_list.push_back(bits.bit_size());
         mark();
     }
 
+    void advance() {
+        ++index;
+        ++bit_index;
+    }
+    void advance(size_t n) {
+        index += n;
+        bit_index += n;
+    }
+
     // read up to n bits blindly
     bitstring read_blind(size_t n) {
-        index += n;
-        return bitstring(bits.begin(), n, index - n);
+        auto f = bit_index;
+        advance(n);
+        return bitstring(f, bit_index);
     }
 
     // read up to n bits
@@ -526,22 +545,25 @@ struct ibitstream {
         auto n = 0;
         while (*first != ch) {
             IT_WARN("ch = " << *first);
-            ++first;
-            ++n;
+            advance();
         }
-        ++n; // include ch 
+        advance(); // include ch 
         return read_blind(n * 8);
     }
 
     // peek ahead
     bitstring peek(size_t n, size_t offset=0) {
+#if 1
+        return bitstring(bit_index, bit_index + offset);
+#else
         return bitstring(bits.begin(), n, index + offset);
+#endif
     }
 
     size_t tellg() const { return index; }
 
     ibitstream& seek(size_t n) { 
-        index += n; 
+        advance(n);
         return *this;
     }
 
@@ -575,6 +597,7 @@ struct ibitstream {
 
     private:
     const bitstring & bits;
+    bit_iterator bit_index;
     size_t index = 0;
     std::vector<size_t> end_list;
     std::vector<size_t> marker_list;
@@ -717,8 +740,11 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
                 // we are converting a bitstring to a bigger type.  So copy the bitstring into the last 
                 // bits of the number,
                 // leaving the first bits as zero.  Then swap and return.
-
+#if 1
+                bit_copy(bits.bit_begin(), bits.bit_end(), bit_iterator((char *)&number, type_size - bits.bit_size()));
+#else
                 bit_copy({ (char *)&number, type_size - bits.bit_size()} , { bits.begin(), 0 }, bits.bit_size());
+#endif
                 if (swap) reverse_bytes<T>(number);
                 return (T) number;
                 break;
@@ -861,16 +887,9 @@ inline std::string calc_gsm7(const bitstring & bsp) {
     return std::string(); 
 }
 
-inline bitstring replace_bits(const bitstring & src, int index, bitstring const & bs) {
-    bitstring front = src.substr(0, index);
-    bitstring back;
-    auto last = index + bs.bit_size();
-    if (src.bit_size() > last) back = src.substr(last); 
-    obitstream obs;
-    obs << front << bs << back;
-    auto ret = obs.bits();
-    if (ret.bit_size() > src.bit_size()) return ret.substr(0, src.bit_size());
-    return ret;
+inline bitstring & replace_bits(bitstring & src, int index, bitstring const & bs) {
+    bit_copy(bs.bit_begin(), bs.bit_end(), src.bit_begin() + index);
+    return src;
 }
 
 inline bitstring pad_left(bitstring const & bits, size_t width = 8) {

@@ -191,9 +191,9 @@ void bitstring_unit::ibs() {
     IT_ASSERT(!is2.eobits());
 
     auto a = is2.read(1);
-    IT_ASSERT(!is2.eobits());
-    IT_ASSERT(is2.remaining() == 5);
     IT_ASSERT(a == "@1");
+    IT_ASSERT_MSG(is2.remaining(), is2.remaining() == 5);
+    IT_ASSERT(!is2.eobits());
 
     a = is2.read(3);
     IT_ASSERT(!is2.eobits());
@@ -564,6 +564,7 @@ void bitstring_unit::modern_gsm7()
 
         // 6, 1
         IT_ASSERT(bs1.substr(0, 6) == "@111100");
+        IT_ASSERT(ict::bitstring(bs1.bit_begin(), bs1.bit_begin() + 6) == "@111100");
         IT_ASSERT(bs1.substr(6 + 1, 15 - (6 + 1)) == "@11111010");
     }
     {
