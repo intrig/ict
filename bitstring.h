@@ -28,27 +28,10 @@ struct bit_base {
     bit_base(T byte, size_t bit) : byte(byte + (bit / 8)), bit(bit % 8) {}
     
     void increment() {
-#if 1
         ++bit;
-#else // seems like we don't have to do this
-        if (bit == 7) {
-            bit = 0;
-            ++byte;
-        } else {
-            ++bit;
-        }
-#endif
     }
     void increment(size_t n) {
-#if 1
         bit += n;
-#else
-        bit += n;
-        if (bit > 7) {
-            byte += bit / 8;
-            bit = bit % 8;
-        }
-#endif
     }
 
     void decrement(size_t n) {
@@ -349,12 +332,8 @@ struct bitstring {
 
     bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
         alloc(bit_size);
-#if 1
         auto f = bit_iterator(first, source_offset);
         bit_copy(f, f + bit_size, bit_begin());
-#else
-        bit_copy({begin(), 0}, {first, source_offset}, bit_size);
-#endif
     }
 
     bitstring(int base, const char * str); 
@@ -553,11 +532,7 @@ struct ibitstream {
 
     // peek ahead
     bitstring peek(size_t n, size_t offset=0) {
-#if 1
         return bitstring(bit_index, bit_index + offset);
-#else
-        return bitstring(bits.begin(), n, index + offset);
-#endif
     }
 
     size_t tellg() const { return index; }
@@ -740,11 +715,7 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
                 // we are converting a bitstring to a bigger type.  So copy the bitstring into the last 
                 // bits of the number,
                 // leaving the first bits as zero.  Then swap and return.
-#if 1
                 bit_copy(bits.bit_begin(), bits.bit_end(), bit_iterator((char *)&number, type_size - bits.bit_size()));
-#else
-                bit_copy({ (char *)&number, type_size - bits.bit_size()} , { bits.begin(), 0 }, bits.bit_size());
-#endif
                 if (swap) reverse_bytes<T>(number);
                 return (T) number;
                 break;
