@@ -294,10 +294,9 @@ inline bool bit(unsigned char * buf, unsigned index) {
 using bit_iterator = util::bit_iterator<char *>;
 using const_bit_iterator = util::bit_iterator<const char *>;
 
-inline bit_iterator bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
-    auto n = last - first;
-    bit_copy({result->byte, result->bit}, {first->byte, first->bit}, n);
-    return result + n;
+// no return iterator for performance reasons
+inline void bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
+    bit_copy({result->byte, result->bit}, {first->byte, first->bit}, last - first);
 }
 
 struct bitstring {
@@ -340,12 +339,15 @@ struct bitstring {
         bit_copy(f, f + bit_size, bit_begin());
     }
 
-#if 1
     bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
         alloc(bit_size);
+#if 0
+        auto f = bit_iterator(first, source_offset);
+        bit_copy(f, f + bit_size, bit_begin());
+#else
         bit_copy({begin(), 0}, {first, source_offset}, bit_size);
-    }
 #endif
+    }
 
     bitstring(int base, const char * str); 
 
@@ -612,8 +614,7 @@ struct obitstream {
 
     obitstream& operator<<(const bitstring & b) {
         while (((index + b.bit_size() + 8) / 8) > data.size()) data.resize(data.size() + 1024);
-
-        bit_copy({&(data[0]), (size_t) index}, {b.begin(), 0}, b.bit_size());
+        bit_copy(b.bit_begin(), b.bit_end(), bit_iterator(&(data[0]), index));
         index += b.bit_size();
         return *this;
     }
@@ -716,6 +717,7 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
                 // we are converting a bitstring to a bigger type.  So copy the bitstring into the last 
                 // bits of the number,
                 // leaving the first bits as zero.  Then swap and return.
+
                 bit_copy({ (char *)&number, type_size - bits.bit_size()} , { bits.begin(), 0 }, bits.bit_size());
                 if (swap) reverse_bytes<T>(number);
                 return (T) number;
