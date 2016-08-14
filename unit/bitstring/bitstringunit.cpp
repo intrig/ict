@@ -643,6 +643,18 @@ void bitstring_unit::modern_sms_difficult()
     IT_ASSERT(ict::gsm7(sm) == result.c_str());
 }
 
+void random_copy(int n) {
+    auto bs = random_bitstring(n);
+    auto l = bs.bit_end() - bs.bit_begin();
+    IT_ASSERT_MSG(l << " != " << n, l == n);
+    auto x = bitstring(n);
+    // std::cerr << "copying " << bs << '\n';
+    bit_copy(bs.bit_begin(), bs.bit_end(), x.bit_begin());
+    IT_ASSERT(bs.bit_size() == n);
+    IT_ASSERT(x.bit_size() == n);
+    IT_ASSERT_MSG("copying " << n << " bits: " << bs << " == " << x, bs == x);
+}
+
 void bitstring_unit::iterators() {
     bit_iterator first;
     IT_ASSERT(first == bit_iterator());
@@ -656,9 +668,11 @@ void bitstring_unit::iterators() {
     {
         auto bs = bitstring("@111001");
         auto x = bitstring(bs.bit_size());
+        IT_ASSERT(bs.bit_end() - bs.bit_begin() == 6);
         ict::bit_copy(bs.bit_begin(), bs.bit_end(), x.bit_begin());
-        IT_ASSERT(bs == x);
+        IT_ASSERT_MSG(bs  << " != " << x, bs == x);
     }
+    for (auto n = 1; n < 1024; ++n) random_copy(n);
 
 
 }

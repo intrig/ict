@@ -15,6 +15,7 @@ struct bit_view {
 };
 
 struct const_bit_view {
+    const_bit_view(char * byte, size_t bit) : byte(byte), bit(bit) {}
     const char * byte;
     size_t bit;
 };
@@ -293,6 +294,12 @@ inline bool bit(unsigned char * buf, unsigned index) {
 using bit_iterator = util::bit_iterator<char *>;
 using const_bit_iterator = util::bit_iterator<const char *>;
 
+inline bit_iterator bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
+    auto n = last - first;
+    bit_copy({result->byte, result->bit}, {first->byte, first->bit}, n);
+    return result + n;
+}
+
 struct bitstring {
     typedef char * pointer;
 
@@ -310,6 +317,11 @@ struct bitstring {
         std::copy(a.begin(), a.end(), begin());
     }
 
+    bitstring(bit_iterator first, bit_iterator last) {
+        alloc(last - first);
+        bit_copy(first, last, bit_begin());
+    }
+
     bitstring(bitstring && a) noexcept {
         bit_size_ = a.bit_size_;
         buffer_ = a.buffer_;
@@ -318,16 +330,22 @@ struct bitstring {
         a.bit_size_ = 0;
     }
 
+    // 101001
+    // f.....l
+    // bit_size = 6
     template <typename I>
     bitstring(I first, size_t bit_size) {
         alloc(bit_size);
-        std::copy(first, first + byte_size(), begin());
+        auto f = bit_iterator((char *) &(*first), 0);
+        bit_copy(f, f + bit_size, bit_begin());
     }
 
+#if 1
     bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
         alloc(bit_size);
         bit_copy({begin(), 0}, {first, source_offset}, bit_size);
     }
+#endif
 
     bitstring(int base, const char * str); 
 
@@ -354,7 +372,7 @@ struct bitstring {
         if (index == bit_size()) return bitstring();
         if (index > bit_size()) IT_PANIC("bitstring::substr index out of range");
         if (len > (bit_size() - index)) len = bit_size() - index;
-        return bitstring(begin(), len, index);
+        return bitstring(bit_begin() + index, bit_begin() + index + len);
     }
 
     inline bitstring& remove(size_t index, size_t len);
@@ -411,7 +429,7 @@ struct bitstring {
     pointer data() const { return begin(); }
 
     bit_iterator bit_begin() const { return bit_iterator(begin(), 0); }
-    bit_iterator bit_end() const { return bit_iterator(begin(), bit_size() + 1); } // one past the end
+    bit_iterator bit_end() const { return bit_iterator(begin(), bit_size()); } 
 
     size_t byte_size() const { 
         return ((bit_size_ % 8) !=0) + bit_size_ / 8;
@@ -454,12 +472,6 @@ struct bitstring {
     pointer begin_;
 };
 
-inline bit_iterator bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
-    --last;
-    auto n = last - first;
-    bit_copy({result->byte, result->bit}, {first->byte, first->bit}, n);
-    return result + n + 1;
-}
 
 
 inline std::string to_string(const bitstring & bits) {
