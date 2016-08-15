@@ -683,8 +683,26 @@ void bitstring_unit::iterators() {
         first++;
         first--;
         IT_ASSERT(first == y);
+        first += 10;
+        y += 10;
+        IT_ASSERT(first == y);
+        IT_ASSERT(y == first);
+        auto z = y;
+        z -= 10;
+        IT_ASSERT(z == x.bit_begin());
     }
 
+    {
+        auto x = random_bitstring(1024);
+        auto y = bitstring(1024);
+
+        for (auto i = x.bit_begin(), j = y.bit_begin(); i!=x.bit_end(); ++i, ++j) {
+            j->value(*i);
+        }
+        IT_ASSERT(x == y);
+    }
+#if 0
+#endif
 
 }
 

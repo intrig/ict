@@ -9,6 +9,23 @@
 
 namespace ict {
 
+template <typename T, typename S>
+inline T * it_byte(T * buf, S & index) { return buf + (index / 8); }
+
+template <typename S>
+inline S it_bit_index(S & index) { return (index % 8); }
+
+template <typename Char>
+inline void set_bit(Char * buf, unsigned index, bool val) {
+    if (val) *(it_byte(buf, index)) |= (1 << (7 - it_bit_index(index))); 
+    else *(it_byte(buf, index)) &= ~(0x80 >> it_bit_index(index));
+}
+
+template <typename Char>
+inline bool get_bit(Char * buf, unsigned index) {
+    return (*it_byte(buf, index) >> (7 - it_bit_index(index))) & 1;
+}
+
 struct bit_view {
     char * byte;
     size_t bit;
@@ -23,12 +40,25 @@ struct const_bit_view {
 
 namespace util {
 
+// bit proxy type
 struct bit_type {
     bit_type(char * byte, size_t bit) : byte(byte + (bit / 8)), bit(bit % 8) {}
-    
+
+    bool value() const {
+        return get_bit(byte, bit);
+    }
+
+    void value(bool x) {
+        set_bit(byte, bit, x);
+    }
+    void value(const bit_type & x) {
+        set_bit(byte, bit, x.value());
+    }
+
     void increment() {
         ++bit;
     }
+
     void increment(size_t n) {
         bit += n;
     }
@@ -52,17 +82,26 @@ struct bit_type {
         return (bytes * 8) + bits;
     }
 
-    bool identical(const bit_type & b) {
+    void normalize() const {
+        if (bit > 7) {
+            byte  += bit / 8;
+            bit = bit % 8;
+        }
+    }
+
+    bool identical(const bit_type & b) const {
+        normalize();
+        b.normalize();
         return byte == b.byte && bit == b.bit;
     }
-    char * byte;
-    size_t bit;
+    mutable char * byte;
+    mutable size_t bit;
 };
 
 template <typename T>
 struct bit_iterator {
     bit_iterator() : value(nullptr, 0) {}
-    bit_iterator(T p, size_t b) : value(p, b) {}
+    bit_iterator(T p, size_t b = 0) : value(p, b) {}
     bit_iterator(const bit_iterator & b) : value(b.value) {}
     bit_type & operator*() const { return value; }
     bit_type * operator->() const { return &(operator*()); }
@@ -115,7 +154,7 @@ struct bit_iterator {
     }
 
     friend bool operator!=(const bit_iterator & a, const bit_iterator & b) {
-        return !(a.value == b.value);
+        return !(a == b);
     }
 
     friend bool operator<(const bit_iterator & a, const bit_iterator & b) {
@@ -262,21 +301,6 @@ inline void bit_copy(bit_view dest, const_bit_view src, size_t src_len) {
     }
 }
 
-template <typename T, typename S>
-inline T * it_byte(T * buf, S & index) { return buf + (index / 8); }
-
-template <typename S>
-inline S it_bit_index(S & index) { return (index % 8); }
-
-inline void set_bit(unsigned char * buf, unsigned index, bool val) {
-    if (val) *(it_byte(buf, index)) |= (1 << (7 - it_bit_index(index))); 
-    else *(it_byte(buf, index)) &= ~(0x80 >> it_bit_index(index));
-}
-
-inline bool bit(unsigned char * buf, unsigned index) {
-    return (*it_byte(buf, index) >> (7 - it_bit_index(index))) & 1;
-}
-
 using bit_iterator = util::bit_iterator<char *>;
 using const_bit_iterator = util::bit_iterator<const char *>;
 
@@ -307,6 +331,14 @@ struct bitstring {
         bit_copy(first, last, bit_begin());
     }
 
+    template <typename T>
+    bitstring(T first, T last) {
+        auto f = bit_iterator(&(*first));
+        auto l = bit_iterator(&(*last));
+        alloc(l - f);
+        bit_copy(f, l, bit_begin());
+    }
+
     bitstring(bitstring && a) noexcept {
         bit_size_ = a.bit_size_;
         buffer_ = a.buffer_;
@@ -315,6 +347,7 @@ struct bitstring {
         a.bit_size_ = 0;
     }
 
+#if 1
     // 101001
     // f.....l
     // bit_size = 6
@@ -324,6 +357,7 @@ struct bitstring {
         auto f = bit_iterator((char *) &(*first), 0);
         bit_copy(f, f + bit_size, bit_begin());
     }
+#endif
 
     bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
         alloc(bit_size);
@@ -425,7 +459,7 @@ struct bitstring {
 
     void set(size_t index) { set_bit((unsigned char *) begin(), index, 1); }
     void reset(size_t index) { set_bit((unsigned char *) begin(), index, 0); }
-    bool at(size_t index) const { return bit((unsigned char *)begin(), index); }
+    bool at(size_t index) const { return get_bit((unsigned char *)begin(), index); }
 
     void clear() {
         if (!local()) delete buffer_;
@@ -613,7 +647,8 @@ struct obitstream {
     }
 
     bitstring bits() {
-        return bitstring(data.begin(), index);
+        auto first = bit_iterator(&data[0]);
+        return bitstring(first, first + index);
     }
     int index;
     // TODO change this to a bitstring and then use move copy for bits()?
@@ -659,8 +694,11 @@ inline bitstring::bitstring(int base, const char * str) {
             break;
         case 101 : // compat with IT::BitString
         case 8 :  // ascii 8
-            *this = bitstring((char *) s.c_str(), s.length() * 8);
-            break;
+        {
+            auto first = bit_iterator((char *) s.c_str());
+            *this = bitstring(first, first + s.length() * 8);
+        }
+        break;
         default:
             IT_WARN("unrecognized base: " << base);
             
@@ -746,7 +784,8 @@ inline bitstring from_integer(T number, size_t dest_size=sizeof(T) * 8) {
     // TODO make sure the compiler optimizes out this conditional for default dest_size
     if (dest_size == type_size) { 
         reverse_bytes(number);
-        return bitstring((char *)&number, dest_size);
+        auto f = bit_iterator((char *)&number);
+        return bitstring(f, f + dest_size);
     } else if (dest_size < type_size) {
         // dest bitsting size is smaller than size of T, so remove leading bits
         reverse_bytes(number);
