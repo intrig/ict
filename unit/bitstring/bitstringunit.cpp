@@ -675,6 +675,16 @@ void bitstring_unit::iterators() {
     }
     for (auto n = 1; n < 1024; ++n) random_copy(n);
 
+    {
+        auto x = random_bitstring(1024);
+        auto first = x.bit_begin();
+        auto y = first;
+        IT_ASSERT(first == y);
+        first++;
+        first--;
+        IT_ASSERT(first == y);
+    }
+
 
 }
 

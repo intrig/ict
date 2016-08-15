@@ -23,9 +23,8 @@ struct const_bit_view {
 
 namespace util {
 
-template <typename T>
-struct bit_base {
-    bit_base(T byte, size_t bit) : byte(byte + (bit / 8)), bit(bit % 8) {}
+struct bit_type {
+    bit_type(char * byte, size_t bit) : byte(byte + (bit / 8)), bit(bit % 8) {}
     
     void increment() {
         ++bit;
@@ -34,38 +33,34 @@ struct bit_base {
         bit += n;
     }
 
-    void decrement(size_t n) {
-        auto t = byte * 8 + bit; // TODO: overflow 
-        t -= n;
-        byte = t / 8;
-        bit = t % 8;
-    }
-
     void decrement() {
-        if (bit == 0) {
+        if (bit) --bit;
+        else {
             bit = 7;
             --byte;
-        } else {
-            --bit;
         }
     }
 
-    size_t difference(const bit_base & b) {
+    void decrement(size_t n) {
+        // TODO implement as O(1)
+        for (auto i = 0; i<n; ++i) decrement();
+    }
+
+    size_t difference(const bit_type & b) {
         auto bytes = byte - b.byte;
         auto bits = bit - b.bit;
         return (bytes * 8) + bits;
     }
 
-    bool identical(const bit_base & b) {
+    bool identical(const bit_type & b) {
         return byte == b.byte && bit == b.bit;
     }
-    T byte;
+    char * byte;
     size_t bit;
 };
 
 template <typename T>
 struct bit_iterator {
-    using bit_type = bit_base<T>;
     bit_iterator() : value(nullptr, 0) {}
     bit_iterator(T p, size_t b) : value(p, b) {}
     bit_iterator(const bit_iterator & b) : value(b.value) {}
