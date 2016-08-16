@@ -94,6 +94,11 @@ struct bit_type {
         b.normalize();
         return byte == b.byte && bit == b.bit;
     }
+
+    char * get_byte() const {
+        normalize();
+        return byte;
+    }
     mutable char * byte;
     mutable size_t bit;
 };
@@ -352,24 +357,6 @@ struct bitstring {
         a.bit_size_ = 0;
     }
 
-#if 0
-    // 101001
-    // f.....l
-    // bit_size = 6
-    template <typename I>
-    bitstring(I first, size_t bit_size) {
-        alloc(bit_size);
-        auto f = bit_iterator((char *) &(*first), 0);
-        bit_copy(f, f + bit_size, bit_begin());
-    }
-#endif
-
-    bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
-        alloc(bit_size);
-        auto f = bit_iterator(first, source_offset);
-        bit_copy(f, f + bit_size, bit_begin());
-    }
-
     bitstring(int base, const char * str); 
 
     bitstring(const std::string & str) {
@@ -525,31 +512,26 @@ struct ibitstream {
     ibitstream(const ibitstream &) = delete;
 
     ibitstream(const bitstring & bits_) : bits(bits_) {
-        index = 0;
+        // index = 0;
         bit_index = bits.begin();
-        end_list.push_back(bits.bit_size());
+        end_bit_list.push_back(bits.bit_end());
         mark();
     }
 
     void advance() {
-        ++index;
+        // ++index;
         ++bit_index;
     }
     void advance(size_t n) {
-        index += n;
+        // index += n;
         bit_index += n;
     }
 
     // read up to n bits blindly
     bitstring read_blind(size_t n) {
-#if 1
-        advance(n);
-        return bitstring(bits.begin(), n, index - n);
-#else
         auto f = bit_index;
         advance(n);
         return bitstring(f, n);
-#endif
     }
 
     // read up to n bits
@@ -559,26 +541,30 @@ struct ibitstream {
     }
 
     bitstring read_to(char ch) {
+#if 0
         auto first = bits.begin() + index / 8; // current byte
         auto n = 0;
         while (*first != ch) {
-            IT_WARN("ch = " << *first);
             advance();
         }
         advance(); // include ch 
         return read_blind(n * 8);
-    }
+#else // TODO untested read_to for Dave's protocol
+        auto first = bit_index->get_byte();
+        auto last = first;
+        while (*last != ch) ++last;
+        ++last;
+        return read_blind(last - first);
 
-    // peek ahead
-    bitstring peek(size_t n, size_t offset=0) {
-#if 0
-        return bitstring(bit_index, bit_index + offset);
-#else
-        return bitstring(bits.begin(), n, index + offset);
 #endif
     }
 
-    size_t tellg() const { return index; }
+    // peek ahead
+    bitstring peek(size_t len, size_t offset=0) {
+        return bitstring(bit_index + offset, len);
+    }
+
+    size_t tellg() const { return bit_index - bits.bit_begin(); }
 
     ibitstream& seek(size_t n) { 
         advance(n);
@@ -587,38 +573,42 @@ struct ibitstream {
 
     void constrain(size_t length) {
         if (length > remaining()) length = remaining();
-        end_list.push_back(index + length);
+        end_bit_list.push_back(bit_index + length);
     }
 
-    void unconstrain() { end_list.pop_back(); }
+    void unconstrain() { 
+        end_bit_list.pop_back(); 
+    }
 
     size_t remaining() const { 
-        return end_list.back() - index; 
+        return end_bit_list.back() - bit_index; 
      };
 
     void mark() {
-        marker_list.push_back(index);
+        marker_bit_list.push_back(bit_index);
     }
 
-    void unmark() { marker_list.pop_back(); }
+    void unmark() { 
+        marker_bit_list.pop_back(); 
+    }
 
     size_t last_mark() const {
-        return marker_list.back();
+        return marker_bit_list.back() - bits.bit_begin();
     }
 
     bool eobits() const { return remaining() <= 0; }
 
     friend std::ostream& operator<<(std::ostream& os, const ibitstream & bs) {
-        os << "(" << bs.index << ", " << bs.remaining() << ", " << bs.eobits() << ") " << (bs.bits);
+        os << "(" << (bs.bit_index - bs.bits.bit_begin()) << ", " << bs.remaining() << ", " << 
+            bs.eobits() << ") " << (bs.bits);
         return os;
     }
 
     private:
     const bitstring & bits;
     bit_iterator bit_index;
-    size_t index = 0;
-    std::vector<size_t> end_list;
-    std::vector<size_t> marker_list;
+    std::vector<bit_iterator> end_bit_list;
+    std::vector<bit_iterator> marker_bit_list;
 };
 
 // use this instead of calling ibitstream::constrain()/unconstrain() pairs.
@@ -700,7 +690,7 @@ inline bitstring::bitstring(int base, const char * str) {
                 for (size_t i = 0; i < s.length(); i++) {
                     obitstream os;
                     char ch = s[static_cast<unsigned>(i)];
-                    bitstring t(&ch, 7, 1);
+                    auto t = bitstring(bit_iterator(&ch) + 1, 7);
                     os << t;
                     *this = os.bits();
                 }
@@ -803,7 +793,7 @@ inline bitstring from_integer(T number, size_t dest_size=sizeof(T) * 8) {
     } else if (dest_size < type_size) {
         // dest bitsting size is smaller than size of T, so remove leading bits
         reverse_bytes(number);
-        return bitstring((char *) &number, dest_size, type_size - dest_size);
+        return bitstring(bit_iterator((char *) &number) + type_size - dest_size, dest_size);
     } else {
         // dest size is greater than size of T, so pad right with 0 bits
         bitstring t(dest_size - type_size);
