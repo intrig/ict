@@ -526,25 +526,23 @@ struct ibitstream {
 
     ibitstream(const bitstring & bits) : bits(bits) {
         index = 0;
-        bit_index = bits.bit_begin();
         end_list.push_back(bits.bit_size());
         mark();
     }
 
     void advance() {
         ++index;
-        ++bit_index;
     }
     void advance(size_t n) {
         index += n;
-        bit_index += n;
     }
 
     // read up to n bits blindly
     bitstring read_blind(size_t n) {
-        auto f = bit_index;
         advance(n);
-        return bitstring(f, bit_index);
+        return bitstring(bits.begin(), n, index - n);
+        // auto f = bit_index;
+        // return bitstring(f, bit_index);
     }
 
     // read up to n bits
@@ -566,7 +564,11 @@ struct ibitstream {
 
     // peek ahead
     bitstring peek(size_t n, size_t offset=0) {
-        return bitstring(bit_index + n, bit_index + n + offset);
+#if 0
+        return bitstring(bit_index, bit_index + offset);
+#else
+        return bitstring(bits.begin(), n, index + offset);
+#endif
     }
 
     size_t tellg() const { return index; }
@@ -606,7 +608,7 @@ struct ibitstream {
 
     private:
     const bitstring & bits;
-    bit_iterator bit_index;
+    // bit_iterator bit_index;
     size_t index = 0;
     std::vector<size_t> end_list;
     std::vector<size_t> marker_list;
