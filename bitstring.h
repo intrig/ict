@@ -566,7 +566,7 @@ struct ibitstream {
 
     // peek ahead
     bitstring peek(size_t n, size_t offset=0) {
-        return bitstring(bit_index, bit_index + offset);
+        return bitstring(bit_index + n, bit_index + n + offset);
     }
 
     size_t tellg() const { return index; }
