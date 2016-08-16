@@ -206,11 +206,12 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
 
 }
 
-inline void bit_copy(bit_type src, size_t bit_count, bit_type dest) {
-    const unsigned char * src_org = (const unsigned char *) src.byte;
-    int src_offset = src.bit;
-    unsigned char *dst_org = (unsigned char *) dest.byte;
-    int dst_offset = dest.bit;
+using bit_iterator = util::bit_iterator;
+inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & result) {
+    const unsigned char * src_org = (const unsigned char *) first->byte;
+    int src_offset = first->bit;
+    unsigned char *dst_org = (unsigned char *) result->byte;
+    int dst_offset = result->bit;
     static const unsigned char reverse_mask[] =
         { 0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff };
     static const unsigned char reverse_mask_xor[] =
@@ -306,16 +307,10 @@ inline void bit_copy(bit_type src, size_t bit_count, bit_type dest) {
     }
 }
 
-using bit_iterator = util::bit_iterator;
 
 // no return iterator for performance reasons
 inline void bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
-    bit_copy(*first, last - first, *result);
-}
-
-inline void bit_copy_n(bit_iterator first, size_t bit_count, bit_iterator result) {
-    // bit_copy({first->byte, first->bit}, bit_count, {result->byte, result->bit});
-    bit_copy(first, first + bit_count, result);
+    bit_copy_n(first, last - first, result);
 }
 
 struct bitstring {
