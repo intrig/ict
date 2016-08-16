@@ -206,7 +206,7 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
 
 }
 
-inline void bit_copy(bit_view dest, const_bit_view src, size_t src_len) {
+inline void bit_copy(util::bit_type dest, util::bit_type src, size_t src_len) {
     const unsigned char * src_org = (const unsigned char *) src.byte;
     int src_offset = src.bit;
     unsigned char *dst_org = (unsigned char *) dest.byte;
@@ -776,7 +776,7 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
 // 11
 inline bitstring& bitstring::remove(size_t index, size_t len) {
     obitstream os;
-    os << substr(0, index) << substr(index + len);
+    os << bitstring(bit_begin(), index) << bitstring(bit_begin() + index + len, bit_end());
     *this = os.bits();
     return *this;
 }
@@ -937,7 +937,8 @@ inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
     bs.remove(8 - fill_bits, len);
 
     // get the first character
-    auto pre = bs.substr(0, 7);
+    auto pre = bitstring(bs.bit_begin(), 7);
+    // auto pre = bs.substr(0, 7);
     pre = util::pad_left(pre, 8);
     auto first = gsm7(pre);
 
