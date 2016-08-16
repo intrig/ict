@@ -98,10 +98,10 @@ struct bit_type {
     mutable size_t bit;
 };
 
-template <typename T>
 struct bit_iterator {
     bit_iterator() : value(nullptr, 0) {}
-    bit_iterator(T p, size_t b = 0) : value(p, b) {}
+    bit_iterator(char * p, size_t b = 0) : value(p, b) {}
+    bit_iterator(unsigned char * p, size_t b = 0) : value((char *)p, b) {}
     bit_iterator(const bit_iterator & b) : value(b.value) {}
     bit_type & operator*() const { return value; }
     bit_type * operator->() const { return &(operator*()); }
@@ -301,8 +301,7 @@ inline void bit_copy(bit_view dest, const_bit_view src, size_t src_len) {
     }
 }
 
-using bit_iterator = util::bit_iterator<char *>;
-using const_bit_iterator = util::bit_iterator<const char *>;
+using bit_iterator = util::bit_iterator;
 
 // no return iterator for performance reasons
 inline void bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
@@ -331,6 +330,12 @@ struct bitstring {
         bit_copy(first, last, bit_begin());
     }
 
+    bitstring(bit_iterator first, size_t len) {
+        alloc(len);
+        bit_copy(first, first + len, bit_begin());
+    }
+
+
     template <typename T>
     bitstring(T first, T last) {
         auto f = bit_iterator(&(*first));
@@ -347,7 +352,7 @@ struct bitstring {
         a.bit_size_ = 0;
     }
 
-#if 1
+#if 0
     // 101001
     // f.....l
     // bit_size = 6
@@ -919,7 +924,7 @@ inline bitstring random_bitstring(size_t bit_len) {
     auto bytes = bit_len / 8 + 1;
     auto v = std::vector<unsigned char>(bytes);
     for (auto & b : v) b = engine();
-    return ict::bitstring(v.begin(), bit_len);
+    return ict::bitstring(bit_iterator(v.data()), bit_len);
 }
 
 inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)

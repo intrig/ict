@@ -701,18 +701,18 @@ void bitstring_unit::iterators() {
         }
         IT_ASSERT(x == y);
     }
-#if 0
-#endif
 
 }
 
 void bitstring_unit::const_iterators() {
+#if 0
     const_bit_iterator first;
     ++first;
     first++;
     auto x = *first;
     --first;
     first--;
+#endif
 
 }
 
