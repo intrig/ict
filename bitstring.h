@@ -38,7 +38,6 @@ struct const_bit_view {
 };
 
 
-namespace util {
 
 // bit proxy type
 struct bit_type {
@@ -103,6 +102,7 @@ struct bit_type {
     mutable size_t bit;
 };
 
+namespace util {
 struct bit_iterator {
     bit_iterator() : value(nullptr, 0) {}
     bit_iterator(char * p, size_t b = 0) : value(p, b) {}
@@ -206,7 +206,7 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
 
 }
 
-inline void bit_copy(util::bit_type dest, util::bit_type src, size_t src_len) {
+inline void bit_copy(bit_type dest, bit_type src, size_t bit_count) {
     const unsigned char * src_org = (const unsigned char *) src.byte;
     int src_offset = src.bit;
     unsigned char *dst_org = (unsigned char *) dest.byte;
@@ -216,7 +216,7 @@ inline void bit_copy(util::bit_type dest, util::bit_type src, size_t src_len) {
     static const unsigned char reverse_mask_xor[] =
         { 0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 0x00 };
 
-    if (src_len) {
+    if (bit_count) {
         const unsigned char *src;
               unsigned char *dst;
         int                  src_offset_modulo,
@@ -236,12 +236,12 @@ inline void bit_copy(util::bit_type dest, util::bit_type src, size_t src_len) {
 
                 c = reverse_mask_xor[dst_offset_modulo]     & *src++;
 
-                util::prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
+                util::prepare_first_copy(bit_count, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
                 *dst++ |= c;
             }
 
-            byte_len = src_len / CHAR_BIT;
-            src_len_modulo = src_len % CHAR_BIT;
+            byte_len = bit_count / CHAR_BIT;
+            src_len_modulo = bit_count % CHAR_BIT;
 
             if (byte_len) {
                 memcpy(dst, src, byte_len);
@@ -276,13 +276,13 @@ inline void bit_copy(util::bit_type dest, util::bit_type src, size_t src_len) {
                 c = *src >> bit_diff_rs     &
                     reverse_mask_xor[dst_offset_modulo];
             }
-            util::prepare_first_copy(src_len, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
+            util::prepare_first_copy(bit_count, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
             *dst++ |= c;
 
             /*
              * Middle: copy with only shifting the source. 
              */
-            byte_len = src_len / CHAR_BIT;
+            byte_len = bit_count / CHAR_BIT;
 
             while (--byte_len >= 0) {
                 c = *src++ << bit_diff_ls;
@@ -293,7 +293,7 @@ inline void bit_copy(util::bit_type dest, util::bit_type src, size_t src_len) {
             /*
              * End: copy the remaing bits; 
              */
-            src_len_modulo = src_len % CHAR_BIT;
+            src_len_modulo = bit_count % CHAR_BIT;
             if (src_len_modulo) {
                 c = *src++ << bit_diff_ls;
                 c |= *src >> bit_diff_rs;
@@ -306,11 +306,20 @@ inline void bit_copy(util::bit_type dest, util::bit_type src, size_t src_len) {
     }
 }
 
+inline void bit_copy(bit_type src, size_t bit_len, bit_type result) {
+    bit_copy(result, src, bit_len);
+}
+
 using bit_iterator = util::bit_iterator;
 
 // no return iterator for performance reasons
 inline void bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
-    bit_copy({result->byte, result->bit}, {first->byte, first->bit}, last - first);
+    bit_copy(*first, last - first, *result);
+}
+
+inline void bit_copy_n(bit_iterator first, size_t bit_count, bit_iterator result) {
+    // bit_copy({first->byte, first->bit}, bit_count, {result->byte, result->bit});
+    bit_copy(first, first + bit_count, result);
 }
 
 struct bitstring {
@@ -752,7 +761,7 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
                 // we are converting a bitstring to a bigger type.  So copy the bitstring into the last 
                 // bits of the number,
                 // leaving the first bits as zero.  Then swap and return.
-                bit_copy(bits.bit_begin(), bits.bit_end(), bit_iterator((char *)&number, type_size - bits.bit_size()));
+                bit_copy(bits.bit_begin(), bits.bit_end(), { (char *)&number, type_size - bits.bit_size()});
                 if (swap) reverse_bytes<T>(number);
                 return (T) number;
                 break;
