@@ -206,7 +206,7 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
 
 }
 
-inline void bit_copy(bit_type dest, bit_type src, size_t bit_count) {
+inline void bit_copy(bit_type src, size_t bit_count, bit_type dest) {
     const unsigned char * src_org = (const unsigned char *) src.byte;
     int src_offset = src.bit;
     unsigned char *dst_org = (unsigned char *) dest.byte;
@@ -304,10 +304,6 @@ inline void bit_copy(bit_type dest, bit_type src, size_t bit_count) {
             }
         }
     }
-}
-
-inline void bit_copy(bit_type src, size_t bit_len, bit_type result) {
-    bit_copy(result, src, bit_len);
 }
 
 using bit_iterator = util::bit_iterator;
