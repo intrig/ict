@@ -41,7 +41,7 @@ struct const_bit_view {
 
 // bit proxy type
 struct bit_type {
-    bit_type(char * byte, size_t bit) : byte(byte + (bit / 8)), bit(bit % 8) {}
+    bit_type(char * byte, size_t bit) : byte(byte), bit(bit) {}
 
     bool value() const {
         return get_bit(byte, bit);

@@ -1,33 +1,36 @@
-#  Bit strings and streams
+#  Bit string Tutorial and Reference
 ```c++
 #include <ict/bitstring.h>
 namespace ict
+
 ```
 
 * 1 [Introduction ](#1)
-* 2 [ict::bitstring ](#2)
-    * 2.1 [Constructors ](#2.1)
-    * 2.2 [Operators ](#2.2)
-    * 2.3 [Methods ](#2.3)
-* 3 [ict::ibitstream ](#3)
-    * 3.1 [Constraints and Marks ](#3.1)
-* 4 [ict::obitstream ](#4)
-* 5 [Functions ](#5)
-    * 5.1 [reverse_bytes ](#5.1)
-    * 5.2 [to_integer ](#5.2)
-    * 5.3 [from_integer ](#5.3)
-    * 5.4 [gsm7 ](#5.4)
-    * 5.5 [to_string ](#5.5)
-    * 5.6 [operator<< ](#5.6)
-    * 5.7 [set_bit ](#5.7)
-    * 5.8 [bit ](#5.8)
-    * 5.9 [bit_copy ](#5.9)
+* 2 [bit_iterator ](#2)
+* 3 [ict::bitstring ](#3)
+    * 3.1 [Constructors ](#3.1)
+    * 3.2 [Methods ](#3.2)
+* 4 [ict::ibitstream ](#4)
+    * 4.1 [Constraints and Marks ](#4.1)
+* 5 [ict::obitstream ](#5)
+* 6 [Functions ](#6)
+    * 6.1 [reverse_bytes ](#6.1)
+    * 6.2 [to_integer ](#6.2)
+    * 6.3 [from_integer ](#6.3)
+    * 6.4 [gsm7 ](#6.4)
+    * 6.5 [to_string ](#6.5)
+    * 6.6 [operator<< ](#6.6)
+    * 6.7 [set_bit ](#6.7)
+    * 6.8 [bit ](#6.8)
+    * 6.9 [bit_copy and bit_copy_n ](#6.9)
 
 ##<a name="1"/>1 Introduction 
 
 
-Bitstrings store resizable data and provide access at a bit level.  There are convenient ways of converting 
-bitstrings to and from strings and integers.
+Bitstrings store resizable data and provide access at a bit level.  Convenient ways to convert
+bitstrings to and from strings and integers are provided.
+
+Bit iterators are used to simplify the API and make it consistent with the C++ standard library.
 
 Input and output bit streams can be used for writing and reading bits to and from a stream.
 
@@ -56,8 +59,32 @@ auto b = ict::bitstring("#FF"); // same as a
 auto c = ict::bitstring("@111");
 ```
 
-##<a name="2"/>2 ict::bitstring 
-###<a name="2.1"/>2.1 Constructors 
+##<a name="2"/>2 bit_iterator 
+
+
+Bit iterators are bidirectional.  They are simply a wrapper of a byte pointer and a bit offset.  `bitstring` provides
+`bit_begin()` and `bit_end()` operations that behave as expected.
+
+You can also create a `bit_iterator` outside of a `bitstring`, e.g:
+
+    char x = 0xF0;
+    auto i = ict::bit_iterator(&x, 5);
+
+This iterator, for example, can then be used in other operations that use bit iterators, such as `copy` or `copy_n`
+described below.
+
+to get to the actual bit value a bit iterator points to:
+    
+    bool v = i->value(); // get it
+    i->value(true);      // set it
+
+    
+##<a name="3"/>3 ict::bitstring 
+
+
+Bitstrings are value types.
+
+###<a name="3.1"/>3.1 Constructors 
 
 
 ```c++
@@ -66,28 +93,17 @@ bitstring(size_t bit_size);         // bitstring filled with 0 bits
 bitstring(const bitstring & a);     // copy constructor
 bitstring(bitstring && a) noexcept; // move constructor
 
-// bitstring from an input iterator and bit size.
-bitstring(Iter first, size_t bit_size);
+// bitstring from input iterators.  These can can be `bit_iterators` described above, or traditional iterators.
+bitstring(InputIterator first, InputIterator last);
 
-// bitstring from a bit_view(first, source_offset) of length bit_size
-bitstring(const pointer first, size_t bit_size, unsigned source_offset);
-
-// same as above, but will copy the bits into the bitstring at an offset.
-bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset);
+// bitstring from an input iterator and bit length.
+bitstring(InputIterator first, size_t bit_len);
 
 // create from strings
 bitstring(const char * str);
 bitstring(const std::string & str);
 ```
-###<a name="2.2"/>2.2 Operators 
-
-```c++
-bitstring & operator=(const bitstring & b);
-bitstring & operator=(bitstring && b) noexcept;
-friend bool operator==(const bitstring & a, const bitstring & b);
-friend bool operator!=(const bitstring & a, const bitstring & b);
-```
-###<a name="2.3"/>2.3 Methods 
+###<a name="3.2"/>3.2 Methods 
 
 
 ```c++
@@ -100,6 +116,8 @@ bool empty() const // check for empty
 
 pointer begin() const // return an iterator (this is a char *)
 pointer end() const
+bit_iterator bit_begin() const // return an iterator (this is a char *)
+bit_iterator bit_end() const
 pointer data() const // same as begin()
 
 size_t byte_size() const // size in bytes
@@ -113,7 +131,7 @@ bool at(size_t index) const // get the bit value
 
 void clear()
 ```
-##<a name="3"/>3 ict::ibitstream 
+##<a name="4"/>4 ict::ibitstream 
 
 
 An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
@@ -160,7 +178,7 @@ size_t remaining() const // remaming number of bits to read
 bool eobits() const // return if at the end
 ```
 
-###<a name="3.1"/>3.1 Constraints and Marks 
+###<a name="4.1"/>4.1 Constraints and Marks 
 
 
 A constraint is use to temporarily restrict the length of the bitstring.  A mark is used to mark the current index in
@@ -187,7 +205,7 @@ struct bitmarker {
     ~bitmarker() { bs.unmark(); }
 };
 ```
-##<a name="4"/>4 ict::obitstream 
+##<a name="5"/>5 ict::obitstream 
 
 
 Output bit streams can be used to construct bitstrings from others.
@@ -212,8 +230,8 @@ struct obitstream {
     bitstring bits() // return contents of stream as a bitstring
 };
 ```
-##<a name="5"/>5 Functions 
-###<a name="5.1"/>5.1 reverse_bytes 
+##<a name="6"/>6 Functions 
+###<a name="6.1"/>6.1 reverse_bytes 
 
 
 ```c++
@@ -223,7 +241,7 @@ inline void reverse_bytes(T & number)
 
 Reverse the bytes of the bitstring (not the bits).
 
-###<a name="5.2"/>5.2 to_integer 
+###<a name="6.2"/>6.2 to_integer 
 
 ```c++
 template <typename T>
@@ -231,7 +249,7 @@ inline T to_integer(bitstring const & bits, bool swap = true)
 ```
 Convert a bitstring to an integer of a given type.  Little-endian representation is assumed.
 
-###<a name="5.3"/>5.3 from_integer 
+###<a name="6.3"/>6.3 from_integer 
 
 ```c++
 template <typename T> 
@@ -240,47 +258,53 @@ inline bitstring from_integer(T number, size_t dest_size=sizeof(T) * 8)
 
 Convert a number to a bitstring
 
-###<a name="5.4"/>5.4 gsm7 
+###<a name="6.4"/>6.4 gsm7 
 
 ```c++
 inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
 ```
 Text messaging support, of course.
 
-###<a name="5.5"/>5.5 to_string 
+###<a name="6.5"/>6.5 to_string 
 
 ```c++
 inline std::string to_string(const bitstring & bits);
 ```
 Convert to std::string.  Byte aligned bitstrings will be returned in hex, otherwise binary.
 
-###<a name="5.6"/>5.6 operator<< 
+###<a name="6.6"/>6.6 operator<< 
 
 ```c++
 inline std::ostream& operator<<(std::ostream& os, const bitstring & bits)
 ```
 Output stream operator, uses to_string() above.
 
-###<a name="5.7"/>5.7 set_bit 
+###<a name="6.7"/>6.7 set_bit 
 
 ```c++
 inline void set_bit(unsigned char * buf, unsigned index, bool val);
 ```
 Set a bit.
 
-###<a name="5.8"/>5.8 bit 
+###<a name="6.8"/>6.8 bit 
 
 ```c++
 inline bool bit(unsigned char * buf, unsigned index);
 ```
 Get a bit.
 
-###<a name="5.9"/>5.9 bit_copy 
+###<a name="6.9"/>6.9 bit_copy and bit_copy_n 
 
 ```c++
-inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t bit_length);
+inline void bit_copy(bit_iterator first, bit_iterator last, bit_iterator result)
+inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & result) 
 ```
 Eventually, you have to write code that actually does something.  This is it.  Copy a range of bits from one address
-and bit offset to another.  The API should be improved by using array_view.  
-See [issue #1](https://github.com/intrig/ict/issues/1).
+and bit offset to another.
 
+You can use bit_copy by itself without having to create a bitstring.  For example, here is a function that takes
+5 parameters and simply calls `bit_copy_n`:
+
+    void my_copy(char * src, size_t src_bit_offset, size_t bit_len, char * res, size_t res_bit_offset) {
+        ict::bit_copy_n({src, src_bit_offset}, bit_len, {res, res_bit_offset});
+    }
