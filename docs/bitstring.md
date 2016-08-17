@@ -93,7 +93,7 @@ bitstring(size_t bit_size);         // bitstring filled with 0 bits
 bitstring(const bitstring & a);     // copy constructor
 bitstring(bitstring && a) noexcept; // move constructor
 
-// bitstring from input iterators.  These can can be `bit_iterators` described above, or traditional iterators.
+// bitstring from input iterators.  These can can be bit_iterators described above, or traditional iterators.
 bitstring(InputIterator first, InputIterator last);
 
 // bitstring from an input iterator and bit length.
@@ -146,17 +146,14 @@ auto a = is.read(3); // a = @111
 auto b = is.read(3); // b = @000
 ```
 
-```c++
-struct ibitstream {
-```
 The only way to create an `ibitstream` is to initialize its constructor with a `bitstring`.  
 
 ```c++
 ibitstream() = delete;
 ibitstream(const ibitstream &) = delete;
-ibitstream(const bitstring & bits) : bits(bits) 
+ibitstream(const bitstring & bits)
 
-// read up n bits blindly.  Values of n greater than remaining() result in undefined behavior.
+// Read n bits.  Values of n greater than remaining() result in undefined behavior.
 bitstring read_blind(size_t n) 
 
 bitstring read(size_t n) // read up to n bits
