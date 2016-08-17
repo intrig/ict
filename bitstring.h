@@ -207,10 +207,13 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
 }
 
 using bit_iterator = util::bit_iterator;
-inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & result) {
-    const unsigned char * src_org = (const unsigned char *) first->byte;
+inline void bit_copy_n(bit_iterator first, size_t bit_count, bit_iterator result) {
+    typedef unsigned char value_type;
+    typedef value_type * pointer;
+
+    const value_type * src_org = (const value_type *) first->byte;
     int src_offset = first->bit;
-    unsigned char *dst_org = (unsigned char *) result->byte;
+    value_type * dst_org = (value_type *) result->byte;
     int dst_offset = result->bit;
     static const unsigned char reverse_mask[] =
         { 0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff };
@@ -218,10 +221,9 @@ inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & re
         { 0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 0x00 };
 
     if (bit_count) {
-        const unsigned char *src;
-              unsigned char *dst;
-        int                  src_offset_modulo,
-                             dst_offset_modulo;
+        const value_type *src;
+        value_type *dst;
+        int src_offset_modulo, dst_offset_modulo;
 
         src = src_org + (src_offset / CHAR_BIT);
         dst = dst_org + (dst_offset / CHAR_BIT);
@@ -233,7 +235,7 @@ inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & re
             int              byte_len;
             int              src_len_modulo;
             if (src_offset_modulo) {
-                unsigned char   c;
+                value_type c;
 
                 c = reverse_mask_xor[dst_offset_modulo]     & *src++;
 
@@ -258,7 +260,7 @@ inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & re
                             bit_diff_rs;
             int             byte_len;
             int             src_len_modulo;
-            unsigned char   c;
+            value_type c;
             /*
              * Begin: Line things up on destination. 
              */
