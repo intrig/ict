@@ -1,4 +1,4 @@
-.PHONY: tags
+.PHONY: tags perf
 
 all:
 	mkdir -p build
@@ -17,6 +17,10 @@ clean:
 
 test: all
 	make CTEST_OUTPUT_ON_FAILURE=1 -C build test
+
+perf: test
+	build/perf/ictperf --ibits
+	build/perf/ictperf --obits
 
 tags: 
 	mkdir -p o

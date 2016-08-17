@@ -30,6 +30,9 @@ class bitstring_unit
         ut.add(&bitstring_unit::modern_gsm7);
         ut.add(&bitstring_unit::modern_sms_difficult);
 
+        ut.add(&bitstring_unit::iterators);
+        ut.add(&bitstring_unit::const_iterators);
+
         ut.skip();
         ut.cont();
     }
@@ -53,5 +56,7 @@ class bitstring_unit
     void modern_replace();
     void modern_gsm7();
     void modern_sms_difficult();
+    void iterators();
+    void const_iterators();
 };
 }

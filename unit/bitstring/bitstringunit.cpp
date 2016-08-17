@@ -191,9 +191,9 @@ void bitstring_unit::ibs() {
     IT_ASSERT(!is2.eobits());
 
     auto a = is2.read(1);
-    IT_ASSERT(!is2.eobits());
-    IT_ASSERT(is2.remaining() == 5);
     IT_ASSERT(a == "@1");
+    IT_ASSERT_MSG(is2.remaining(), is2.remaining() == 5);
+    IT_ASSERT(!is2.eobits());
 
     a = is2.read(3);
     IT_ASSERT(!is2.eobits());
@@ -564,6 +564,7 @@ void bitstring_unit::modern_gsm7()
 
         // 6, 1
         IT_ASSERT(bs1.substr(0, 6) == "@111100");
+        IT_ASSERT(ict::bitstring(bs1.bit_begin(), bs1.bit_begin() + 6) == "@111100");
         IT_ASSERT(bs1.substr(6 + 1, 15 - (6 + 1)) == "@11111010");
     }
     {
@@ -642,6 +643,79 @@ void bitstring_unit::modern_sms_difficult()
 
     IT_ASSERT(ict::gsm7(sm) == result.c_str());
 }
+
+void random_copy(int n) {
+    auto bs = random_bitstring(n);
+    auto l = bs.bit_end() - bs.bit_begin();
+    IT_ASSERT_MSG(l << " != " << n, l == n);
+    auto x = bitstring(n);
+    // std::cerr << "copying " << bs << '\n';
+    bit_copy(bs.bit_begin(), bs.bit_end(), x.bit_begin());
+    IT_ASSERT(bs.bit_size() == n);
+    IT_ASSERT(x.bit_size() == n);
+    IT_ASSERT_MSG("copying " << n << " bits: " << bs << " == " << x, bs == x);
+}
+
+void bitstring_unit::iterators() {
+    bit_iterator first;
+    IT_ASSERT(first == bit_iterator());
+    ++first;
+    first++;
+    auto x = *first;
+    --first;
+    first--;
+    IT_ASSERT(first == bit_iterator());
+
+    {
+        auto bs = bitstring("@111001");
+        auto x = bitstring(bs.bit_size());
+        IT_ASSERT(bs.bit_end() - bs.bit_begin() == 6);
+        ict::bit_copy(bs.bit_begin(), bs.bit_end(), x.bit_begin());
+        IT_ASSERT_MSG(bs  << " != " << x, bs == x);
+    }
+    for (auto n = 1; n < 1024; ++n) random_copy(n);
+
+    {
+        auto x = random_bitstring(1024);
+        auto first = x.bit_begin();
+        auto y = first;
+        IT_ASSERT(first == y);
+        first++;
+        first--;
+        IT_ASSERT(first == y);
+        first += 10;
+        y += 10;
+        IT_ASSERT(first == y);
+        IT_ASSERT(y == first);
+        auto z = y;
+        z -= 10;
+        IT_ASSERT(z == x.bit_begin());
+    }
+
+    {
+        auto x = random_bitstring(1024);
+        auto y = bitstring(1024);
+
+        for (auto i = x.bit_begin(), j = y.bit_begin(); i!=x.bit_end(); ++i, ++j) {
+            j->value(*i);
+        }
+        IT_ASSERT(x == y);
+    }
+
+}
+
+void bitstring_unit::const_iterators() {
+#if 0
+    const_bit_iterator first;
+    ++first;
+    first++;
+    auto x = *first;
+    --first;
+    first--;
+#endif
+
+}
+
 
 }
 int main (int, char **) {

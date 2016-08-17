@@ -2,35 +2,222 @@
 //-- Copyright 2016 Intrig
 //-- See https://github.com/intrig/ict for license.
 #include <limits.h>
+#include <random>
 #include <cassert>
 
 #include "ict.h"
 
 namespace ict {
 
+template <typename T, typename S>
+inline T * it_byte(T * buf, S & index) { return buf + (index / 8); }
+
+template <typename S>
+inline S it_bit_index(S & index) { return (index % 8); }
+
+template <typename Char>
+inline void set_bit(Char * buf, unsigned index, bool val) {
+    if (val) *(it_byte(buf, index)) |= (1 << (7 - it_bit_index(index))); 
+    else *(it_byte(buf, index)) &= ~(0x80 >> it_bit_index(index));
+}
+
+template <typename Char>
+inline bool get_bit(Char * buf, unsigned index) {
+    return (*it_byte(buf, index) >> (7 - it_bit_index(index))) & 1;
+}
+
+struct bit_view {
+    char * byte;
+    size_t bit;
+};
+
+struct const_bit_view {
+    const_bit_view(char * byte, size_t bit) : byte(byte), bit(bit) {}
+    const char * byte;
+    size_t bit;
+};
+
+
+
+// bit proxy type
+struct bit_type {
+    bit_type(char * byte, size_t bit) : byte(byte), bit(bit) {}
+
+    bool value() const {
+        return get_bit(byte, bit);
+    }
+
+    void value(bool x) {
+        set_bit(byte, bit, x);
+    }
+    void value(const bit_type & x) {
+        set_bit(byte, bit, x.value());
+    }
+
+    void increment() {
+        ++bit;
+    }
+
+    void increment(size_t n) {
+        bit += n;
+    }
+
+    void decrement() {
+        if (bit) --bit;
+        else {
+            bit = 7;
+            --byte;
+        }
+    }
+
+    void decrement(size_t n) {
+        // TODO implement as O(1)
+        for (auto i = 0; i<n; ++i) decrement();
+    }
+
+    size_t difference(const bit_type & b) {
+        auto bytes = byte - b.byte;
+        auto bits = bit - b.bit;
+        return (bytes * 8) + bits;
+    }
+
+    void normalize() const {
+        if (bit > 7) {
+            byte  += bit / 8;
+            bit = bit % 8;
+        }
+    }
+
+    bool identical(const bit_type & b) const {
+        normalize();
+        b.normalize();
+        return byte == b.byte && bit == b.bit;
+    }
+
+    char * get_byte() const {
+        normalize();
+        return byte;
+    }
+    mutable char * byte;
+    mutable size_t bit;
+};
+
 namespace util {
+struct bit_iterator {
+    bit_iterator() : value(nullptr, 0) {}
+    bit_iterator(char * p, size_t b = 0) : value(p, b) {}
+    bit_iterator(unsigned char * p, size_t b = 0) : value((char *)p, b) {}
+    bit_iterator(const bit_iterator & b) : value(b.value) {}
+    bit_type & operator*() const { return value; }
+    bit_type * operator->() const { return &(operator*()); }
 
-#define PREPARE_FIRST_COPY()                                      \
-    do {                                                          \
-    if (src_len >= (CHAR_BIT - dst_offset_modulo)) {              \
-        *dst     &= reverse_mask[dst_offset_modulo];              \
-        src_len -= CHAR_BIT - dst_offset_modulo;                  \
-    } else {                                                      \
-        *dst     &= reverse_mask[dst_offset_modulo]               \
-              | reverse_mask_xor[dst_offset_modulo + src_len];    \
-         c       &= reverse_mask[dst_offset_modulo + src_len];    \
-        src_len = 0;                                              \
-    } } while (0)
+    bit_iterator& operator++() { 
+        value.increment();
+        return *this;
+    }
 
-inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_len,
-                    unsigned char *dst_org, int dst_offset)
-{
+    bit_iterator operator++(int) {
+        bit_iterator tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
+    bit_iterator& operator--() { 
+        value.decrement();
+        return *this;
+    }
+
+    bit_iterator operator--(int) {
+        bit_iterator tmp = *this;
+        --*this;
+        return tmp;
+    }
+
+    bit_iterator& operator+=(size_t n) {
+        value.increment(n);
+        return *this;
+    }
+
+    bit_iterator& operator-=(size_t n) {
+        value.decrement(n);
+        return *this;
+    }
+
+    friend bit_iterator operator+(bit_iterator x, size_t n) { return x += n; }
+    friend bit_iterator operator+(size_t n, bit_iterator x) { return x += n; }
+    friend bit_iterator operator-(bit_iterator x, size_t n) { return x -= n; }
+    friend bit_iterator operator-(size_t n, bit_iterator x) { return x -= n; }
+
+    friend size_t operator-(const bit_iterator & a, const bit_iterator & b) {
+        return a.value.difference(b.value);
+    }
+
+    bit_type operator[](size_t n) const { return *(*this + n); }
+
+    friend bool operator==(const bit_iterator & a, const bit_iterator & b) {
+        return a.value.identical(b.value);
+    }
+
+    friend bool operator!=(const bit_iterator & a, const bit_iterator & b) {
+        return !(a == b);
+    }
+
+    friend bool operator<(const bit_iterator & a, const bit_iterator & b) {
+        return b - a > 0;
+    }
+    friend bool operator>(const bit_iterator & a, const bit_iterator & b) {
+        return b < a;
+    }
+
+    friend bool operator<=(const bit_iterator & a, const bit_iterator & b) {
+        return !(b < a);
+    }
+    friend bool operator>=(const bit_iterator & a, const bit_iterator & b) {
+        return !(a < b);
+    }
+    mutable bit_type value;
+};
+
+#if 0
+struct const_bit_iterator {
+    using bit_type = bit_base<const char *>;
+    const_bit_iterator() : byte(nullptr), bit(0) {}
+    const_bit_iterator(const const_bit_iterator & b) : byte(b.byte), bit(b.bit) {}
+    const_bit_iterator(const bit_iterator & b) : byte(b.byte), bit(b.bit) {}
+    bit_type value;
+};
+#endif
+
+
+// this was once a macro
+template <typename A, typename B, typename C, typename D, typename E, typename F>
+inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, D const & reverse_mask, 
+    E const & reverse_mask_xor, F & c) {
+    if (src_len >= (CHAR_BIT - dst_offset_modulo)) {
+        *dst     &= reverse_mask[dst_offset_modulo];
+        src_len -= CHAR_BIT - dst_offset_modulo;
+    } else {
+        *dst     &= reverse_mask[dst_offset_modulo]
+              | reverse_mask_xor[dst_offset_modulo + src_len];
+         c       &= reverse_mask[dst_offset_modulo + src_len];
+        src_len = 0;
+    }
+}
+
+}
+
+using bit_iterator = util::bit_iterator;
+inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & result) {
+    const unsigned char * src_org = (const unsigned char *) first->byte;
+    int src_offset = first->bit;
+    unsigned char *dst_org = (unsigned char *) result->byte;
+    int dst_offset = result->bit;
     static const unsigned char reverse_mask[] =
         { 0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff };
     static const unsigned char reverse_mask_xor[] =
         { 0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 0x00 };
 
-    if (src_len) {
+    if (bit_count) {
         const unsigned char *src;
               unsigned char *dst;
         int                  src_offset_modulo,
@@ -50,12 +237,12 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
 
                 c = reverse_mask_xor[dst_offset_modulo]     & *src++;
 
-                PREPARE_FIRST_COPY();
+                util::prepare_first_copy(bit_count, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
                 *dst++ |= c;
             }
 
-            byte_len = src_len / CHAR_BIT;
-            src_len_modulo = src_len % CHAR_BIT;
+            byte_len = bit_count / CHAR_BIT;
+            src_len_modulo = bit_count % CHAR_BIT;
 
             if (byte_len) {
                 memcpy(dst, src, byte_len);
@@ -90,13 +277,13 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
                 c = *src >> bit_diff_rs     &
                     reverse_mask_xor[dst_offset_modulo];
             }
-            PREPARE_FIRST_COPY();
+            util::prepare_first_copy(bit_count, dst_offset_modulo, dst, reverse_mask, reverse_mask_xor, c);
             *dst++ |= c;
 
             /*
              * Middle: copy with only shifting the source. 
              */
-            byte_len = src_len / CHAR_BIT;
+            byte_len = bit_count / CHAR_BIT;
 
             while (--byte_len >= 0) {
                 c = *src++ << bit_diff_ls;
@@ -107,7 +294,7 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
             /*
              * End: copy the remaing bits; 
              */
-            src_len_modulo = src_len % CHAR_BIT;
+            src_len_modulo = bit_count % CHAR_BIT;
             if (src_len_modulo) {
                 c = *src++ << bit_diff_ls;
                 c |= *src >> bit_diff_rs;
@@ -119,22 +306,11 @@ inline void bitarray_copy(const unsigned char *src_org, int src_offset, int src_
         }
     }
 }
-}
 
-inline void bit_copy(char * dest, size_t desto, const char * src, size_t srco, size_t length) {
-    util::bitarray_copy((const unsigned char *) src, srco, length, (unsigned char *) dest, desto);
-}
 
-#define IT_BYTE(buf, index) (buf + (index / 8))
-#define IT_BIT_INDEX(index) (index % 8)
-
-inline void set_bit(unsigned char * buf, unsigned index, bool val) {
-    if (val) *(IT_BYTE(buf, index)) |= (1 << (7 - IT_BIT_INDEX(index))); 
-    else *(IT_BYTE(buf, index)) &= ~(0x80 >> IT_BIT_INDEX(index));
-}
-
-inline bool bit(unsigned char * buf, unsigned index) {
-    return (*IT_BYTE(buf, index) >> (7 - IT_BIT_INDEX(index))) & 1;
+// no return iterator for performance reasons
+inline void bit_copy(bit_iterator first, bit_iterator last, bit_iterator result) {
+    bit_copy_n(first, last - first, result);
 }
 
 struct bitstring {
@@ -154,36 +330,31 @@ struct bitstring {
         std::copy(a.begin(), a.end(), begin());
     }
 
+    bitstring(bit_iterator first, bit_iterator last) {
+        alloc(last - first);
+        bit_copy(first, last, bit_begin());
+    }
+
+    bitstring(bit_iterator first, size_t len) {
+        alloc(len);
+        bit_copy(first, first + len, bit_begin());
+    }
+
+
+    template <typename T>
+    bitstring(T first, T last) {
+        auto f = bit_iterator(&(*first));
+        auto l = bit_iterator(&(*last));
+        alloc(l - f);
+        bit_copy(f, l, bit_begin());
+    }
+
     bitstring(bitstring && a) noexcept {
         bit_size_ = a.bit_size_;
         buffer_ = a.buffer_;
         if (local()) begin_ = (char *) &buffer_;
         else begin_ = buffer_;
         a.bit_size_ = 0;
-    }
-
-    template <typename I>
-    bitstring(I first, size_t bit_size) {
-        alloc(bit_size);
-        std::copy(first, first + byte_size(), begin());
-    }
-
-    bitstring(const pointer first, size_t bit_size, unsigned source_offset) {
-        alloc(bit_size);
-        util::bitarray_copy((const unsigned char *)first, source_offset, bit_size, (unsigned char *)begin(), 0);
-    }
-
-    bitstring(const pointer first, size_t bit_size, int source_offset, int dest_offset) {
-        alloc(bit_size);
-        std::fill(begin(), end(), 0);
-
-        const unsigned char * src_org = (const unsigned char *)first;
-        int src_offset = source_offset;
-        int src_len = bit_size - source_offset;
-        unsigned char * dst_org = (unsigned char *) begin();
-        int dst_offset = dest_offset;
-
-        util::bitarray_copy(src_org, src_offset, src_len, dst_org, dst_offset);
     }
 
     bitstring(int base, const char * str); 
@@ -211,7 +382,7 @@ struct bitstring {
         if (index == bit_size()) return bitstring();
         if (index > bit_size()) IT_PANIC("bitstring::substr index out of range");
         if (len > (bit_size() - index)) len = bit_size() - index;
-        return bitstring(begin(), len, index);
+        return bitstring(bit_begin() + index, bit_begin() + index + len);
     }
 
     inline bitstring& remove(size_t index, size_t len);
@@ -267,6 +438,9 @@ struct bitstring {
 
     pointer data() const { return begin(); }
 
+    bit_iterator bit_begin() const { return bit_iterator(begin(), 0); }
+    bit_iterator bit_end() const { return bit_iterator(begin(), bit_size()); } 
+
     size_t byte_size() const { 
         return ((bit_size_ % 8) !=0) + bit_size_ / 8;
     }
@@ -277,7 +451,7 @@ struct bitstring {
 
     void set(size_t index) { set_bit((unsigned char *) begin(), index, 1); }
     void reset(size_t index) { set_bit((unsigned char *) begin(), index, 0); }
-    bool at(size_t index) const { return bit((unsigned char *)begin(), index); }
+    bool at(size_t index) const { return get_bit((unsigned char *)begin(), index); }
 
     void clear() {
         if (!local()) delete buffer_;
@@ -308,6 +482,8 @@ struct bitstring {
     pointer begin_;
 };
 
+
+
 inline std::string to_string(const bitstring & bits) {
     std::string dest;
     if (!bits.bit_size()) return dest;
@@ -335,16 +511,27 @@ struct ibitstream {
 
     ibitstream(const ibitstream &) = delete;
 
-    ibitstream(const bitstring & bits) : bits(bits) {
-        index = 0;
-        end_list.push_back(bits.bit_size());
+    ibitstream(const bitstring & bits_) : bits(bits_) {
+        // index = 0;
+        bit_index = bits.begin();
+        end_bit_list.push_back(bits.bit_end());
         mark();
+    }
+
+    void advance() {
+        // ++index;
+        ++bit_index;
+    }
+    void advance(size_t n) {
+        // index += n;
+        bit_index += n;
     }
 
     // read up to n bits blindly
     bitstring read_blind(size_t n) {
-        index += n;
-        return bitstring(bits.begin(), n, index - n);
+        auto f = bit_index;
+        advance(n);
+        return bitstring(f, n);
     }
 
     // read up to n bits
@@ -354,62 +541,74 @@ struct ibitstream {
     }
 
     bitstring read_to(char ch) {
+#if 0
         auto first = bits.begin() + index / 8; // current byte
         auto n = 0;
         while (*first != ch) {
-            IT_WARN("ch = " << *first);
-            ++first;
-            ++n;
+            advance();
         }
-        ++n; // include ch 
+        advance(); // include ch 
         return read_blind(n * 8);
+#else // TODO untested read_to for Dave's protocol
+        auto first = bit_index->get_byte();
+        auto last = first;
+        while (*last != ch) ++last;
+        ++last;
+        return read_blind(last - first);
+
+#endif
     }
 
     // peek ahead
-    bitstring peek(size_t n, size_t offset=0) {
-        return bitstring(bits.begin(), n, index + offset);
+    bitstring peek(size_t len, size_t offset=0) {
+        return bitstring(bit_index + offset, len);
     }
 
-    size_t tellg() const { return index; }
+    size_t tellg() const { return bit_index - bits.bit_begin(); }
 
     ibitstream& seek(size_t n) { 
-        index += n; 
+        advance(n);
         return *this;
     }
 
     void constrain(size_t length) {
         if (length > remaining()) length = remaining();
-        end_list.push_back(index + length);
+        end_bit_list.push_back(bit_index + length);
     }
 
-    void unconstrain() { end_list.pop_back(); }
+    void unconstrain() { 
+        end_bit_list.pop_back(); 
+    }
 
     size_t remaining() const { 
-        return end_list.back() - index; 
+        return end_bit_list.back() - bit_index; 
      };
 
     void mark() {
-        marker_list.push_back(index);
+        marker_bit_list.push_back(bit_index);
     }
 
-    void unmark() { marker_list.pop_back(); }
+    void unmark() { 
+        marker_bit_list.pop_back(); 
+    }
 
     size_t last_mark() const {
-        return marker_list.back();
+        return marker_bit_list.back() - bits.bit_begin();
     }
 
     bool eobits() const { return remaining() <= 0; }
 
     friend std::ostream& operator<<(std::ostream& os, const ibitstream & bs) {
-        os << "(" << bs.index << ", " << bs.remaining() << ", " << bs.eobits() << ") " << (bs.bits);
+        os << "(" << (bs.bit_index - bs.bits.bit_begin()) << ", " << bs.remaining() << ", " << 
+            bs.eobits() << ") " << (bs.bits);
         return os;
     }
 
     private:
     const bitstring & bits;
-    size_t index = 0;
-    std::vector<size_t> end_list;
-    std::vector<size_t> marker_list;
+    bit_iterator bit_index;
+    std::vector<bit_iterator> end_bit_list;
+    std::vector<bit_iterator> marker_bit_list;
 };
 
 // use this instead of calling ibitstream::constrain()/unconstrain() pairs.
@@ -446,14 +645,14 @@ struct obitstream {
 
     obitstream& operator<<(const bitstring & b) {
         while (((index + b.bit_size() + 8) / 8) > data.size()) data.resize(data.size() + 1024);
-
-        util::bitarray_copy((const unsigned char *) b.begin(), 0, b.bit_size(), (unsigned char *) &(data[0]), index);
+        bit_copy(b.bit_begin(), b.bit_end(), bit_iterator(&(data[0]), index));
         index += b.bit_size();
         return *this;
     }
 
     bitstring bits() {
-        return bitstring(data.begin(), index);
+        auto first = bit_iterator(&data[0]);
+        return bitstring(first, first + index);
     }
     int index;
     // TODO change this to a bitstring and then use move copy for bits()?
@@ -491,7 +690,7 @@ inline bitstring::bitstring(int base, const char * str) {
                 for (size_t i = 0; i < s.length(); i++) {
                     obitstream os;
                     char ch = s[static_cast<unsigned>(i)];
-                    bitstring t(&ch, 7, 1);
+                    auto t = bitstring(bit_iterator(&ch) + 1, 7);
                     os << t;
                     *this = os.bits();
                 }
@@ -499,8 +698,11 @@ inline bitstring::bitstring(int base, const char * str) {
             break;
         case 101 : // compat with IT::BitString
         case 8 :  // ascii 8
-            *this = bitstring((char *) s.c_str(), s.length() * 8);
-            break;
+        {
+            auto first = bit_iterator((char *) s.c_str());
+            *this = bitstring(first, first + s.length() * 8);
+        }
+        break;
         default:
             IT_WARN("unrecognized base: " << base);
             
@@ -550,7 +752,7 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
                 // we are converting a bitstring to a bigger type.  So copy the bitstring into the last 
                 // bits of the number,
                 // leaving the first bits as zero.  Then swap and return.
-                bit_copy((char *)&number, type_size - bits.bit_size(), bits.begin(), 0, bits.bit_size());
+                bit_copy(bits.bit_begin(), bits.bit_end(), { (char *)&number, type_size - bits.bit_size()});
                 if (swap) reverse_bytes<T>(number);
                 return (T) number;
                 break;
@@ -574,7 +776,7 @@ inline T to_integer(bitstring const & bits, bool swap = true) {
 // 11
 inline bitstring& bitstring::remove(size_t index, size_t len) {
     obitstream os;
-    os << substr(0, index) << substr(index + len);
+    os << bitstring(bit_begin(), index) << bitstring(bit_begin() + index + len, bit_end());
     *this = os.bits();
     return *this;
 }
@@ -586,11 +788,12 @@ inline bitstring from_integer(T number, size_t dest_size=sizeof(T) * 8) {
     // TODO make sure the compiler optimizes out this conditional for default dest_size
     if (dest_size == type_size) { 
         reverse_bytes(number);
-        return bitstring((char *)&number, dest_size);
+        auto f = bit_iterator((char *)&number);
+        return bitstring(f, f + dest_size);
     } else if (dest_size < type_size) {
         // dest bitsting size is smaller than size of T, so remove leading bits
         reverse_bytes(number);
-        return bitstring((char *) &number, dest_size, type_size - dest_size);
+        return bitstring(bit_iterator((char *) &number) + type_size - dest_size, dest_size);
     } else {
         // dest size is greater than size of T, so pad right with 0 bits
         bitstring t(dest_size - type_size);
@@ -693,16 +896,9 @@ inline std::string calc_gsm7(const bitstring & bsp) {
     return std::string(); 
 }
 
-inline bitstring replace_bits(const bitstring & src, int index, bitstring const & bs) {
-    bitstring front = src.substr(0, index);
-    bitstring back;
-    auto last = index + bs.bit_size();
-    if (src.bit_size() > last) back = src.substr(last); 
-    obitstream obs;
-    obs << front << bs << back;
-    auto ret = obs.bits();
-    if (ret.bit_size() > src.bit_size()) return ret.substr(0, src.bit_size());
-    return ret;
+inline bitstring & replace_bits(bitstring & src, int index, bitstring const & bs) {
+    bit_copy(bs.bit_begin(), bs.bit_end(), src.bit_begin() + index);
+    return src;
 }
 
 inline bitstring pad_left(bitstring const & bits, size_t width = 8) {
@@ -719,7 +915,16 @@ inline bitstring & pad_right(bitstring & bits, size_t new_width) {
     return bits;
 }
 
+
 } // namespace util
+
+inline bitstring random_bitstring(size_t bit_len) {
+    std::random_device engine;
+    auto bytes = bit_len / 8 + 1;
+    auto v = std::vector<unsigned char>(bytes);
+    for (auto & b : v) b = engine();
+    return ict::bitstring(bit_iterator(v.data()), bit_len);
+}
 
 inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
 {
@@ -732,7 +937,8 @@ inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
     bs.remove(8 - fill_bits, len);
 
     // get the first character
-    auto pre = bs.substr(0, 7);
+    auto pre = bitstring(bs.bit_begin(), 7);
+    // auto pre = bs.substr(0, 7);
     pre = util::pad_left(pre, 8);
     auto first = gsm7(pre);
 
