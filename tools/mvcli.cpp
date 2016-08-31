@@ -204,7 +204,7 @@ void custom() {
     std::cout << "\nnow create custom message:\n";
     std::cout << ict::to_text(tree) << "\n";
 
-    ict::multivector<Custom> sub = tree.begin();
+    auto sub = ict::multivector<Custom>(tree.begin());
     std::cout << "\nnow create a sub message:\n";
     std::cout << ict::to_text(sub) << "\n";
 }

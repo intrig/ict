@@ -514,7 +514,7 @@ struct multivector {
     };
 
     // Conversions
-    multivector(cursor a) : root_(a.item_ref()) {
+    explicit multivector(cursor a) : root_(a.item_ref()) {
         root_.value = value_type(); // weird
         root_.parent = (item<value_type> *)(-1);
     }

@@ -371,3 +371,4 @@ more capability than the multivector, but are node based.
 
 * [Hierarchical Data Structures and Related Concepts for the C++ Standard Library](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3700.html)
 
+* [LCRS Binary Tree](https://en.wikipedia.org/wiki/Left-child_right-sibling_binary_tree)
