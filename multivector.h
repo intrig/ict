@@ -614,9 +614,14 @@ inline std::ostringstream & operator<<(std::ostringstream & ss, typename item<T>
 // return the root cursor of a multivector given a cursor
 template <typename Cursor>
 Cursor get_root(Cursor start) {
+#if 1
+    while (!start.is_root()) start = start.parent();
+    return start;
+#else
     auto r = typename Cursor::ascending_cursor_type(start);
     while (!r.is_root()) ++r;
     return r;
+#endif
 }
 
 // return the previous cursor, either a sibling or parent
