@@ -637,7 +637,7 @@ Cursor previous(Cursor self) {
 template <typename Cursor, typename Action>
 void recurse(Cursor parent, Action action) {
     for (auto i = parent.begin(); i != parent.end(); ++i) {
-        action(i, parent);
+        action(i);
         recurse(i, action);
     }
 }
@@ -646,9 +646,9 @@ void recurse(Cursor parent, Action action) {
 template <typename Cursor, typename ActionDown, typename ActionUp>
 void recurse(Cursor parent, ActionDown action_down, ActionUp action_up, int level = 0) {
     for (auto i = parent.begin(); i != parent.end(); ++i) {
-        action_down(i, parent, level);
+        action_down(i, level);
         recurse(i, action_down, action_up, level + 1);
-        action_up(i, parent, level);
+        action_up(i, level);
     }
 }
 
@@ -656,7 +656,7 @@ void recurse(Cursor parent, ActionDown action_down, ActionUp action_up, int leve
 // verify the internal integrity of the multivector
 template <typename T>
 void verify(T parent) {
-    recurse(parent, [](T self, T) {
+    recurse(parent, [](T self) {
         size_t count = 0;
         if (self.empty() && self.size() != 0) std::runtime_error("empty cursor has non-zero size");
         if (!self.empty()) {
@@ -693,13 +693,16 @@ template <typename Cursor>
 inline std::string compact_string(Cursor parent) {
     std::ostringstream ss;
     recurse(parent, 
-        [&](Cursor self, Cursor parent, int) {
+        [&](Cursor self, int) {
             ss << *self;
             if (!self.empty()) ss << " {";
-            else if (self != --parent.end()) ss << ' ';
+            else {
+                auto p = self.parent();
+                if (self != --p.end()) ss << ' ';
+            }
         }, 
 
-        [&](Cursor self, Cursor, int) {
+        [&](Cursor self, int) {
             if (!self.empty()) ss << "} ";
     });
 
@@ -720,11 +723,11 @@ template <typename Cursor>
 inline std::string to_text(Cursor parent) {
     std::ostringstream ss;
     recurse(parent, 
-        [&](Cursor self, Cursor, int level) {
+        [&](Cursor self, int level) {
             ss << ict::spaces(level * 2) << *self << '\n';
         },
 
-        [&](Cursor, Cursor, int) { } // nothing to do on the way up
+        [&](Cursor, int) { } // nothing to do on the way up
     );
     return ss.str();
 }
