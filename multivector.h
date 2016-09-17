@@ -514,7 +514,7 @@ struct multivector {
     };
 
     // Conversions
-    multivector(cursor a) : root_(a.item_ref()) {
+    explicit multivector(cursor a) : root_(a.item_ref()) {
         root_.value = value_type(); // weird
         root_.parent = (item<value_type> *)(-1);
     }
@@ -614,9 +614,14 @@ inline std::ostringstream & operator<<(std::ostringstream & ss, typename item<T>
 // return the root cursor of a multivector given a cursor
 template <typename Cursor>
 Cursor get_root(Cursor start) {
+#if 1
+    while (!start.is_root()) start = start.parent();
+    return start;
+#else
     auto r = typename Cursor::ascending_cursor_type(start);
     while (!r.is_root()) ++r;
     return r;
+#endif
 }
 
 // return the previous cursor, either a sibling or parent
