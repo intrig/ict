@@ -64,13 +64,13 @@ struct expr_type {
             return os.str();
         }
         token_id id;
-        T number;
+        T number = 0;
         std::string name;
     };
 
     struct param_type {
         std::string name;
-        T number;
+        T number = 0;
     };
 
     template <typename Context>
