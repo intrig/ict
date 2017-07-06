@@ -25,7 +25,7 @@
     * 3.11 [append ](#3.11)
 * 4 [References ](#4)
 
-##<a name="1"/> 1 Introduction 
+## <a name="1"/>1 Introduction 
 
 
 A multivector to provide a hierarchical data structure with the convenience of a `std::vector`.
@@ -38,7 +38,7 @@ A multivector is optimised to handle trees with nodes that are likely to have si
 This is exactly the kind of trees we find throughout computer programming: HTML, XML, user interface window hierarchies,
 telecom messages, configurators, multiple choice tests, *more examples*, etc. 
 
-###<a name="1.1"/> 1.1 Example 
+### <a name="1.1"/>1.1 Example 
 
 
 A simple multivector of integers can be created with:
@@ -110,18 +110,18 @@ multivector(cursor c)
 
 `c` will become the root of a new multivector, its contents will be copied.
 
-###<a name="1.2"/> 1.2 Download 
+### <a name="1.2"/>1.2 Download 
 
 
 `multivector.h` is part of the Intrig C++ Toolkit and can be found at <https://github.com/intrig/ict>.
 
-##<a name="2"/> 2 Cursors 
+## <a name="2"/>2 Cursors 
 
 
 Cursors share both the properties of `std::vector` and a std::vector's iterator.  This in effect makes a cursor
 behave like a multivector.  There are three kinds of cursors, described in the following sections.
 
-###<a name="2.1"/> 2.1 multivector<T>::cursor 
+### <a name="2.1"/>2.1 multivector<T>::cursor 
 
 
 In addition to normal random-access iterator operations, cursors provide the following functions:
@@ -165,7 +165,7 @@ bool is_root() const // true if this is the root cursor
 Cursor validity is similar to that of vectors.  If a sibling vector gets resized, then all its cursors are invalidated.
 But any parent cursor is still valid.
 
-###<a name="2.2"/> 2.2 multivector<T>::ascending_cursor 
+### <a name="2.2"/>2.2 multivector<T>::ascending_cursor 
 
 
 An ascending cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
@@ -215,7 +215,7 @@ Additional ascending cursor operations:
 ```c++
 bool is_root() const
 ```
-###<a name="2.3"/> 2.3 multivector<T>::linear_cursor 
+### <a name="2.3"/>2.3 multivector<T>::linear_cursor 
 
 
 A linear cursor is also a forward iterator.  It traverses a multivector in a depth-first order.
@@ -240,13 +240,13 @@ Notice the automatic conversion from one type of cursor to another.
 
 There are no operations for the linear cursor other than those of an input iterator.
 
-##<a name="3"/> 3 Functions 
+## <a name="3"/>3 Functions 
 
 
 The multivector functions act upon one or more template cursor parameters that must satisfy the cursor 
 definition above.
 
-###<a name="3.1"/> 3.1 get_root 
+### <a name="3.1"/>3.1 get_root 
 
 
 ```c++
@@ -255,7 +255,7 @@ Cursor get_root(Cursor start)
 ```
 
 Return the root cursor of a multivector given a cursor.  This is a log2(n) operation.
-###<a name="3.2"/> 3.2 previous 
+### <a name="3.2"/>3.2 previous 
 
 ```c++
 template <typename Cursor>
@@ -263,7 +263,7 @@ Cursor previous(Cursor self)
 ```
 
 Return the previous cursor, either a sibling or parent.
-###<a name="3.3"/> 3.3 recurse 
+### <a name="3.3"/>3.3 recurse 
 
 ```c++
 template <typename Cursor, typename Action>
@@ -283,7 +283,7 @@ typedef ict::multivector<int>::cursor int_cursor;
 auto m = ict::multivector<int>{1, { 2, { 3 }}};
 ict::recurse(m.root(), [](int_cursor c, int_cursor) { std::cout << *c << '\n'; }
 ```
-###<a name="3.4"/> 3.4 recurse (2) 
+### <a name="3.4"/>3.4 recurse (2) 
 
 
 ```c++
@@ -294,7 +294,7 @@ void recurse(Cursor parent, Action action_down, Action action_up, int level = 0)
 This version of recurse is similar to the above, except it also performs and action on the way up.
 Also, the current depth in the tree will be provided.
 
-###<a name="3.5"/> 3.5 compact_string 
+### <a name="3.5"/>3.5 compact_string 
 
 ```c++
 inline std::string compact_string(Cursor parent);
@@ -311,7 +311,7 @@ std::cout << ict::compact_string(m.root());
 prints:
 
 `{1 {2 {3}}}`
-###<a name="3.6"/> 3.6 to_text 
+### <a name="3.6"/>3.6 to_text 
 
 ```c++
 inline std::string to_text(Cursor parent)
@@ -320,13 +320,13 @@ inline std::string to_text(const multivector<T> & tree)
 
 Convert to a table string.  An example is provided in the introduction.
 
-###<a name="3.7"/> 3.7 leaf 
+### <a name="3.7"/>3.7 leaf 
 
 
 `inline Cursor leaf(Cursor c)`
 
 Returns the last child of c or c if it is empty().
-###<a name="3.8"/> 3.8 promote_last 
+### <a name="3.8"/>3.8 promote_last 
 
 
 `inline void promote_last(Cursor parent)`
@@ -334,17 +334,17 @@ Returns the last child of c or c if it is empty().
 Replace the last child with the children of the last child.  This should be rewritten to not be so specific.  There
 should be a detach() ability that removes a subtree as a multivector.
 
-###<a name="3.9"/> 3.9 to_ascending 
+### <a name="3.9"/>3.9 to_ascending 
 
 `inline typename Cursor::ascending_cursor_type to_ascending(Cursor parent)`
 
 Convert a cursor to an ascending cursor.
-###<a name="3.10"/> 3.10 to_linear 
+### <a name="3.10"/>3.10 to_linear 
 
 `inline typename Cursor::linear_type to_linear(Cursor parent)`
 
 Convert a cursor to a linear cursor.
-###<a name="3.11"/> 3.11 append 
+### <a name="3.11"/>3.11 append 
 
 ```c++
 template <typename Cursor, typename ConstCursor>
@@ -356,7 +356,7 @@ void append(Cursor parent, ConstCursor from_parent)
 
 Append (i.e., copy) the children of one cursor to the children of another.  The the children will be
 appended to any existing children.
-##<a name="4"/> 4 References 
+## <a name="4"/>4 References 
 
 
 Below are other tree implementations and papers I looked at while developing multivector.  In general, they provide
