@@ -5,6 +5,8 @@
 
 *namespace ict*
 
+A multivector is a tree data structure.
+
 * 1 [Introduction](#Introduction)
     * 1.1 [Example](#Example)
     * 1.2 [Download](#Download)
@@ -28,8 +30,6 @@
 
 <h2 id="Introduction">1 Introduction</h2>
 
-
-A multivector is a tree data structure.
 
 It is a generic container that behaves just like a `std::vector` except its iterators also
 behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
