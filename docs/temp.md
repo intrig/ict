@@ -1,396 +1,323 @@
-#  Multivector Tutorial and Reference
+#  Bit string Tutorial and Reference
 ```c++
-#include <ict/multivector.h>
+#include <ict/bitstring.h>
+namespace ict
+
 ```
 
-*namespace ict*
 
 * 1 [Introduction](#Introduction)
-    * 1.1 [Example](#Example)
-    * 1.2 [Download](#Download)
-* 2 [Cursors](#Cursors)
-    * 2.1 [multivector<T>::cursor](#multivector<T>::cursor)
-    * 2.2 [multivector<T>::ascending_cursor](#multivector<T>::ascending_cursor)
-    * 2.3 [multivector<T>::linear_cursor](#multivector<T>::linear_cursor)
-* 3 [Functions](#Functions)
-    * 3.1 [get_root](#get_root)
-    * 3.2 [previous](#previous)
-    * 3.3 [recurse](#recurse)
-    * 3.4 [recurse (2)](#recurse-(2))
-    * 3.5 [compact_string](#compact_string)
-    * 3.6 [to_text](#to_text)
-    * 3.7 [leaf](#leaf)
-    * 3.8 [promote_last](#promote_last)
-    * 3.9 [to_ascending](#to_ascending)
-    * 3.10 [to_linear](#to_linear)
-    * 3.11 [append](#append)
-* 4 [References](#References)
+* 2 [bit_iterator](#bit_iterator)
+* 3 [ict::bitstring](#ict::bitstring)
+    * 3.1 [Constructors](#Constructors)
+    * 3.2 [Methods](#Methods)
+* 4 [ict::ibitstream](#ict::ibitstream)
+    * 4.1 [Constraints and Marks](#Constraints-and-Marks)
+* 5 [ict::obitstream](#ict::obitstream)
+* 6 [Functions](#Functions)
+    * 6.1 [reverse_bytes](#reverse_bytes)
+    * 6.2 [to_integer](#to_integer)
+    * 6.3 [from_integer](#from_integer)
+    * 6.4 [gsm7](#gsm7)
+    * 6.5 [to_string](#to_string)
+    * 6.6 [operator<<](#operator<<)
+    * 6.7 [set_bit](#set_bit)
+    * 6.8 [bit](#bit)
+    * 6.9 [bit_copy and bit_copy_n](#bit_copy-and-bit_copy_n)
 
 <h2 id="Introduction">1 Introduction</h2>
 
 
-A multivector is a tree data structure.
+Bitstrings store resizable data and provide access at a bit level.  Convenient ways to convert
+bitstrings to and from strings and integers are provided.
 
-It is a generic container that behaves just like a `std::vector` except its iterators also
-behave just like `std::vector`.  And since `std::vector` is used in the underlying representation, we can make
-hierarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
+Bit iterators are used to simplify the API and make it consistent with the C++ standard library.
 
-A multivector is optimised to handle trees with nodes that are likely to have siblings and less likely to have children.
-This is exactly the kind of trees we find throughout computer programming: HTML, XML, user interface window hierarchies,
-telecom messages, configurators, multiple choice tests, user lists, file directories, store directories, etc. 
+Input and output bit streams can be used for writing and reading bits to and from a stream.
 
-<h2 id="Example">1.1 Example</h2>
+For API calls that use strings to encode a bitstring, the following convention is used.  Strings preceded with a `#`
+denotes hexadecimal, an `@` symbol denotes binary.  Otherwise, strings are interpreted as hexadecimal.  Spaces are
+ignored.
 
+The following table provides examples on how to represent a bitstring in ASCII:
 
-A simple multivector of integers can be created with:
+ASCII         | meaning
+--------------|--------------
+`@1110`       | binary 1110
+`#1100`       | hexadecimal 1100
+`1100`        | hexadecimal 1100
+`FF`          | hexadecimal FF
+`@FF`         | error! binary numbers must be 1 or 0
+`#F`          | error! hexadecimal numbers must be byte aligned
+`@1 101 01`   | binary 110101
+`AA BB CC DD` | hexadecimal AABBCCDD
 
-```c++
-    auto m = ict::multivector<int>{1, 2, {10, 11, 12, {100}}, 3};
-```
-
-
-and displayed with using a convenience function:
-
-```c++
-    std::cout << ict::to_text(m);
-```
-
-
-and the output:
-
-```
-    1
-    2
-      10
-      11
-      12
-        100
-    3
-```
-
-
-In the above example, the values 1, 2, and 3 make a *sub-vector*, and are considered the top level *children*.  1
-precedes 2 and 2 precedes 3.  10, 11, and 12 make up a another sub-vector and 2 is their *parent*. The parent of 1
-is considered the *root*.
-
-`iterators` for multivectors are called `cursors` and are the means of navigation.  They are random access
-(among siblings). Unlike regular iterators they have the vector functions you would expect: `begin()`, `end()`,
-`emplace()`, etc.
-
-For cursors, `begin()` returns a cursor to the first child, and `end()` returns a cursor after the last child.
-So for multivectors, there can be many different `begin()` and `end()` cursors.  All cursors that are part 
-of the same multivector are comparable.
-
-The implementation currently includes a **subset** of the features found `std::vector` and is described
-below. 
-
-
-The multivector is a totally ordered container class for hierarchies.  It supports the following vector operations:
+Examples of creating a bitstring:
 
 ```c++
-item_reference operator[](int index) 
-const_item_reference operator[](int index) const 
-
-void clear() 
-void pop_back() 
-
-bool empty() const 
-
-size_t size() const 
-cursor begin() 
-const_cursor begin() const 
-const_cursor cbegin() const 
-
-cursor end() 
-const_cursor end() const 
-const_cursor cend() const 
+auto a = ict::bitstring("FF");
+auto b = ict::bitstring("#FF"); // same as a
+auto c = ict::bitstring("@111");
 ```
 
 
-There is an additional constructor that takes a cursor:
-
-```c++
-multivector(cursor c)
-```
+<h2 id="bit_iterator">2 bit_iterator</h2>
 
 
-`c` will become the root of a new multivector, its contents will be copied.
+Bit iterators are bidirectional.  They are simply a wrapper of a byte pointer and a bit offset.  `bitstring` provides
+`bit_begin()` and `bit_end()` operations that behave as expected.
 
-<h2 id="Download">1.2 Download</h2>
+You can also create a `bit_iterator` outside of a `bitstring`, e.g:
 
+    char x = 0xF0;
+    auto i = ict::bit_iterator(&x, 5);
 
-`multivector.h` is part of the Intrig C++ Toolkit and can be found at <https://github.com/intrig/ict>.
+This iterator, for example, can then be used in other operations that use bit iterators, such as `copy` or `copy_n`
+described below.
 
-<h2 id="Cursors">2 Cursors</h2>
-
-
-Cursors share both the properties of `std::vector` and a std::vector's iterator.  This in effect makes a cursor
-behave like a multivector.  There are three kinds of cursors, described in the following sections.
-
-<h2 id="multivector<T>::cursor">2.1 multivector<T>::cursor</h2>
-
-
-In addition to normal random-access iterator operations, cursors provide the following functions:
-
-Here are vector operations that are currently supported for cursors:
-
-```c++
-    cursor begin() 
-    cursor begin() const 
-    cursor cbegin() const 
-    cursor end() 
-    cursor end() const 
-    cursor cend() const 
+to get to the actual bit value a bit iterator points to:
     
-    bool empty() const 
-    size_t size() const 
-
-    void reserve(size_t n)
-
-    void clear()
-    void pop_back()
-
-    // emplace a value at the end and return a cursor to it.
-    template <class... Args>
-    cursor emplace(Args&&... args) 
-
-    // emplace a value at the end.
-    template <class... Args>
-    void emplace_back(Args&&... args) 
-```
+    bool v = i->value();    i->value(true);     
+    
+<h2 id="ict::bitstring">3 ict::bitstring</h2>
 
 
-Additional cursor navigation operations are available:
+Bitstrings are value types.
 
-```c++
-// return a child cursor 
-bool is_first_child() const // return true if this is the first child 
-cursor parent() const // return a cursor to parent
-bool is_root() const // true if this is the root cursor
-```
-
-
-Cursor validity is similar to that of vectors.  If a sibling vector gets resized, then all its cursors are invalidated.
-But any parent cursor is still valid.
-
-<h2 id="multivector<T>::ascending_cursor">2.2 multivector<T>::ascending_cursor</h2>
-
-
-An ascending cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
-
-For example:
-
-```c++
-auto m = ict::multivector<int>{1, {10, { 100, 101, 102}}, 2, 3, 4};
-auto n = m.begin().begin().end();  // n points to one past 102
---n;                               // n points to 102
-auto last = ict::multivector<int>::ascending_cursor(n); // convert to an ascending cursor
-
-while (!last.is_root()) {
-    std::cout << *last << '\n';
-    ++last;
-}
-```
-
-
-will print out
-
-```
-102
-101
-100
-10
-1
-```
-
-
-The above code segment that assigns the `last` cursor could be written more concisely using the `to_ascending()`
-function:
-
-    auto last = ict::to_ascending(--m.begin().begin().end());
-
-`ascending_cursor` supports the following vector operations:
-
-```c++
-// vector operations
-bool empty() const
-size_t size() const
-cursor begin()
-cursor begin() const
-cursor cbegin() const
-```
-
-
-Additional ascending cursor operations:
-
-```c++
-bool is_root() const
-```
-
-<h2 id="multivector<T>::linear_cursor">2.3 multivector<T>::linear_cursor</h2>
-
-
-A linear cursor is also a forward iterator.  It traverses a multivector in a depth-first order.
-
-The following code:
-
-```c++
-auto m = ict::multivector<int>{1, { 2, { 3 }, 4}};
-for (auto i = ict::to_linear(m.begin());  i!=m.end(); ++i) std::cout << *i << '\n';
-```
-
-
-will output:
-
-```
-1
-2
-3
-4
-```
-
-
-Notice the automatic conversion from one type of cursor to another.
-
-There are no operations for the linear cursor other than those of an input iterator.
-
-<h2 id="Functions">3 Functions</h2>
-
-
-The multivector functions act upon one or more template cursor parameters that must satisfy the cursor 
-definition above.
-
-<h2 id="get_root">3.1 get_root</h2>
+<h2 id="Constructors">3.1 Constructors</h2>
 
 
 ```c++
-template <typename Cursor>
-Cursor get_root(Cursor start)
+bitstring();                        // empty bitstring
+bitstring(size_t bit_size);         // bitstring filled with 0 bits
+bitstring(const bitstring & a);     // copy constructor
+bitstring(bitstring && a) noexcept; // move constructor
+
+// bitstring from input iterators.  These can can be bit_iterators described above, or traditional iterators.
+bitstring(InputIterator first, InputIterator last);
+
+// bitstring from an input iterator and bit length.
+bitstring(InputIterator first, size_t bit_len);
+
+// create from strings
+bitstring(const char * str);
+bitstring(const std::string & str);
 ```
 
-
-Return the root cursor of a multivector given a cursor.  This is a log2(n) operation.
-<h2 id="previous">3.2 previous</h2>
-
-```c++
-template <typename Cursor>
-Cursor previous(Cursor self)
-```
-
-
-Return the previous cursor, either a sibling or parent.
-<h2 id="recurse">3.3 recurse</h2>
-
-```c++
-template <typename Cursor, typename Action>
-void recurse(Cursor parent, Action action) 
-```
-
-
-Recursively descend and perform an action on each item.  The action must have a signature of:
-
-`void action(Cursor current, Cursor parent)`;
-
-`current` is the current item visited, and `parent` is its parent.
-
-The following example will print out all the items in a multivector:
-
-```c++
-typedef ict::multivector<int>::cursor int_cursor;
-auto m = ict::multivector<int>{1, { 2, { 3 }}};
-ict::recurse(m.root(), [](int_cursor c, int_cursor) { std::cout << *c << '\n'; }
-```
-
-<h2 id="recurse-(2)">3.4 recurse (2)</h2>
+<h2 id="Methods">3.2 Methods</h2>
 
 
 ```c++
-template <typename Cursor, typename Action>
-void recurse(Cursor parent, Action action_down, Action action_up, int level = 0) 
+// return a substring
+bitstring substr(size_t index, size_t len = std::numeric_limits<size_t>::max()) const;
+inline bitstring& remove(size_t index, size_t len); // remove a substring
+void resize(size_t s);  // resize
+
+bool empty() const // check for empty
+
+pointer begin() const // return an iterator (this is a char *)
+pointer end() const
+bit_iterator bit_begin() const // return an iterator (this is a char *)
+bit_iterator bit_end() const
+pointer data() const // same as begin()
+
+size_t byte_size() const // size in bytes
+size_t bit_size() const  // size in bits
+
+bool local() const // denotes if the bitstring is stored locally (true if its smaller than 64 bits)
+
+void set(size_t index) // set a bit to 1
+void reset(size_t index) // set a bit to 0
+bool at(size_t index) const // get the bit value 
+
+void clear()
 ```
 
+<h2 id="ict::ibitstream">4 ict::ibitstream</h2>
 
-This version of recurse is similar to the above, except it also performs and action on the way up.
-Also, the current depth in the tree will be provided.
 
-<h2 id="compact_string">3.5 compact_string</h2>
+An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
+a convenient way to read bits from a bitstring (a protocol message, for example).
+
+Example usage:
 
 ```c++
-inline std::string compact_string(Cursor parent);
-inline std::string compact_string(const multivector<T> & tree);
+auto bits = ict::bitstring("@111000");
+ict::ibitstream is(bits);
+auto a = is.read(3); // a = @111
+auto b = is.read(3); // b = @000
 ```
 
 
-Conveniently return a compact string representation of a multivector.  It uses the above recurse method.
+The only way to create an `ibitstream` is to initialize its constructor with a `bitstring`.  
 
 ```c++
-auto m = ict::multivector<int>{1, { 2, { 3 }}};
-std::cout << ict::compact_string(m.root());
+ibitstream() = delete;
+ibitstream(const ibitstream &) = delete;
+ibitstream(const bitstring & bits)
+
+// Read n bits.  Values of n greater than remaining() result in undefined behavior.
+bitstring read_blind(size_t n) 
+
+bitstring read(size_t n) // read up to n bits
+bitstring peek(size_t n, size_t offset=0) // peek ahead
+
+size_t tellg() const // return the current index
+
+ibitstream& seek(size_t n) // advance the index
+
+void constrain(size_t length) // temporarily set the remaining bits to length (reentrant)
+void unconstrain() // lift the last constraint
+
+void mark() // set a marker to remember current index that can be used by last_mark() (reentrant)
+void unmark() // remove last mark
+size_t last_mark() const // return the index of the last mark set
+
+size_t remaining() const // remaming number of bits to read 
+
+bool eobits() const // return if at the end
 ```
 
 
-prints:
+<h2 id="Constraints-and-Marks">4.1 Constraints and Marks</h2>
 
-`{1 {2 {3}}}`
-<h2 id="to_text">3.6 to_text</h2>
+
+A constraint is use to temporarily restrict the length of the bitstring.  A mark is used to mark the current index in
+the bitstring.  Calling `last_mark()` will return the index of the last mark set.
+
+Instead of using the ibitstream `constrain()` and `unconstrain()`, or `mark()` and `unmark()`, a single `constraint` or
+`bitmarker` object initialized with the `ibitstream` can be created that uses RAII.
+
 
 ```c++
-inline std::string to_text(Cursor parent)
-inline std::string to_text(const multivector<T> & tree) 
+struct constraint {
+    constraint() = delete;
+    constraint(const constraint &) = delete;
+    constraint& operator=(const constraint &) = delete;
+    constraint(ibitstream& bs, size_t length) : bs(bs) { bs.constrain(length); }
+    ~constraint() { bs.unconstrain(); }
+};
+
+struct bitmarker {
+    bitmarker() = delete;
+    bitmarker(const bitmarker &) = delete;
+    bitmarker& operator=(const bitmarker &) = delete;
+    bitmarker(ibitstream &bs) : bs(bs) { bs.mark(); }
+    ~bitmarker() { bs.unmark(); }
+};
 ```
 
-
-Convert to a table string.  An example is provided in the introduction.
-
-<h2 id="leaf">3.7 leaf</h2>
+<h2 id="ict::obitstream">5 ict::obitstream</h2>
 
 
-`inline Cursor leaf(Cursor c)`
+Output bit streams can be used to construct bitstrings from others.
 
-Returns the last child of c or c if it is empty().
-<h2 id="promote_last">3.8 promote_last</h2>
-
-
-`inline void promote_last(Cursor parent)`
-
-Replace the last child with the children of the last child.  This should be rewritten to not be so specific.  There
-should be a detach() ability that removes a subtree as a multivector.
-
-<h2 id="to_ascending">3.9 to_ascending</h2>
-
-`inline typename Cursor::ascending_cursor_type to_ascending(Cursor parent)`
-
-Convert a cursor to an ascending cursor.
-<h2 id="to_linear">3.10 to_linear</h2>
-
-`inline typename Cursor::linear_type to_linear(Cursor parent)`
-
-Convert a cursor to a linear cursor.
-<h2 id="append">3.11 append</h2>
+Example:
 
 ```c++
-template <typename Cursor, typename ConstCursor>
-void append(Cursor parent, ConstCursor first, ConstCursor last) 
-
-template <typename Cursor, typename ConstCursor>
-void append(Cursor parent, ConstCursor from_parent)
+ict::obitstream os;
+os << ict::bitstring("@111");
+os << ict::bitstring("@000");
+auto bits = os.bits(); // bits = @111000
 ```
 
 
-Append (i.e., copy) the children of one cursor to the children of another.  The the children will be
-appended to any existing children.
-<h2 id="References">4 References</h2>
+```c++
+struct obitstream {
+    // create a stream and initialize it with bits
+    obitstream(const bitstring & bits)
+
+    obitstream() // create obitstream
+    obitstream& operator<<(const bitstring & b) // stream operator
+
+    bitstring bits() // return contents of stream as a bitstring
+};
+```
+
+<h2 id="Functions">6 Functions</h2>
+<h2 id="reverse_bytes">6.1 reverse_bytes</h2>
 
 
-Below are other tree implementations and papers I looked at while developing multivector.  In general, they provide
-more capability than the multivector, but are node based.
+```c++
+inline void reverse_bytes(T & number)
 
-* multivector has some commonalty with the boost property tree:
-  [boost property tree](http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html)
+```
 
-* [Adobe forest](http://stlab.adobe.com/classadobe_1_1forest.html)
 
-* [tree.hh](http://tree.phi-sci.com/documentation.html)
+Reverse the bytes of the bitstring (not the bits).
 
-* [Hierarchical Data Structures and Related Concepts for the C++ Standard Library](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3700.html)
+<h2 id="to_integer">6.2 to_integer</h2>
 
+```c++
+template <typename T>
+inline T to_integer(bitstring const & bits, bool swap = true)
+```
+
+Convert a bitstring to an integer of a given type.  Little-endian representation is assumed.
+
+<h2 id="from_integer">6.3 from_integer</h2>
+
+```c++
+template <typename T> 
+inline bitstring from_integer(T number, size_t dest_size=sizeof(T) * 8)
+```
+
+
+Convert a number to a bitstring
+
+<h2 id="gsm7">6.4 gsm7</h2>
+
+```c++
+inline std::string gsm7(const bitstring & bits, size_t fill_bits = 0)
+```
+
+Text messaging support, of course.
+
+<h2 id="to_string">6.5 to_string</h2>
+
+```c++
+inline std::string to_string(const bitstring & bits);
+```
+
+Convert to std::string.  Byte aligned bitstrings will be returned in hex, otherwise binary.
+
+<h2 id="operator<<">6.6 operator<<</h2>
+
+```c++
+inline std::ostream& operator<<(std::ostream& os, const bitstring & bits)
+```
+
+Output stream operator, uses to_string() above.
+
+<h2 id="set_bit">6.7 set_bit</h2>
+
+```c++
+inline void set_bit(unsigned char * buf, unsigned index, bool val);
+```
+
+Set a bit.
+
+<h2 id="bit">6.8 bit</h2>
+
+```c++
+inline bool bit(unsigned char * buf, unsigned index);
+```
+
+Get a bit.
+
+<h2 id="bit_copy-and-bit_copy_n">6.9 bit_copy and bit_copy_n</h2>
+
+```c++
+inline void bit_copy(bit_iterator first, bit_iterator last, bit_iterator result)
+inline void bit_copy_n(bit_iterator & first, size_t bit_count, bit_iterator & result) 
+```
+
+Eventually, you have to write code that actually does something.  This is it.  Copy a range of bits from one address
+and bit offset to another.
+
+You can use bit_copy by itself without having to create a bitstring.  For example, here is a function that takes
+5 parameters and simply calls `bit_copy_n`:
+
+    void my_copy(char * src, size_t src_bit_offset, size_t bit_len, char * res, size_t res_bit_offset) {
+        ict::bit_copy_n({src, src_bit_offset}, bit_len, {res, res_bit_offset});
+    }
