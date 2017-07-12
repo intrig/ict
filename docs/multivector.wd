@@ -16,7 +16,7 @@ behave just like `std::vector`.  And since `std::vector` is used in the underlyi
 hierarchies that benefit from both cache friendly locality of reference and C++11 move semantics.
 
 A multivector is optimised to handle trees with nodes that are likely to have siblings and less likely to have children.
-This is exactly the kind of trees we find throughout computer programming: HTML, XML, user interface window hierarchies,
+This is exactly the kind of trees we find throughout computer programming: HTML, XML, window hierarchies,
 telecom messages, configurators, multiple choice tests, user lists, file directories, store directories, etc. 
 
 ## Example {
@@ -103,7 +103,7 @@ multivector(cursor c)
 Cursors share both the properties of `std::vector` and a std::vector's iterator.  This in effect makes a cursor
 behave like a multivector.  There are three kinds of cursors, described in the following sections.
 
-# multivector<T>::cursor {
+# cursor {
 
 In addition to normal random-access iterator operations, cursors provide the following functions:
 
@@ -147,7 +147,7 @@ bool is_root() const // true if this is the root cursor
 Cursor validity is similar to that of vectors.  If a sibling vector gets resized, then all its cursors are invalidated.
 But any parent cursor is still valid.
 
-## multivector<T>::ascending_cursor {
+## ascending_cursor {
 
 An ascending cursor is a forward cursor.  `operator++` just goes up and to the left until the root.
 
@@ -198,7 +198,7 @@ bool is_root() const
 ```
 :}
 
-## multivector<T>::linear_cursor {
+## linear_cursor {
 
 A linear cursor is also a forward iterator.  It traverses a multivector in a depth-first order.
 
