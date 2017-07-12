@@ -4,8 +4,7 @@
 
 #include <unit.h>
 
-class expr_unit 
-{
+class expr_unit {
     public:
     void register_tests(ict::unit_test<expr_unit> & ut) {
         ut.add(&expr_unit::expr_sanity);
