@@ -486,10 +486,10 @@ inline void write_file(const std::vector<std::string> & lines, const std::string
 }
 
 inline bool system_bigendian() {
-    // from http://www.ibm.com/developerworks/aix/library/au-endianc/index.html?ca=drs- 
+    // based on http://www.ibm.com/developerworks/aix/library/au-endianc/index.html?ca=drs- 
     // Listing 5
     const int i = 1;
-    return (*(char*)&i) == 0;
+    return *reinterpret_cast<const char*>(&i) == 0;
 }
 
 class timer {
