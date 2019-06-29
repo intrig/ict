@@ -644,7 +644,7 @@ void bitstring_unit::modern_sms_difficult()
     IT_ASSERT(ict::gsm7(sm) == result.c_str());
 }
 
-void random_copy(int n) {
+void random_copy(size_t n) {
     auto bs = random_bitstring(n);
     auto l = bs.bit_end() - bs.bit_begin();
     IT_ASSERT_MSG(l << " != " << n, l == n);
@@ -667,7 +667,6 @@ void bitstring_unit::iterators() {
     IT_ASSERT(first == bit_iterator());
     ++first;
     first++;
-    auto x = *first;
     --first;
     first--;
     IT_ASSERT(first == bit_iterator());

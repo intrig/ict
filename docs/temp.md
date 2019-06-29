@@ -8,12 +8,12 @@ namespace ict
 
 * 1 [Introduction](#Introduction)
 * 2 [bit_iterator](#bit_iterator)
-* 3 [bitstring](#bitstring)
+* 3 [ict::bitstring](#ict::bitstring)
     * 3.1 [Constructors](#Constructors)
     * 3.2 [Methods](#Methods)
-* 4 [ibitstream](#ibitstream)
+* 4 [ict::ibitstream](#ict::ibitstream)
     * 4.1 [Constraints and Marks](#Constraints-and-Marks)
-* 5 [obitstream](#obitstream)
+* 5 [ict::obitstream](#ict::obitstream)
 * 6 [Functions](#Functions)
     * 6.1 [reverse_bytes](#reverse_bytes)
     * 6.2 [to_integer](#to_integer)
@@ -79,7 +79,7 @@ to get to the actual bit value a bit iterator points to:
     
     bool v = i->value();    i->value(true);     
     
-<h2 id="bitstring">3 bitstring</h2>
+<h2 id="ict::bitstring">3 ict::bitstring</h2>
 
 
 Bitstrings are value types.
@@ -133,7 +133,7 @@ bool at(size_t index) const // get the bit value
 void clear()
 ```
 
-<h2 id="ibitstream">4 ibitstream</h2>
+<h2 id="ict::ibitstream">4 ict::ibitstream</h2>
 
 
 An input bit stream is modeled after the std::istream.  However it acts upon bits and not bytes.  It provides
@@ -207,7 +207,7 @@ struct bitmarker {
 };
 ```
 
-<h2 id="obitstream">5 obitstream</h2>
+<h2 id="ict::obitstream">5 ict::obitstream</h2>
 
 
 Output bit streams can be used to construct bitstrings from others.
