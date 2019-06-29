@@ -69,13 +69,13 @@ inline std::vector<std::string> split(const T & source, char c) {
 }
 
 // split on any of the supplied characters
-template <typename T>
-inline std::vector<std::string> split(const T & source, const char * s, bool include_del = false) {
+inline std::vector<std::string> split(const std::string & source, const char * s,
+    bool include_del = false) {
     std::vector<std::string> l;
     if (source.size() == 0) return l;
 
-    auto first = 0;
-    auto last = source.size();
+    size_t first = 0;
+    size_t last = source.size();
 
     while (first != last) {
         auto i = source.find_first_of(s, first);
@@ -84,7 +84,8 @@ inline std::vector<std::string> split(const T & source, const char * s, bool inc
             if (!s.empty()) l.push_back(s);
             first = last;
         } else {
-            auto s = std::string(source.begin() + first, source.begin() + i + (include_del == true));
+            auto s = std::string(source.begin() + first, source.begin() + i +
+                (include_del == true));
             l.push_back(s);
             first = i;
             ++first;
