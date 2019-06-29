@@ -373,7 +373,6 @@ void multivector_unit::moving() {
 
 template <typename T>
 void compare_linear(const ict::multivector<T> & a, const std::vector<T> b) {
-    typedef typename ict::multivector<T>::const_linear_cursor linear_type;
     auto first = ict::to_linear(a.begin());
     auto last = ict::to_linear(a.end());
     IT_ASSERT(std::equal(first, last, b.begin()));

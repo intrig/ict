@@ -72,7 +72,7 @@ struct bit_type {
 
     void decrement(size_t n) {
         // TODO implement as O(1)
-        for (auto i = 0; i<n; ++i) decrement();
+        for (size_t i = 0; i<n; ++i) decrement();
     }
 
     size_t difference(const bit_type & b) {
@@ -193,7 +193,7 @@ struct const_bit_iterator {
 template <typename A, typename B, typename C, typename D, typename E, typename F>
 inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, D const & reverse_mask, 
     E const & reverse_mask_xor, F & c) {
-    if (src_len >= (CHAR_BIT - dst_offset_modulo)) {
+    if (src_len >= (size_t)(CHAR_BIT - dst_offset_modulo)) {
         *dst     &= reverse_mask[dst_offset_modulo];
         src_len -= CHAR_BIT - dst_offset_modulo;
     } else {
@@ -209,7 +209,6 @@ inline void prepare_first_copy(A & src_len, B const dst_offset_modulo, C * dst, 
 using bit_iterator = util::bit_iterator;
 inline void bit_copy_n(bit_iterator first, size_t bit_count, bit_iterator result) {
     typedef unsigned char value_type;
-    typedef value_type * pointer;
 
     const value_type * src_org = (const value_type *) first->byte;
     int src_offset = first->bit;
