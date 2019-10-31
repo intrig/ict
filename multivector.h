@@ -432,10 +432,10 @@ struct item {
     const_vector_pointer vec_pointer() const { return &nodes_; }
     vector_pointer vec_pointer() { return &nodes_; }
 
-    item_pointer begin_ptr() { return &(nodes_[0]); }
-    item_pointer end_ptr() { return &nodes_.back() + 1; }
-    const_item_pointer begin_ptr() const { return &(nodes_[0]); }
-    const_item_pointer end_ptr() const { return &nodes_.back() + 1; }
+    item_pointer begin_ptr() { return nodes_.empty() ? nullptr : &(nodes_[0]); }
+    item_pointer end_ptr() { return nodes_.empty() ? nullptr : &nodes_.back() + 1; }
+    const_item_pointer begin_ptr() const { return nodes_.empty() ? nullptr : &(nodes_[0]); }
+    const_item_pointer end_ptr() const { return nodes_.empty() ? nullptr : &nodes_.back() + 1; }
     const_item_pointer cbegin_ptr() const { return begin_ptr(); }
     const_item_pointer cend_ptr() const { return end_ptr(); }
 
