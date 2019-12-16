@@ -6,6 +6,10 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if (NOT MSVC)
+    compile_options(-Wall -Wextra)
+endif ()
+
 include_directories(${CMAKE_SOURCE_DIR})
 
 add_subdirectory(unit)

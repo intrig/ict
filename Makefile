@@ -15,8 +15,7 @@ clean:
 
 realclean:
 	cmake -E remove_directory build
-	cmake -E remove_directory debug
-	
+
 check: build
 	cd build && CTEST_OUTPUT_ON_FAILURE=1 ctest
 
@@ -24,7 +23,7 @@ perf: build
 	build/perf/ictperf --ibits
 	build/perf/ictperf --obits
 
-tags: 
+tags:
 	@echo Making tags...
 	@$(RM) tags; find . -name '*.cpp' \
 	-o -name '*.h' > flist && \
