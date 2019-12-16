@@ -585,7 +585,7 @@ Int log_2(Int x) {
     return y;
 }
 
-inline int required_bits(int64_t lower, int64_t upper) {
+inline int64_t required_bits(int64_t lower, int64_t upper) {
     auto range = upper - lower;
     if (range <= 0) return 0;
     return log_2(range) + 1;
