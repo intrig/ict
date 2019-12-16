@@ -172,6 +172,7 @@ class command {
                     IT_PANIC("illegal \"-\" character");
                 case ' ':
                     state = Idle;
+                    break;
                 default:
                     if (isgraph(ch)) // found short option
                     {
@@ -263,6 +264,7 @@ class command {
                     if (it->flag)
                         IT_PANIC("value not expected for option: " << long_opt);
                     state = ValueStart;
+                    break;
                 default:
                     long_opt += ch;
                     break;
