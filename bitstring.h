@@ -16,13 +16,13 @@ template <typename S>
 inline S it_bit_index(S & index) { return (index % 8); }
 
 template <typename Char>
-inline void set_bit(Char * buf, unsigned index, bool val) {
+inline void set_bit(Char * buf, size_t index, bool val) {
     if (val) *(it_byte(buf, index)) |= (1 << (7 - it_bit_index(index))); 
     else *(it_byte(buf, index)) &= ~(0x80 >> it_bit_index(index));
 }
 
 template <typename Char>
-inline bool get_bit(Char * buf, unsigned index) {
+inline bool get_bit(Char * buf, size_t index) {
     return (*it_byte(buf, index) >> (7 - it_bit_index(index))) & 1;
 }
 
