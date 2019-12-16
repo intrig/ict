@@ -1,6 +1,4 @@
 #pragma once
-//-- Copyright 2016 Intrig
-//-- See https://github.com/intrig/ict for license.
 #include "exception.h"
 
 #include <algorithm>
@@ -12,15 +10,13 @@
 namespace ict {
 class Option {
   public:
-    Option(
-        std::string name, char short_opt, std::string desc,
-        std::function<void()> action = []() {})
+    Option(std::string name, char short_opt, std::string desc,
+           std::function<void()> action = []() {})
         : name(name), short_opt(short_opt), desc(desc), binary_action(action),
           flag(true), present(false) {}
 
-    Option(
-        std::string name, char short_opt, std::string desc, std::string def,
-        std::function<void(std::string val)> action = [](std::string) {})
+    Option(std::string name, char short_opt, std::string desc, std::string def,
+           std::function<void(std::string val)> action = [](std::string) {})
         : name(name), short_opt(short_opt), desc(desc), default_value(def),
           action(action), flag(false), present(false) {}
 
