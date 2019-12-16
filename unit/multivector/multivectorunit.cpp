@@ -247,7 +247,7 @@ void multivector_unit::iterators() {
 }
 
 struct boo {
-    boo() {
+    boo() : n(0) {
         //IT_WARN("default constructor");
     }
     ~boo() {
