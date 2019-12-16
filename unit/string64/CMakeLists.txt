@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
-add_executable(string64 string64unit.cpp)
-add_definitions(-std=c++11)
-include_directories(../..)
+cmake_minimum_required(VERSION 3.15)
 enable_testing()
+add_executable(string64 string64unit.cpp)
 add_test(string64 string64)
