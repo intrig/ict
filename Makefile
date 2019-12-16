@@ -1,8 +1,10 @@
-.PHONY: tags perf
+.PHONY: all tags perf
+
+all: build
+	cmake --build build
 
 build:
 	cmake -B $@ -S . -GNinja -DCMAKE_BUILD_TYPE=Release
-	cmake --build $@
 
 debug:
 	cmake -B $@ -S . -GNinja -DCMAKE_BUILD_TYPE=Debug

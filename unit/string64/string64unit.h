@@ -1,6 +1,4 @@
 #pragma once
-//-- Copyright 2016 Intrig
-//-- See https://github.com/intrig/ict for license.
 #include <unit.h>
 
 struct string64_unit {
