@@ -1,9 +1,7 @@
-//-- Copyright 2016 Intrig
-//-- See https://github.com/intrig/ict for license.
 #include "string64unit.h"
-
+#include <algorithm>
+#include <random>
 #include <string64.h>
-
 #include <string>
 
 struct spaces_t {
@@ -83,7 +81,11 @@ void string64_unit::string64_compare() {
     std::vector<ict::string64> v = { "a", "b", "c", "foo", "goo", "alpha", "beta", "wow", "wowo", "good", "bad" };
     auto sorted = v;
     std::sort(sorted.begin(), sorted.end());
-    std::random_shuffle(v.begin(), v.end());
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(v.begin(), v.end(), g);
+
     auto sorted2 = v;
     std::sort(sorted2.begin(), sorted2.end());
     IT_ASSERT(sorted == sorted2);

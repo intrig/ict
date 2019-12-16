@@ -1,30 +1,31 @@
-.PHONY: tags perf
+.PHONY: all tags perf
 
-all:
-	mkdir -p build
-	cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cd .. && make -C build -j12
+all: build
+	cmake --build build
+
+build:
+	cmake -B $@ -S . -GNinja -DCMAKE_BUILD_TYPE=Release
 
 debug:
-	mkdir -p build
-	cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && cd .. && make -C build -j12
-
-serial:
-	mkdir -p build
-	cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make VERBOSE=1 && cd ..
+	cmake -B $@ -S . -GNinja -DCMAKE_BUILD_TYPE=Debug
+	cmake --build $@
 
 clean:
-	rm -rf build
+	cmake --build $@ clean
 
-test: all
-	make CTEST_OUTPUT_ON_FAILURE=1 -C build test
+realclean:
+	cmake -E remove_directory build
 
-perf: test
+check: build
+	cd build && CTEST_OUTPUT_ON_FAILURE=1 ctest
+
+perf: build
 	build/perf/ictperf --ibits
 	build/perf/ictperf --obits
 
-tags: 
-	mkdir -p o
+tags:
 	@echo Making tags...
-	/usr/bin/find . -name '*.c' -o -name '*.cpp' -o -name '*.h' | grep -v "moc_" | grep -v "ui_" | grep -v "/o/"> o/flist && \
-	ctags --file-tags=yes --language-force=C++ -L o/flist
+	@$(RM) tags; find . -name '*.cpp' \
+	-o -name '*.h' > flist && \
+	ctags --file-tags=yes -L flist --totals && rm flist
 	@echo tags complete.
