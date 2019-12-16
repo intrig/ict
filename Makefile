@@ -15,10 +15,10 @@ realclean:
 	cmake -E remove_directory build
 	cmake -E remove_directory debug
 	
-test: all
+check: build
 	cd build && CTEST_OUTPUT_ON_FAILURE=1 ctest
 
-perf: test
+perf: build
 	build/perf/ictperf --ibits
 	build/perf/ictperf --obits
 
