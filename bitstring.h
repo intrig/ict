@@ -504,7 +504,7 @@ struct ibitstream {
 
     ibitstream(const bitstring &bits_) : bits(bits_) {
         // index = 0;
-        bit_index = bits.begin();
+        bit_index = bits.bit_begin();
         end_bit_list.push_back(bits.bit_end());
         mark();
     }
