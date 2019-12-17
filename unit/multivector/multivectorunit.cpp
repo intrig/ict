@@ -479,6 +479,41 @@ void multivector_unit::append_children() {
     IT_ASSERT(q == s);
 }
 
+// Make sure our cursors behave well with the stl.
+void multivector_unit::stl_algo() {
+    {
+        // basic
+        auto m = ict::multivector<int>{1, {10, {100, 101, 102}}, 2, 3, 4};
+        auto i = std::find(m.begin(), m.end(), 3);
+        IT_ASSERT(*i == 3);
+        i = std::find(m.begin(), m.end(), -3);
+        IT_ASSERT(i == m.end());
+    }
+    {
+        // ascending
+        auto m = ict::multivector<int>{1, {10, {100, 101, 102}}, 2, 3, 4};
+
+        auto first = ict::to_ascending(--m.begin().begin().end());
+        IT_ASSERT(*first == 102);
+
+        auto last = ict::to_ascending(m.root());
+        IT_ASSERT(last.is_root());
+
+        auto i = std::find(first, last, 10);
+        IT_ASSERT(*i == 10);
+
+        i = std::find(first, last, -42);
+        IT_ASSERT(i == last);
+
+        i = std::find(first, ict::to_ascending(m.root()), -23);
+        IT_ASSERT(i == ict::to_ascending(m.root()));
+    }
+        // linear
+    {
+    }
+}
+
+
 int main(int, char **) {
     multivector_unit test;
     ict::unit_test<multivector_unit> ut(&test);
