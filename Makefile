@@ -11,7 +11,7 @@ debug:
 	cmake --build $@
 
 clean:
-	cmake --build $@ clean
+	cmake --build build --target clean
 
 realclean:
 	cmake -E remove_directory build

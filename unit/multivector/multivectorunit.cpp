@@ -252,9 +252,9 @@ struct boo {
         : n(n), bits(bits), name(name) {
         // IT_WARN("constructor " << name);
     }
-    boo(const boo &b) : n(b.n), bits(b.bits), name(b.name) {
-        // IT_WARN("copying " << name);
-    }
+    boo(const boo &b) =default;
+    boo& operator=(const boo&) = default;
+
     int n;
     ict::bitstring bits;
     std::string name;

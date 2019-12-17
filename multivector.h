@@ -62,7 +62,15 @@ struct cursor_base
         v = &b.it_->parent_item()->nodes_;
     }
     cursor_base(const cursor_base<ValueType, false> &b) : v(b.v), it_(b.it_) {}
+    constexpr cursor_base<ValueType, false>&
+        operator=(const cursor_base<ValueType, false>&b) {
+            v = b.v;
+            it_ = b.it_;
+            return *this;
+        }
+
     cursor_base(vec_pointer v, item_pointer it) : v(v), it_{it} {}
+
     cursor_base(const linear_type b) : v(b.c.v), it_(b.c.it_) {}
 
     // cursor operations
