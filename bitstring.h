@@ -97,6 +97,11 @@ struct bit_iterator {
     bit_iterator(char *p, size_t b = 0) : value(p, b) {}
     bit_iterator(unsigned char *p, size_t b = 0) : value((char *)p, b) {}
     bit_iterator(const bit_iterator &b) : value(b.value) {}
+
+    bit_iterator &operator=(const bit_iterator &b) {
+        value = b.value;
+        return *this;
+    }
     bit_type &operator*() const { return value; }
     bit_type *operator->() const { return &(operator*()); }
 
