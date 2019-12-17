@@ -54,7 +54,7 @@ struct cursor_base
     typedef ascending_cursor_type *ascending_cursor_pointer;
     typedef const ascending_cursor_type &const_ascending_cursor_reference;
 
-    typedef linear_cursor_base<ValueType, is_const_cursor> linear_type;
+    typedef linear_cursor_base<ValueType, is_const_cursor> linear_cursor_type;
 
     // constructors
     cursor_base() : v(nullptr), it_(nullptr) {}
@@ -71,7 +71,7 @@ struct cursor_base
 
     cursor_base(vec_pointer v, item_pointer it) : v(v), it_{it} {}
 
-    cursor_base(const linear_type b) : v(b.c.v), it_(b.c.it_) {}
+    cursor_base(const linear_cursor_type b) : v(b.c.v), it_(b.c.it_) {}
 
     // cursor operations
     reference operator*() const { return it_->value; }
@@ -227,6 +227,12 @@ struct ascending_cursor_base
     ascending_cursor_base(cursor_reference b) : it_(b.it_) {}
     ascending_cursor_base(const ascending_cursor_base<ValueType, false> &b)
         : it_(b.it_) {}
+
+    constexpr ascending_cursor_base<ValueType, false> &
+        operator=(const ascending_cursor_base<ValueType, false> &b) {
+            it_ = b.it_;
+            return *this;
+        }
     ascending_cursor_base(const item_pointer it) : it_{it} {}
 
     // cursor operations
@@ -272,16 +278,32 @@ struct ascending_cursor_base
 };
 
 template <typename ValueType, bool is_const_cursor>
-struct linear_cursor_base
-    : public std::iterator<std::forward_iterator_tag, ValueType> {
-    typedef linear_cursor_base linear_type;
-    typedef linear_type &linear_reference;
-    typedef linear_type *linear_pointer;
-    typedef const linear_type &const_linear_reference;
+struct linear_cursor_base {
+    typedef int difference_type;
+    typedef ValueType value_type;
+
+    typedef typename std::conditional<is_const_cursor, const ValueType *,
+                                      ValueType *>::type pointer;
+    typedef typename std::conditional<is_const_cursor, const ValueType &,
+                                      ValueType &>::type reference;
+
+    typedef std::forward_iterator_tag iterator_category;
+
+    typedef item<ValueType> item_type;
+    typedef typename std::conditional<is_const_cursor, const item_type *,
+                                      item_type *>::type item_pointer;
+    typedef typename std::conditional<is_const_cursor, const item_type &,
+                                      item_type &>::type item_reference;
 
     typedef cursor_base<ValueType, is_const_cursor> cursor_type;
-    typedef typename cursor_type::pointer pointer;
-    typedef typename cursor_type::reference reference;
+    typedef cursor_type &cursor_reference;
+    typedef cursor_type *cursor_pointer;
+    typedef const cursor_type &const_cursor_reference;
+
+    typedef linear_cursor_base linear_cursor_type;
+    typedef linear_cursor_type &linear_cursor_reference;
+    typedef linear_cursor_type *linear_cursor_pointer;
+    typedef const linear_cursor_type &const_linear_cursor_reference;
 
     linear_cursor_base() {}
     linear_cursor_base(const linear_cursor_base<ValueType, false> &b)
@@ -291,11 +313,11 @@ struct linear_cursor_base
     reference operator*() const { return *c; }
     pointer operator->() const { return &(*c); }
 
-    bool operator==(const_linear_reference b) const { return c == b.c; }
+    bool operator==(const_linear_cursor_reference b) const { return c == b.c; }
 
-    bool operator!=(const_linear_reference b) const { return !operator==(b); }
+    bool operator!=(const_linear_cursor_reference b) const { return !operator==(b); }
 
-    linear_reference operator++() {
+    linear_cursor_reference operator++() {
         if (!c.empty()) {
             parents.push_back(c);
             c = c.begin();
@@ -304,7 +326,7 @@ struct linear_cursor_base
         return *this;
     }
 
-    linear_type operator++(int) {
+    linear_cursor_type operator++(int) {
         auto temp = *this;
         operator++();
         return temp;
@@ -828,7 +850,7 @@ inline typename Cursor::ascending_cursor_type to_ascending(Cursor c) {
 }
 
 template <typename Cursor>
-inline typename Cursor::linear_type to_linear(Cursor c) {
+inline typename Cursor::linear_cursor_type to_linear(Cursor c) {
     return c;
 }
 
