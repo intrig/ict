@@ -22,17 +22,18 @@ struct ascending_cursor_base;
 // Random Access (among siblings)
 template <typename ValueType, bool is_const_cursor>
 struct cursor_base
-    : public std::iterator<std::bidirectional_iterator_tag, ValueType> {
-    typedef bool is_cursor;
+    {
+    typedef int difference_type;
     typedef ValueType value_type;
-    typedef item<ValueType> item_type;
-    typedef std::vector<item_type> vec_type;
 
     typedef typename std::conditional<is_const_cursor, const ValueType *,
                                       ValueType *>::type pointer;
     typedef typename std::conditional<is_const_cursor, const ValueType &,
                                       ValueType &>::type reference;
+    typedef std::bidirectional_iterator_tag iterator_category;
 
+    typedef item<ValueType> item_type;
+    typedef std::vector<item_type> vec_type;
     typedef typename std::conditional<is_const_cursor, const item_type *,
                                       item_type *>::type item_pointer;
     typedef typename std::conditional<is_const_cursor, const item_type &,
@@ -41,6 +42,7 @@ struct cursor_base
     typedef typename std::conditional<is_const_cursor, const vec_type *,
                                       vec_type *>::type vec_pointer;
 
+    typedef bool is_cursor;
     typedef cursor_base cursor_type;
     typedef cursor_type &cursor_reference;
     typedef cursor_type *cursor_pointer;
@@ -53,8 +55,6 @@ struct cursor_base
     typedef const ascending_cursor_type &const_ascending_cursor_reference;
 
     typedef linear_cursor_base<ValueType, is_const_cursor> linear_type;
-
-    typedef int difference_type;
 
     // constructors
     cursor_base() : v(nullptr), it_(nullptr) {}
@@ -195,15 +195,18 @@ struct cursor_base
 // operator++ just goes up and to the left until the root.
 template <typename ValueType, bool is_const_cursor>
 struct ascending_cursor_base
-    : public std::iterator<std::forward_iterator_tag, ValueType> {
+    {
+    typedef int difference_type;
     typedef ValueType value_type;
-    typedef item<ValueType> item_type;
 
     typedef typename std::conditional<is_const_cursor, const ValueType *,
                                       ValueType *>::type pointer;
     typedef typename std::conditional<is_const_cursor, const ValueType &,
                                       ValueType &>::type reference;
 
+    typedef std::forward_iterator_tag iterator_category;
+
+    typedef item<ValueType> item_type;
     typedef typename std::conditional<is_const_cursor, const item_type *,
                                       item_type *>::type item_pointer;
     typedef typename std::conditional<is_const_cursor, const item_type &,
@@ -218,8 +221,6 @@ struct ascending_cursor_base
     typedef ascending_cursor_type &ascending_cursor_reference;
     typedef ascending_cursor_type *ascending_cursor_pointer;
     typedef const ascending_cursor_type &const_ascending_cursor_reference;
-
-    typedef int difference_type;
 
     // constructors
     ascending_cursor_base() {}

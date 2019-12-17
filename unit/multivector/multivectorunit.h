@@ -24,6 +24,7 @@ class multivector_unit
         ut.add(&multivector_unit::ascending);
         ut.add(&multivector_unit::ascending2);
         ut.add(&multivector_unit::append_children);
+        ut.add(&multivector_unit::stl_algo);
     }
 
     void empty_multivectors();
@@ -41,4 +42,5 @@ class multivector_unit
     void ascending();
     void ascending2();
     void append_children();
+    void stl_algo();
 };
