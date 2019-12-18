@@ -4,27 +4,27 @@
 
 using std::cerr;
 
-void out_bits() {
-}
+void out_bits() {}
 
-template <typename Op>
-void time_op(int n, Op op) {
+template <typename Op> void time_op(int n, Op op) {
     ict::timer time;
     time.start();
-    for (int i = 0; i < n; ++i) op();
+    for (int i = 0; i < n; ++i)
+        op();
     time.stop();
     cerr << time << '\n';
-};
+}
 
 template <typename Op, typename EndOp>
 void time_op(int n, Op op, EndOp end_op) {
     ict::timer time;
     time.start();
-    for (int i = 0; i < n; ++i) op();
+    for (int i = 0; i < n; ++i)
+        op();
     end_op();
     time.stop();
     cerr << time << '\n';
-};
+}
 
 void in_bits(int s, int n) {
     // create a giant bitstring
@@ -43,23 +43,19 @@ void out_bits(int s, int n) {
     auto bits = ict::random_bitstring(s);
 
     ict::obitstream obs;
-    time_op(n, 
-    [&]() {
-        obs << bits;
-    },
-    [&]() {
-        auto x = obs.bits();
-    }
-    );
+    time_op(n, [&]() { obs << bits; }, [&]() { auto x = obs.bits(); });
 }
 
 int main(int argc, char **argv) {
     bool input = false;
     bool output = false;
     try {
-        ict::command line("ictperf", "ict performance tests", "ictperf [options]");
-        line.add(ict::option("ibits", 'i', "input bitstream", [&]{ input = true; }));
-        line.add(ict::option("obits", 'o', "output bitstream", [&]{ output = true; }));
+        ict::command line("ictperf", "ict performance tests",
+                          "ictperf [options]");
+        line.add(ict::option("ibits", 'i', "input bitstream",
+                             [&] { input = true; }));
+        line.add(ict::option("obits", 'o', "output bitstream",
+                             [&] { output = true; }));
 
         line.parse(argc, argv);
         if (input) {
@@ -75,7 +71,6 @@ int main(int argc, char **argv) {
             out_bits(8, 10000000);
             out_bits(11, 10000000);
         }
-    } catch (std::exception & e) {
+    } catch (std::exception &e) {
     }
-
 }
