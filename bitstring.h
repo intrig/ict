@@ -366,7 +366,7 @@ struct bitstring {
         std::string s(str);
         ict::squash(s);
 
-        int len = s.size();
+        size_t len = s.size();
 
         if ((len >= 3) && (s[0] == '#')) {
             *this = bitstring(16, s.c_str() + 1);
@@ -654,7 +654,7 @@ struct obitstream {
         auto first = bit_iterator(&data[0]);
         return bitstring(first, first + index);
     }
-    int index;
+    size_t index;
     // TODO change this to a bitstring and then use move copy for bits()?
     std::vector<char> data;
 };
@@ -929,7 +929,7 @@ inline std::string calc_gsm7(const bitstring &bsp) {
     return std::string();
 }
 
-inline bitstring &replace_bits(bitstring &src, int index, bitstring const &bs) {
+inline bitstring &replace_bits(bitstring &src, size_t index, bitstring const &bs) {
     bit_copy(bs.bit_begin(), bs.bit_end(), src.bit_begin() + index);
     return src;
 }
