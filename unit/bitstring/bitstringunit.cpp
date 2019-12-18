@@ -499,8 +499,7 @@ void bitstring_unit::modern_replace() {
     }
 }
 
-void bitstring_unit::modern_gsm7()
-{
+void bitstring_unit::modern_gsm7() {
     /*
 
      Unpacked: "12345678"
@@ -544,16 +543,15 @@ void bitstring_unit::modern_gsm7()
     ict::bitstring hello("C8329BFD06");
     IT_ASSERT(ict::gsm7(hello) == "Hello");
 
-
     ict::bitstring t1("@11011");
     t1.remove(2, 1);
     IT_ASSERT_MSG(to_string(t1), t1 == "@1111");
 
     ict::bitstring t2("@11011");
-    IT_ASSERT(t2.remove(2 ,1) == "@1111");
-    
+    IT_ASSERT(t2.remove(2, 1) == "@1111");
+
     ict::bitstring t3("@1111000");
-    IT_ASSERT(t3.remove(6 ,1) == "@111100");
+    IT_ASSERT(t3.remove(6, 1) == "@111100");
 
     ict::bitstring t4("@11011");
     t4.remove(0, 1);
@@ -564,7 +562,8 @@ void bitstring_unit::modern_gsm7()
 
         // 6, 1
         IT_ASSERT(bs1.substr(0, 6) == "@111100");
-        IT_ASSERT(ict::bitstring(bs1.bit_begin(), bs1.bit_begin() + 6) == "@111100");
+        IT_ASSERT(ict::bitstring(bs1.bit_begin(), bs1.bit_begin() + 6) ==
+                  "@111100");
         IT_ASSERT(bs1.substr(6 + 1, 15 - (6 + 1)) == "@11111010");
     }
     {
@@ -575,7 +574,8 @@ void bitstring_unit::modern_gsm7()
         IT_ASSERT(t1 == "@111100");
         IT_ASSERT(t1.bit_size() == begin);
 
-        ict::bitstring t2 = bs1.substr(begin + len, bs1.bit_size() - (begin + len));
+        ict::bitstring t2 =
+            bs1.substr(begin + len, bs1.bit_size() - (begin + len));
         IT_ASSERT(t2.bit_size() == bs1.bit_size() - (begin + len));
         IT_ASSERT(t2 == "@11111010");
 
@@ -587,13 +587,19 @@ void bitstring_unit::modern_gsm7()
     }
 
     {
-        ict::bitstring raw("@1111000011111010111100001001110011011100011101101000101111101101011000111011110000111110001111000010011100000011");
-        ict::bitstring rem("@111100011111010111100001001110011011100011101101000101111101101011000111011110000111110001111000010011100000011");
+        ict::bitstring raw(
+            "@11110000111110101111000010011100110111000111011010001011111011010"
+            "11000111011110000111110001111000010011100000011");
+        ict::bitstring rem(
+            "@11110001111101011110000100111001101110001110110100010111110110101"
+            "1000111011110000111110001111000010011100000011");
         IT_ASSERT(raw.remove(6, 1) == rem);
         ict::bitstring pre("@1111000");
         IT_ASSERT(rem.substr(0, 7) == pre);
 
-        ict::bitstring post("@11111010111100001001110011011100011101101000101111101101011000111011110000111110001111000010011100000011");
+        ict::bitstring post(
+            "@11111010111100001001110011011100011101101000101111101101011000111"
+            "011110000111110001111000010011100000011");
         IT_ASSERT(rem.substr(7, rem.bit_size() - 7) == post);
         IT_ASSERT_MSG(ict::gsm7(post), ict::gsm7(post) == "zasdmnbvcxzasd");
     }
@@ -606,20 +612,27 @@ void bitstring_unit::modern_gsm7()
     IT_ASSERT(ict::gsm7(ict::bitstring("@01111000")) == "x");
 
     // parse the rest as a plain sms message with no header
-    IT_ASSERT(ict::gsm7(ict::bitstring("@11111010111100001001110011011100011101101000101111101101011000111011110000111110001111000010011100000011")) == "zasdmnbvcxzasd");
+    IT_ASSERT(ict::gsm7(ict::bitstring(
+                  "@11111010111100001001110011011100011101101000101111101101011"
+                  "000111011110000111110001111000010011100000011")) ==
+              "zasdmnbvcxzasd");
 
     // put them together to get the complete message
     std::ostringstream os;
-    os << ict::gsm7(ict::bitstring("@01111000")) << ict::gsm7(ict::bitstring("@11111010111100001001110011011100011101101000101111101101011000111011110000111110001111000010011100000011"));
+    os << ict::gsm7(ict::bitstring("@01111000"))
+       << ict::gsm7(ict::bitstring(
+              "@111110101111000010011100110111000111011010001011111011010110001"
+              "11011110000111110001111000010011100000011"));
     IT_ASSERT(os.str() == "xzasdmnbvcxzasd");
 
     {
-        ict::bitstring raw("@1111000011111010111100001001110011011100011101101000101111101101011000111011110000111110001111000010011100000011");
+        ict::bitstring raw(
+            "@11110000111110101111000010011100110111000111011010001011111011010"
+            "11000111011110000111110001111000010011100000011");
         std::string gsm_message = ict::gsm7(raw, 1);
         // now do it all within gsm7() call with fill bit parameter
         IT_ASSERT_MSG(gsm_message, gsm_message == "xzasdmnbvcxzasd");
     }
-
 }
 
 void bitstring_unit::modern_sms_difficult()
