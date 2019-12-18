@@ -675,18 +675,16 @@ inline bitstring::bitstring(int base, const char *str) {
             }
         }
         break;
-    case 100: // compat with IT::BitString's Encoding enum
     case 7:   // ascii 7
     {
+        obitstream os;
         for (size_t i = 0; i < s.length(); i++) {
-            obitstream os;
             char ch = s[static_cast<unsigned>(i)];
             auto t = bitstring(bit_iterator(&ch) + 1, 7);
             os << t;
-            *this = os.bits();
         }
+        *this = os.bits();
     } break;
-    case 101: // compat with IT::BitString
     case 8:   // ascii 8
     {
         auto first = bit_iterator((char *)s.c_str());
