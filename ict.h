@@ -208,17 +208,15 @@ inline std::string &replace(std::string &x, std::string const &a,
     return x;
 }
 
-inline const char *spaces(int spaces) {
+inline const char *spaces(size_t spaces) {
     static const char s[] =
         "                                                           "
         "                                                           "
         "                                                           "
         "                                                           ";
-    static const size_t l = strlen(s);
+    static size_t l = strlen(s);
 
-    if (spaces < 0)
-        spaces = 0;
-    return (unsigned)spaces > l ? s : s + (l - spaces);
+    return spaces > l ? s : s + (l - spaces);
 }
 
 inline void make_dir(std::string const &path) {

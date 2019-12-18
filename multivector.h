@@ -23,7 +23,7 @@ struct ascending_cursor_base;
 template <typename ValueType, bool is_const_cursor>
 struct cursor_base
     {
-    typedef int difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef ValueType value_type;
 
     typedef typename std::conditional<is_const_cursor, const ValueType *,
@@ -196,7 +196,7 @@ struct cursor_base
 template <typename ValueType, bool is_const_cursor>
 struct ascending_cursor_base
     {
-    typedef int difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef ValueType value_type;
 
     typedef typename std::conditional<is_const_cursor, const ValueType *,
@@ -279,7 +279,7 @@ struct ascending_cursor_base
 
 template <typename ValueType, bool is_const_cursor>
 struct linear_cursor_base {
-    typedef int difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef ValueType value_type;
 
     typedef typename std::conditional<is_const_cursor, const ValueType *,
@@ -365,7 +365,7 @@ template <typename ValueType> struct item {
     typedef const item *const_item_pointer;
 
     typedef size_t size_type;
-    typedef int difference_type;
+    typedef std::ptrdiff_t difference_type;
 
     //! Default constructor
     item() : parent{(item *)(-1)} {}
