@@ -651,6 +651,20 @@ struct obitstream {
     std::vector<char> data;
 };
 
+namespace detail {
+template <typename T> bitstring from_ascii7(T first, T last) {
+    obitstream os;
+    while (first != last) {
+        auto i = bit_iterator(&(*first));
+        i++;
+        auto bs = bitstring(i, 7);
+        os << bs;
+    }
+    return os.bits();
+}
+
+} // namespace detail
+
 inline bitstring::bitstring(int base, const char *str) {
     std::string s(str);
     switch (base) {
@@ -677,6 +691,10 @@ inline bitstring::bitstring(int base, const char *str) {
         break;
     case 7:   // ascii 7
     {
+#if 1
+        assert(s.size());
+        *this = detail::from_ascii7(s.begin(), s.end());
+#else
         obitstream os;
         for (size_t i = 0; i < s.length(); i++) {
             char ch = s[static_cast<unsigned>(i)];
@@ -684,6 +702,7 @@ inline bitstring::bitstring(int base, const char *str) {
             os << t;
         }
         *this = os.bits();
+#endif
     } break;
     case 8:   // ascii 8
     {
