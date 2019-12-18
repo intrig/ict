@@ -396,7 +396,7 @@ struct bitstring {
 
     bitstring &operator=(bitstring &&b) noexcept {
         if (!local())
-            delete buffer_;
+            delete[] buffer_;
         bit_size_ = b.bit_size_;
         buffer_ = b.buffer_;
         if (local())
@@ -454,7 +454,7 @@ struct bitstring {
 
     void clear() {
         if (!local())
-            delete buffer_;
+            delete[] buffer_;
         set_size(0);
         buffer_ = 0;
         begin_ = 0;
@@ -476,8 +476,8 @@ struct bitstring {
     void set_size(size_t bit_size) { bit_size_ = bit_size; }
 
     size_t bit_size_ = 0;
-    pointer buffer_;
-    pointer begin_;
+    pointer buffer_ = 0;
+    pointer begin_ = 0;
 };
 
 inline std::string to_string(const bitstring &bits) {
@@ -772,8 +772,9 @@ inline T to_integer(bitstring const &bits, bool swap = true) {
 // 11
 inline bitstring &bitstring::remove(size_t index, size_t len) {
     obitstream os;
-    os << bitstring(bit_begin(), index)
-       << bitstring(bit_begin() + index + len, bit_end());
+    if (index > 0)
+        os << bitstring(bit_begin(), index);
+    os << bitstring(bit_begin() + index + len, bit_end());
     *this = os.bits();
     return *this;
 }
