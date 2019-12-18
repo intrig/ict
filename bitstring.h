@@ -207,9 +207,9 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
     typedef unsigned char value_type;
 
     const value_type *src_org = (const value_type *)first->byte;
-    int src_offset = first->bit;
+    size_t src_offset = first->bit;
     value_type *dst_org = (value_type *)result->byte;
-    int dst_offset = result->bit;
+    size_t dst_offset = result->bit;
     static const unsigned char reverse_mask[] = {0x00, 0x80, 0xc0, 0xe0, 0xf0,
                                                  0xf8, 0xfc, 0xfe, 0xff};
     static const unsigned char reverse_mask_xor[] = {
@@ -218,7 +218,7 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
     if (bit_count) {
         const value_type *src;
         value_type *dst;
-        int src_offset_modulo, dst_offset_modulo;
+        size_t src_offset_modulo, dst_offset_modulo;
 
         src = src_org + (src_offset / CHAR_BIT);
         dst = dst_org + (dst_offset / CHAR_BIT);
@@ -227,8 +227,8 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
         dst_offset_modulo = dst_offset % CHAR_BIT;
 
         if (src_offset_modulo == dst_offset_modulo) {
-            int byte_len;
-            int src_len_modulo;
+            size_t byte_len;
+            size_t src_len_modulo;
             if (src_offset_modulo) {
                 value_type c;
 
@@ -252,9 +252,9 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
                 *dst |= reverse_mask[src_len_modulo] & *src;
             }
         } else {
-            int bit_diff_ls, bit_diff_rs;
-            int byte_len;
-            int src_len_modulo;
+            size_t bit_diff_ls, bit_diff_rs;
+            size_t byte_len;
+            size_t src_len_modulo;
             value_type c;
             /*
              * Begin: Line things up on destination.
@@ -281,12 +281,20 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
              * Middle: copy with only shifting the source.
              */
             byte_len = bit_count / CHAR_BIT;
-
+#if 1
+            for (size_t i=0; i < byte_len; ++i) {
+                c = *src++ << bit_diff_ls;
+                c |= *src >> bit_diff_rs;
+                *dst++ = c;
+            }
+            byte_len = 0;
+#else
             while (--byte_len >= 0) {
                 c = *src++ << bit_diff_ls;
                 c |= *src >> bit_diff_rs;
                 *dst++ = c;
             }
+#endif
 
             /*
              * End: copy the remaing bits;
