@@ -670,7 +670,7 @@ void random_copy(size_t n) {
     IT_ASSERT_MSG("copying " << n << " bits: " << bs << " == " << x, bs == x);
 
     x = bitstring(n); // set to zero
-    detail::bit_copy_n(bs.bit_begin(), bs.bit_size(), x.bit_begin());
+    bit_copy_n(bs.bit_begin(), bs.bit_size(), x.bit_begin());
     IT_ASSERT(bs.bit_size() == n);
     IT_ASSERT(x.bit_size() == n);
     IT_ASSERT_MSG("copying " << n << " bits: " << bs << " == " << x, bs == x);
