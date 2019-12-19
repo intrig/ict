@@ -20,9 +20,7 @@ template <typename ValueType, bool is_const_cursor>
 struct ascending_cursor_base;
 
 // Random Access (among siblings)
-template <typename ValueType, bool is_const_cursor>
-struct cursor_base
-    {
+template <typename ValueType, bool is_const_cursor> struct cursor_base {
     typedef std::ptrdiff_t difference_type;
     typedef ValueType value_type;
 
@@ -62,12 +60,12 @@ struct cursor_base
         v = &b.it_->parent_item()->nodes_;
     }
     cursor_base(const cursor_base<ValueType, false> &b) : v(b.v), it_(b.it_) {}
-    constexpr cursor_base<ValueType, false>&
-        operator=(const cursor_base<ValueType, false>&b) {
-            v = b.v;
-            it_ = b.it_;
-            return *this;
-        }
+    constexpr cursor_base<ValueType, false> &
+    operator=(const cursor_base<ValueType, false> &b) {
+        v = b.v;
+        it_ = b.it_;
+        return *this;
+    }
 
     cursor_base(vec_pointer v, item_pointer it) : v(v), it_{it} {}
 
@@ -194,8 +192,7 @@ struct cursor_base
 // Forward iterator
 // operator++ just goes up and to the left until the root.
 template <typename ValueType, bool is_const_cursor>
-struct ascending_cursor_base
-    {
+struct ascending_cursor_base {
     typedef std::ptrdiff_t difference_type;
     typedef ValueType value_type;
 
@@ -229,10 +226,10 @@ struct ascending_cursor_base
         : it_(b.it_) {}
 
     constexpr ascending_cursor_base<ValueType, false> &
-        operator=(const ascending_cursor_base<ValueType, false> &b) {
-            it_ = b.it_;
-            return *this;
-        }
+    operator=(const ascending_cursor_base<ValueType, false> &b) {
+        it_ = b.it_;
+        return *this;
+    }
     ascending_cursor_base(const item_pointer it) : it_{it} {}
 
     // cursor operations
@@ -277,8 +274,7 @@ struct ascending_cursor_base
     item_pointer it_;
 };
 
-template <typename ValueType, bool is_const_cursor>
-struct linear_cursor_base {
+template <typename ValueType, bool is_const_cursor> struct linear_cursor_base {
     typedef std::ptrdiff_t difference_type;
     typedef ValueType value_type;
 
@@ -315,7 +311,9 @@ struct linear_cursor_base {
 
     bool operator==(const_linear_cursor_reference b) const { return c == b.c; }
 
-    bool operator!=(const_linear_cursor_reference b) const { return !operator==(b); }
+    bool operator!=(const_linear_cursor_reference b) const {
+        return !operator==(b);
+    }
 
     linear_cursor_reference operator++() {
         if (!c.empty()) {

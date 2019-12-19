@@ -1,9 +1,8 @@
 #pragma once
+#include "ict.h"
 #include <cassert>
 #include <limits.h>
 #include <random>
-
-#include "ict.h"
 
 namespace ict {
 
@@ -25,25 +24,14 @@ template <typename Char> inline bool get_bit(Char *buf, size_t index) {
     return (*it_byte(buf, index) >> (7 - it_bit_index(index))) & 1;
 }
 
-struct bit_view {
-    char *byte;
-    size_t bit;
-};
-
-struct const_bit_view {
-    const_bit_view(char *byte, size_t bit) : byte(byte), bit(bit) {}
-    const char *byte;
-    size_t bit;
-};
-
 // bit proxy type
-struct bit_type {
-    bit_type(char *byte, size_t bit) : byte(byte), bit(bit) {}
+struct bit_proxy {
+    bit_proxy(char *byte, size_t bit) : byte(byte), bit(bit) {}
 
     bool value() const { return get_bit(byte, bit); }
 
     void value(bool x) { set_bit(byte, bit, x); }
-    void value(const bit_type &x) { set_bit(byte, bit, x.value()); }
+    void value(const bit_proxy &x) { set_bit(byte, bit, x.value()); }
 
     void increment() { ++bit; }
 
@@ -64,7 +52,7 @@ struct bit_type {
             decrement();
     }
 
-    size_t difference(const bit_type &b) {
+    size_t difference(const bit_proxy &b) {
         auto bytes = byte - b.byte;
         auto bits = bit - b.bit;
         return (bytes * 8) + bits;
@@ -77,7 +65,7 @@ struct bit_type {
         }
     }
 
-    bool identical(const bit_type &b) const {
+    bool identical(const bit_proxy &b) const {
         normalize();
         b.normalize();
         return byte == b.byte && bit == b.bit;
@@ -91,7 +79,6 @@ struct bit_type {
     mutable size_t bit;
 };
 
-namespace util {
 struct bit_iterator {
     bit_iterator() : value(nullptr, 0) {}
     bit_iterator(char *p, size_t b = 0) : value(p, b) {}
@@ -102,8 +89,8 @@ struct bit_iterator {
         value = b.value;
         return *this;
     }
-    bit_type &operator*() const { return value; }
-    bit_type *operator->() const { return &(operator*()); }
+    bit_proxy &operator*() const { return value; }
+    bit_proxy *operator->() const { return &(operator*()); }
 
     bit_iterator &operator++() {
         value.increment();
@@ -146,7 +133,7 @@ struct bit_iterator {
         return a.value.difference(b.value);
     }
 
-    bit_type operator[](size_t n) const { return *(*this + n); }
+    bit_proxy operator[](size_t n) const { return *(*this + n); }
 
     friend bool operator==(const bit_iterator &a, const bit_iterator &b) {
         return a.value.identical(b.value);
@@ -169,19 +156,10 @@ struct bit_iterator {
     friend bool operator>=(const bit_iterator &a, const bit_iterator &b) {
         return !(a < b);
     }
-    mutable bit_type value;
+    mutable bit_proxy value;
 };
 
-#if 0
-struct const_bit_iterator {
-    using bit_type = bit_base<const char *>;
-    const_bit_iterator() : byte(nullptr), bit(0) {}
-    const_bit_iterator(const const_bit_iterator & b) : byte(b.byte), bit(b.bit) {}
-    const_bit_iterator(const bit_iterator & b) : byte(b.byte), bit(b.bit) {}
-    bit_type value;
-};
-#endif
-
+namespace detail {
 // this was once a macro
 template <typename A, typename B, typename C, typename D, typename E,
           typename F>
@@ -199,9 +177,6 @@ inline void prepare_first_copy(A &src_len, B const dst_offset_modulo, C *dst,
     }
 }
 
-} // namespace util
-
-using bit_iterator = util::bit_iterator;
 inline void bit_copy_n(bit_iterator first, size_t bit_count,
                        bit_iterator result) {
     typedef unsigned char value_type;
@@ -234,8 +209,8 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
 
                 c = reverse_mask_xor[dst_offset_modulo] & *src++;
 
-                util::prepare_first_copy(bit_count, dst_offset_modulo, dst,
-                                         reverse_mask, reverse_mask_xor, c);
+                detail::prepare_first_copy(bit_count, dst_offset_modulo, dst,
+                                           reverse_mask, reverse_mask_xor, c);
                 *dst++ |= c;
             }
 
@@ -273,28 +248,20 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
 
                 c = *src >> bit_diff_rs & reverse_mask_xor[dst_offset_modulo];
             }
-            util::prepare_first_copy(bit_count, dst_offset_modulo, dst,
-                                     reverse_mask, reverse_mask_xor, c);
+            detail::prepare_first_copy(bit_count, dst_offset_modulo, dst,
+                                       reverse_mask, reverse_mask_xor, c);
             *dst++ |= c;
 
             /*
              * Middle: copy with only shifting the source.
              */
             byte_len = bit_count / CHAR_BIT;
-#if 1
-            for (size_t i=0; i < byte_len; ++i) {
+            for (size_t i = 0; i < byte_len; ++i) {
                 c = *src++ << bit_diff_ls;
                 c |= *src >> bit_diff_rs;
                 *dst++ = c;
             }
             byte_len = 0;
-#else
-            while (--byte_len >= 0) {
-                c = *src++ << bit_diff_ls;
-                c |= *src >> bit_diff_rs;
-                *dst++ = c;
-            }
-#endif
 
             /*
              * End: copy the remaing bits;
@@ -311,22 +278,25 @@ inline void bit_copy_n(bit_iterator first, size_t bit_count,
         }
     }
 }
+} // namespace detail
 
 // no return iterator for performance reasons
 inline void bit_copy(bit_iterator first, bit_iterator last,
                      bit_iterator result) {
-    bit_copy_n(first, last - first, result);
+    detail::bit_copy_n(first, last - first, result);
 }
 
 struct bitstring {
     typedef char *pointer;
+    typedef char *iterator;
+    typedef const char *const_iterator;
 
     // Regular
     bitstring() : buffer_(0), begin_(0) { set_size(0); }
 
     bitstring(size_t bit_size) {
         alloc(bit_size);
-        std::fill(begin(), end(), 0);
+        std::fill(begin(), data_end(), 0);
     }
 
     bitstring(const bitstring &a) : bitstring(a.bit_size()) {
@@ -439,14 +409,16 @@ struct bitstring {
 
     bool empty() const { return bit_size() == 0; }
 
-    pointer begin() const { return begin_; }
+    iterator begin() { return begin_; }
+    const_iterator begin() const { return begin_; }
+    iterator end() { return begin_ + byte_size(); }
+    const_iterator end() const { return begin_ + byte_size(); }
 
-    pointer end() const { return begin_ + byte_size(); }
+    pointer data() const { return begin_; }
+    pointer data_end() const { return begin_ + byte_size(); }
 
-    pointer data() const { return begin(); }
-
-    bit_iterator bit_begin() const { return bit_iterator(begin(), 0); }
-    bit_iterator bit_end() const { return bit_iterator(begin(), bit_size()); }
+    bit_iterator bit_begin() const { return bit_iterator(data(), 0); }
+    bit_iterator bit_end() const { return bit_iterator(data(), bit_size()); }
 
     size_t byte_size() const { return ((bit_size_ % 8) != 0) + bit_size_ / 8; }
 
@@ -454,10 +426,10 @@ struct bitstring {
 
     bool local() const { return bit_size() <= (sizeof(pointer) * 8); };
 
-    void set(size_t index) { set_bit((unsigned char *)begin(), index, 1); }
-    void reset(size_t index) { set_bit((unsigned char *)begin(), index, 0); }
+    void set(size_t index) { set_bit((unsigned char *)data(), index, 1); }
+    void reset(size_t index) { set_bit((unsigned char *)data(), index, 0); }
     bool at(size_t index) const {
-        return get_bit((unsigned char *)begin(), index);
+        return get_bit((unsigned char *)data(), index);
     }
 
     void clear() {
@@ -477,7 +449,7 @@ struct bitstring {
             buffer_ = new char[byte_size()];
             begin_ = buffer_;
         }
-        begin()[byte_size() - 1] =
+        data()[byte_size() - 1] =
             0; // zero the last byte so byte compares will work
     }
 
@@ -545,24 +517,14 @@ struct ibitstream {
         return read_blind(n);
     }
 
+    // TODO untested read_to for Dave's protocol
     bitstring read_to(char ch) {
-#if 0
-        auto first = bits.begin() + index / 8; // current byte
-        auto n = 0;
-        while (*first != ch) {
-            advance();
-        }
-        advance(); // include ch 
-        return read_blind(n * 8);
-#else // TODO untested read_to for Dave's protocol
         auto first = bit_index->get_byte();
         auto last = first;
         while (*last != ch)
             ++last;
         ++last;
         return read_blind(last - first);
-
-#endif
     }
 
     // peek ahead
@@ -691,28 +653,17 @@ inline bitstring::bitstring(int base, const char *str) {
             for (unsigned cb = 0, i = 0; i < s.size(); i += 2, ++cb) {
                 char hex_char = str[(int)i];
                 char new_char = ict::hex_ascii(hex_char);
-                begin()[cb] = new_char << 4;
+                data()[cb] = new_char << 4;
                 new_char = ict::hex_ascii(str[(int)(1 + i)]);
-                begin()[cb] |= new_char;
+                data()[cb] |= new_char;
             }
         }
         break;
-    case 7:   // ascii 7
+    case 7: // ascii 7
     {
-#if 1
-        assert(s.size());
         *this = detail::from_ascii7(s.begin(), s.end());
-#else
-        obitstream os;
-        for (size_t i = 0; i < s.length(); i++) {
-            char ch = s[static_cast<unsigned>(i)];
-            auto t = bitstring(bit_iterator(&ch) + 1, 7);
-            os << t;
-        }
-        *this = os.bits();
-#endif
     } break;
-    case 8:   // ascii 8
+    case 8: // ascii 8
     {
         auto first = bit_iterator((char *)s.c_str());
         *this = bitstring(first, first + s.length() * 8);
@@ -829,7 +780,7 @@ inline bitstring from_integer(T number, size_t dest_size = sizeof(T) * 8) {
     }
 }
 
-namespace util {
+namespace detail {
 inline std::vector<unsigned char>
 unpack_bytes(std::vector<unsigned char> const &packedBytes) {
     if (packedBytes.empty())
@@ -929,7 +880,8 @@ inline std::string calc_gsm7(const bitstring &bsp) {
     return std::string();
 }
 
-inline bitstring &replace_bits(bitstring &src, size_t index, bitstring const &bs) {
+inline bitstring &replace_bits(bitstring &src, size_t index,
+                               bitstring const &bs) {
     bit_copy(bs.bit_begin(), bs.bit_end(), src.bit_begin() + index);
     return src;
 }
@@ -949,7 +901,7 @@ inline bitstring &pad_right(bitstring &bits, size_t new_width) {
     return bits;
 }
 
-} // namespace util
+} // namespace detail
 
 inline bitstring random_bitstring(size_t bit_len) {
     std::random_device engine;
@@ -962,7 +914,7 @@ inline bitstring random_bitstring(size_t bit_len) {
 
 inline std::string gsm7(const bitstring &bits, size_t fill_bits = 0) {
     if (fill_bits == 0)
-        return util::calc_gsm7(bits);
+        return detail::calc_gsm7(bits);
 
     auto bs = bits;
     size_t len = fill_bits;
@@ -972,8 +924,7 @@ inline std::string gsm7(const bitstring &bits, size_t fill_bits = 0) {
 
     // get the first character
     auto pre = bitstring(bs.bit_begin(), 7);
-    // auto pre = bs.substr(0, 7);
-    pre = util::pad_left(pre, 8);
+    pre = detail::pad_left(pre, 8);
     auto first = gsm7(pre);
 
     // get the remaining string

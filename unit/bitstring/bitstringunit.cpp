@@ -1,13 +1,9 @@
-//-- Copyright 2016 Intrig
-//-- See https://github.com/intrig/ict for license.
 #include "bitstringunit.h"
-
-#include <bitstring.h>
-
-#include <vector>
 #include <algorithm>
-#include <cstring>
+#include <bitstring.h>
 #include <cstdint>
+#include <cstring>
+#include <vector>
 
 namespace ict {
 struct store_init {
@@ -22,27 +18,27 @@ void bitstring_unit::bitstring_sanity() {
     const size_t ptr_bytes = sizeof(char *);
     const size_t ptr_bits = ptr_bytes * 8;
 
-    std::vector<store_init> init =  {
-        { 0, 0, true},
-        { 1, 1, true},
-        { 2, 1, true},
-        { 3, 1, true},
-        { 4, 1, true},
-        { 5, 1, true},
-        { 6, 1, true},
-        { 7, 1, true},
-        { 8, 1, true},
-        { 9, 2, true},
-        { 10, 2, true},
-        { 16, 2, true},
-        { 17, 3, true},
+    std::vector<store_init> init = {
+        {0, 0, true},
+        {1, 1, true},
+        {2, 1, true},
+        {3, 1, true},
+        {4, 1, true},
+        {5, 1, true},
+        {6, 1, true},
+        {7, 1, true},
+        {8, 1, true},
+        {9, 2, true},
+        {10, 2, true},
+        {16, 2, true},
+        {17, 3, true},
 
-        { ptr_bits - 1, ptr_bytes, true},
-        { ptr_bits, ptr_bytes, true},
-        { ptr_bits + 1, ptr_bytes + 1, false},
-        { 8 * 1024 - 1, 1024, false},
-        { 8 * 1024, 1024, false},
-        { 8 * 1024 + 1, 1025, false},
+        {ptr_bits - 1, ptr_bytes, true},
+        {ptr_bits, ptr_bytes, true},
+        {ptr_bits + 1, ptr_bytes + 1, false},
+        {8 * 1024 - 1, 1024, false},
+        {8 * 1024, 1024, false},
+        {8 * 1024 + 1, 1025, false},
     };
 
     std::vector<ict::bitstring> stores;
@@ -51,14 +47,15 @@ void bitstring_unit::bitstring_sanity() {
         ict::bitstring a(test.bit_size);
         IT_ASSERT_MSG(test.bit_size, a.empty() == (test.bit_size == 0));
         IT_ASSERT_MSG(test.bit_size, a.bit_size() == test.bit_size);
-        IT_ASSERT_MSG(test.bit_size << ", byte_size = " << a.byte_size(), a.byte_size() == test.byte_size);
+        IT_ASSERT_MSG(test.bit_size << ", byte_size = " << a.byte_size(),
+                      a.byte_size() == test.byte_size);
         IT_ASSERT_MSG(test.bit_size, a.local() == test.local);
         stores.push_back(a);
     }
 
     // copy constructor
     int i = 0;
-    for (auto & test : stores) {
+    for (auto &test : stores) {
         std::memset(test.begin(), i, test.byte_size());
 
         ict::bitstring x(test);
@@ -85,7 +82,7 @@ void bitstring_unit::bitstring_sanity() {
 
     // assignment operator
     i = 0;
-    for (auto & test : stores) {
+    for (auto &test : stores) {
         ict::bitstring x;
         x = test;
         IT_ASSERT(x.empty() == test.empty());
@@ -120,7 +117,8 @@ void bitstring_unit::obs() {
     IT_ASSERT(os.bits() == "@111000111000");
 
     auto t = os.bits();
-    std::string base_string = ict::to_bin_string(t.begin(), t.end(), t.bit_size()); 
+    std::string base_string =
+        ict::to_bin_string(t.begin(), t.end(), t.bit_size());
     auto s = base_string;
     auto b = os.bits();
     ict::obitstream bs;
@@ -135,7 +133,7 @@ void bitstring_unit::obs() {
         IT_ASSERT(bs.bits().bit_size() == ts.size() - 1);
     }
     t = bs.bits();
-    std::string t2 = "@" +  ict::to_bin_string(t.begin(), t.end(), t.bit_size()); 
+    std::string t2 = "@" + ict::to_bin_string(t.begin(), t.end(), t.bit_size());
     IT_ASSERT_MSG(ss.str() << " == " << t2, ss.str() == t2);
     {
         ict::obitstream os;
@@ -176,7 +174,7 @@ void bitstring_unit::ibs_constraint() {
 
     {
         auto bits = ict::bitstring(27); // bits.bit_size() = 27
-        ict::ibitstream is(bits); // is.remaining() = 27
+        ict::ibitstream is(bits);       // is.remaining() = 27
         {
             ict::constraint c(is, 15); // is.remaining() = 15
         }
@@ -215,9 +213,8 @@ void bitstring_unit::ibs() {
     }
 }
 
-
 void bitstring_unit::from_string() {
-    { 
+    {
         ict::bitstring a("#00");
         IT_ASSERT(a.bit_size() == 8);
         IT_ASSERT(a.byte_size() == 1);
@@ -226,7 +223,7 @@ void bitstring_unit::from_string() {
         IT_ASSERT(a == "@00000000");
         IT_ASSERT(ict::to_hex_string(a.begin(), a.end()) == "00");
     }
-    { 
+    {
         ict::bitstring a("00");
         IT_ASSERT(a.bit_size() == 8);
         IT_ASSERT(a.byte_size() == 1);
@@ -235,7 +232,7 @@ void bitstring_unit::from_string() {
         IT_ASSERT(a == "@00000000");
         IT_ASSERT(ict::to_string(a) == "#00");
     }
-    { 
+    {
         ict::bitstring a("FF");
         IT_ASSERT(a.bit_size() == 8);
         IT_ASSERT(a.byte_size() == 1);
@@ -244,7 +241,7 @@ void bitstring_unit::from_string() {
         IT_ASSERT(a == "@11111111");
         IT_ASSERT(ict::to_string(a) == "#FF");
     }
-    { 
+    {
         ict::bitstring a("80");
         IT_ASSERT(a.bit_size() == 8);
         IT_ASSERT(a.byte_size() == 1);
@@ -266,7 +263,7 @@ void bitstring_unit::from_string() {
 
 void test_convert(size_t bit_size) {
     IT_ASSERT(bit_size > 0);
-    //IT_WARN("converting " << bit_size);
+    // IT_WARN("converting " << bit_size);
     ict::bitstring bits = ict::from_integer<unsigned>(1, bit_size);
     std::string s = std::string(bit_size - 1, '0') + '1';
     IT_ASSERT(bits.bit_size() == bit_size);
@@ -274,24 +271,26 @@ void test_convert(size_t bit_size) {
 
     auto sbits = ict::to_bin_string(bits.begin(), bits.end(), bits.bit_size());
 
-    IT_ASSERT_MSG("(" << bits.bit_size() << ") " << bits << " == " << s, sbits == s);
+    IT_ASSERT_MSG("(" << bits.bit_size() << ") " << bits << " == " << s,
+                  sbits == s);
 
     auto n = ict::to_integer<uint64_t>(bits);
     IT_ASSERT_MSG(bits << ": " << n << " == 1", n == 1);
 }
-
 
 void bitstring_unit::int_convert() {
     {
         ict::bitstring bs0 = ict::from_integer<unsigned>(0, 1);
         IT_ASSERT_MSG(bs0, bs0 == "@0");
         IT_ASSERT(bs0.bit_size() == 1);
-        IT_ASSERT_MSG(ict::to_integer<unsigned>(bs0), ict::to_integer<unsigned>(bs0) == 0);
+        IT_ASSERT_MSG(ict::to_integer<unsigned>(bs0),
+                      ict::to_integer<unsigned>(bs0) == 0);
 
         ict::bitstring bs1 = ict::from_integer<unsigned>(1, 1);
         IT_ASSERT(bs1.bit_size() == 1);
         IT_ASSERT_MSG(bs1, bs1 == "@1");
-        IT_ASSERT_MSG(ict::to_integer<unsigned>(bs1), ict::to_integer<unsigned>(bs1) == 1);
+        IT_ASSERT_MSG(ict::to_integer<unsigned>(bs1),
+                      ict::to_integer<unsigned>(bs1) == 1);
 
         ict::bitstring bs2 = ict::from_integer<unsigned>(2, 2);
         IT_ASSERT(bs2.bit_size() == 2);
@@ -327,7 +326,8 @@ void bitstring_unit::int_convert() {
         IT_ASSERT(bs1.bit_size() == 4);
         IT_ASSERT(bs1 == "@0011");
         auto n = ict::to_integer<unsigned long long>(bs1);
-        IT_ASSERT_MSG(n << " == 3", ict::to_integer<unsigned long long>(bs1) == 3);
+        IT_ASSERT_MSG(n << " == 3",
+                      ict::to_integer<unsigned long long>(bs1) == 3);
     }
     {
         ict::bitstring bs1 = ict::from_integer<unsigned>(3, 9);
@@ -337,7 +337,8 @@ void bitstring_unit::int_convert() {
         IT_ASSERT_MSG(ict::to_string(n) << ": " << n << " == 3", n == 3);
     }
 
-    for (int i = 1; i < 66; ++i) test_convert(i);
+    for (int i = 1; i < 66; ++i)
+        test_convert(i);
 
     {
         ict::bitstring bs1 = ict::from_integer<unsigned>(23, 33);
@@ -357,7 +358,7 @@ void bitstring_unit::int_convert() {
         IT_ASSERT(bs.empty());
         IT_ASSERT(bs.bit_size() == 0);
 
-        ict::bitstring bs2= ict::from_integer<unsigned>(2, 1);
+        ict::bitstring bs2 = ict::from_integer<unsigned>(2, 1);
         IT_ASSERT(bs2.bit_size() == 1);
 
         ict::bitstring bs3 = ict::from_integer<unsigned>(120, 3);
@@ -373,21 +374,21 @@ void bitstring_unit::int_convert() {
     }
 }
 
-void bitstring_unit::modern_pad()
-{
+void bitstring_unit::modern_pad() {
     {
         ict::bitstring bs1(2, "111111");
         IT_ASSERT(bs1.bit_size() == 6);
-        bs1 = ict::util::pad_left(bs1);
+        bs1 = ict::detail::pad_left(bs1);
         IT_ASSERT_MSG(bs1.bit_size(), bs1.bit_size() == 8);
         IT_ASSERT(bs1 == "@00111111");
 
         // make sure it doesn't do any more padding
-        ict::util::pad_left(bs1);
+        ict::detail::pad_left(bs1);
         IT_ASSERT(bs1.bit_size() == 8);
         IT_ASSERT(bs1 == "@00111111");
     }
-#if 0 // not even sure what this stuff should do... pad_left(10) doesn't make sense
+#if 0 // not even sure what this stuff should do... pad_left(10) doesn't make
+      // sense
     {
         ict::bitstring bs1(2, "111111");
         bs1.padLeft(10);
@@ -428,12 +429,12 @@ void bitstring_unit::modern_pad()
 void bitstring_unit::modern_replace() {
     {
         // these first 3 tests were added because of a bug found when the
-        // fromNumber() line was added.  
+        // fromNumber() line was added.
         ict::bitstring bs = ict::from_integer<unsigned>(1, 1);
         IT_ASSERT_MSG("length = " << bs.bit_size(), bs.bit_size() == 1);
         ict::bitstring bs2(2, "0");
         IT_ASSERT_MSG("bs2 length = " << bs2.bit_size(), bs2.bit_size() == 1);
-        bs = ict::util::replace_bits(bs, 0, bs2);
+        bs = ict::detail::replace_bits(bs, 0, bs2);
         IT_ASSERT_MSG("bs2 length = " << bs2.bit_size(), bs2.bit_size() == 1);
         IT_ASSERT_MSG("length = " << bs.bit_size(), bs.bit_size() == 1);
         IT_ASSERT(bs.at(0) == 0);
@@ -441,60 +442,60 @@ void bitstring_unit::modern_replace() {
     {
         ict::bitstring bs = ict::from_integer<unsigned>(0, 1);
         ict::bitstring bs2(2, "1");
-        bs = ict::util::replace_bits(bs, 0, bs2);
+        bs = ict::detail::replace_bits(bs, 0, bs2);
         IT_ASSERT(bs.at(0) == 1);
     }
     {
         ict::bitstring bs = ict::from_integer<unsigned>(0, 1);
         ict::bitstring bs2 = ict::from_integer<unsigned>(1, 1);
-        bs = ict::util::replace_bits(bs, 0, bs2);
+        bs = ict::detail::replace_bits(bs, 0, bs2);
         IT_ASSERT(bs.at(0) == 1);
     }
     { // just one bit
         ict::bitstring bs1(1);
         bs1.set(0);
         ict::bitstring bs2(1);
-        bs1 = ict::util::replace_bits(bs1, 0, bs2);
+        bs1 = ict::detail::replace_bits(bs1, 0, bs2);
         IT_ASSERT(bs1.bit_size() == 1);
         IT_ASSERT(bs1.at(0) == 0);
 
         ict::bitstring bs3(2, "11");
-        bs1 = ict::util::replace_bits(bs1, 0, bs3);
+        bs1 = ict::detail::replace_bits(bs1, 0, bs3);
         IT_ASSERT(bs1.bit_size() == 1);
         IT_ASSERT(bs1.at(0) == 1);
     }
     {
         ict::bitstring bs1(2, "11111");
         ict::bitstring bs2(2, "00");
-        ict::bitstring bs3; 
+        ict::bitstring bs3;
 
         bs3 = bs1;
-        bs3 = ict::util::replace_bits(bs3, 0, bs2);
+        bs3 = ict::detail::replace_bits(bs3, 0, bs2);
         IT_ASSERT(bs3 == "@00111");
 
         bs3 = bs1;
-        bs3 = ict::util::replace_bits(bs3, 1, bs2);
+        bs3 = ict::detail::replace_bits(bs3, 1, bs2);
         IT_ASSERT(bs3 == "@10011");
 
         bs3 = bs1;
-        bs3 = ict::util::replace_bits(bs3, 2, bs2);
+        bs3 = ict::detail::replace_bits(bs3, 2, bs2);
         IT_ASSERT(bs3 == "@11001");
 
         bs3 = bs1;
-        bs3 = ict::util::replace_bits(bs3, 3, bs2);
+        bs3 = ict::detail::replace_bits(bs3, 3, bs2);
         IT_ASSERT(bs3 == "@11100");
 
         bs3 = bs1;
-        bs3 = ict::util::replace_bits(bs3, 4, bs2);
+        bs3 = ict::detail::replace_bits(bs3, 4, bs2);
         IT_ASSERT(bs3 == "@11110");
 
         bs3 = bs1;
-        bs3 = ict::util::replace_bits(bs3, 5, bs2);
+        bs3 = ict::detail::replace_bits(bs3, 5, bs2);
         IT_ASSERT(bs3 == "@11111");
 
         auto foo = ict::bitstring(8);
         auto rep = ict::bitstring("@111111");
-        foo = ict::util::replace_bits(foo, 2, rep);
+        foo = ict::detail::replace_bits(foo, 2, rep);
         IT_ASSERT(foo == "@00111111");
     }
 }
@@ -516,7 +517,7 @@ void bitstring_unit::modern_gsm7() {
     */
     ict::bitstring bs("31D98C56B3DD70");
 
-    auto packed = ict::util::to_uchar_array(bs);
+    auto packed = ict::detail::to_uchar_array(bs);
 
     IT_ASSERT(packed.size() == 7);
     IT_ASSERT_MSG(packed[0], packed[0] == 0x31);
@@ -527,7 +528,7 @@ void bitstring_unit::modern_gsm7() {
     IT_ASSERT_MSG(packed[5], packed[5] == 0xDD);
     IT_ASSERT_MSG(packed[6], packed[6] == 0x70);
 
-    auto unpacked = ict::util::unpack_bytes(packed);
+    auto unpacked = ict::detail::unpack_bytes(packed);
     IT_ASSERT(unpacked.size() == 8);
     IT_ASSERT_MSG(unpacked[0], unpacked[0] == 0x31);
     IT_ASSERT_MSG(unpacked[1], unpacked[1] == 0x32);
@@ -581,8 +582,8 @@ void bitstring_unit::modern_gsm7() {
 
         ict::bitstring t3(t1.bit_size() + t2.bit_size());
         IT_ASSERT(t3.bit_size() == bs1.bit_size() - len);
-        t3 = ict::util::replace_bits(t3, 0, t1);
-        t3 = ict::util::replace_bits(t3, begin, t2);
+        t3 = ict::detail::replace_bits(t3, 0, t1);
+        t3 = ict::detail::replace_bits(t3, begin, t2);
         IT_ASSERT_MSG(ict::to_string(t3), t3 == "@11110011111010");
     }
 
@@ -635,18 +636,18 @@ void bitstring_unit::modern_gsm7() {
     }
 }
 
-void bitstring_unit::modern_sms_difficult()
-{
+void bitstring_unit::modern_sms_difficult() {
     // E139F92CCF9BF379333D9FA7CD6435DBED86CBC17034992C041809042510C87456A301
     // should be: asdgryfyyftyy43256778908422!@#$$%^^&gjh
 
     std::string result = "asdgryfyyftyy43256778908422!@#$$%  &gjh";
 
-    ict::bitstring sm("E139F92CCF9BF379333D9FA7CD6435DBED86CBC17034992C041809042510C87456A301");
+    ict::bitstring sm("E139F92CCF9BF379333D9FA7CD6435DBED86CBC17034992C04180904"
+                      "2510C87456A301");
 
-    auto packed = ict::util::to_uchar_array(sm);
-    auto unpacked = ict::util::unpack_bytes(packed);
-    ict::util::map_to_ascii(unpacked);
+    auto packed = ict::detail::to_uchar_array(sm);
+    auto unpacked = ict::detail::unpack_bytes(packed);
+    ict::detail::map_to_ascii(unpacked);
 
     IT_ASSERT(unpacked.size() == result.size());
 
@@ -669,13 +670,13 @@ void random_copy(size_t n) {
     IT_ASSERT_MSG("copying " << n << " bits: " << bs << " == " << x, bs == x);
 
     x = bitstring(n); // set to zero
-    bit_copy_n(bs.bit_begin(), bs.bit_size(), x.bit_begin());
+    detail::bit_copy_n(bs.bit_begin(), bs.bit_size(), x.bit_begin());
     IT_ASSERT(bs.bit_size() == n);
     IT_ASSERT(x.bit_size() == n);
     IT_ASSERT_MSG("copying " << n << " bits: " << bs << " == " << x, bs == x);
 }
 
-void bitstring_unit::iterators() {
+void bitstring_unit::bit_iterators() {
     bit_iterator first;
     IT_ASSERT(first == bit_iterator());
     ++first;
@@ -689,9 +690,10 @@ void bitstring_unit::iterators() {
         auto x = bitstring(bs.bit_size());
         IT_ASSERT(bs.bit_end() - bs.bit_begin() == 6);
         ict::bit_copy(bs.bit_begin(), bs.bit_end(), x.bit_begin());
-        IT_ASSERT_MSG(bs  << " != " << x, bs == x);
+        IT_ASSERT_MSG(bs << " != " << x, bs == x);
     }
-    for (auto n = 1; n < 1024; ++n) random_copy(n);
+    for (auto n = 1; n < 1024; ++n)
+        random_copy(n);
 
     {
         auto x = random_bitstring(1024);
@@ -714,29 +716,33 @@ void bitstring_unit::iterators() {
         auto x = random_bitstring(1024);
         auto y = bitstring(1024);
 
-        for (auto i = x.bit_begin(), j = y.bit_begin(); i!=x.bit_end(); ++i, ++j) {
+        for (auto i = x.bit_begin(), j = y.bit_begin(); i != x.bit_end();
+             ++i, ++j) {
             j->value(*i);
         }
         IT_ASSERT(x == y);
     }
-
 }
 
-void bitstring_unit::const_iterators() {
-#if 0
-    const_bit_iterator first;
-    ++first;
-    first++;
-    auto x = *first;
-    --first;
-    first--;
-#endif
+namespace detail {
+void const_test(const bitstring &bs) {
+    auto first = bs.begin();
+    auto last = bs.end();
+    while (first != last) {
+        IT_ASSERT(*first != 0);
+        ++first;
+    }
+}
+} // namespace detail
 
+void bitstring_unit::const_bit_iterators() {
+    ict::bitstring sm("E139F92CCF9BF379333D9FA7CD6435DBED86CBC17034992C04180904"
+                      "2510C87456A301");
+    detail::const_test(sm);
 }
 
-
-}
-int main (int, char **) {
+} // namespace ict
+int main(int, char **) {
     ict::bitstring_unit test;
     ict::unit_test<ict::bitstring_unit> ut(&test);
     return ut.run();
