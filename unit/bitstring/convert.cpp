@@ -1,5 +1,3 @@
-//-- Copyright 2016 Intrig
-//-- See https://github.com/intrig/ict for license.
 #include "bitstringunit.h"
 
 #include "bitstring.h"
@@ -289,7 +287,7 @@ void ict::bitstring_unit::toInteger()
         ict::bitstring p(16);
         ict::bitstring t(sub);
         ict::bitstring bs3(p);
-        bs3 = ict::util::replace_bits(bs3, 6, sub);
+        bs3 = ict::detail::replace_bits(bs3, 6, sub);
         //bs3.replace(6, sub);
         IT_ASSERT(bs3.bit_size() == 16);
         IT_ASSERT_MSG(sub << ", " << bs3, bs3 =="@0000000000100000");
@@ -299,7 +297,7 @@ void ict::bitstring_unit::toInteger()
         ict::bitstring sub = bs.substr(6, 9);      // .... ..00 0010 000.
         //IT_ASSERT_MSG(sub.info(), sub.toBinString() == "000010000");
 
-        sub = ict::util::pad_left(sub, 16);
+        sub = ict::detail::pad_left(sub, 16);
         //sub.padLeft(16);  // 0000 0000 0001 0000
         IT_ASSERT(sub =="@0000000000010000");
         
