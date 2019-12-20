@@ -677,13 +677,13 @@ void random_copy(size_t n) {
 }
 
 void bitstring_unit::bit_iterators() {
-    bit_iterator first;
-    IT_ASSERT(first == bit_iterator());
+    bitstring::bit_iterator first;
+    IT_ASSERT(first == bitstring::bit_iterator());
     ++first;
     first++;
     --first;
     first--;
-    IT_ASSERT(first == bit_iterator());
+    IT_ASSERT(first == bitstring::bit_iterator());
 
     {
         auto bs = bitstring("@111001");
