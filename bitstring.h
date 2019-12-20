@@ -224,9 +224,6 @@ inline void prepare_first_copy(A &src_len, B const dst_offset_modulo, C *dst,
 
 } // namespace detail
 
-typedef detail::bit_iterator_base<false> bit_iterator;
-typedef detail::bit_iterator_base<true> const_bit_iterator;
-
 template <typename Input, typename Output>
 inline void bit_copy_n(Input first, size_t bit_count, Output result) {
     typedef unsigned char value_type;
@@ -340,6 +337,9 @@ struct bitstring {
     typedef char *pointer;
     typedef char *iterator;
     typedef const char *const_iterator;
+    typedef detail::bit_iterator_base<false> bit_iterator;
+    typedef detail::bit_iterator_base<true> const_bit_iterator;
+
 
     // Regular
     bitstring() : buffer_(0), begin_(0) { set_size(0); }
@@ -615,9 +615,9 @@ struct ibitstream {
 
   private:
     const bitstring &bits;
-    const_bit_iterator bit_index;
-    std::vector<const_bit_iterator> end_bit_list;
-    std::vector<const_bit_iterator> marker_bit_list;
+    bitstring::const_bit_iterator bit_index;
+    std::vector<bitstring::const_bit_iterator> end_bit_list;
+    std::vector<bitstring::const_bit_iterator> marker_bit_list;
 };
 
 // use this instead of calling ibitstream::constrain()/unconstrain() pairs.
@@ -655,14 +655,14 @@ struct obitstream {
     obitstream &operator<<(const bitstring &b) {
         while (((index + b.bit_size() + 8) / 8) > data.size())
             data.resize(data.size() + 1024);
-        auto dest = bit_iterator(&(data[0]), index);
+        auto dest = bitstring::bit_iterator(&(data[0]), index);
         bit_copy(b.bit_begin(), b.bit_end(), dest);
         index += b.bit_size();
         return *this;
     }
 
     bitstring bits() {
-        auto first = const_bit_iterator(&data[0]);
+        auto first = bitstring::const_bit_iterator(&data[0]);
         return bitstring(first, first + index);
     }
     size_t index;
@@ -673,7 +673,7 @@ struct obitstream {
 template <typename T> bitstring from_ascii7(T first, T last) {
     obitstream os;
     while (first != last) {
-        auto i = bit_iterator(&(*first));
+        auto i = bitstring::bit_iterator(&(*first));
         i++;
         auto bs = bitstring(i, 7);
         os << bs;
@@ -768,7 +768,7 @@ inline T to_integer(bitstring const &bits, bool swap = true) {
             // bitstring into the last bits of the number, leaving the first
             // bits as zero.  Then swap and return.
             auto dest =
-                bit_iterator((char *)&number, type_size - bits.bit_size());
+                bitstring::bit_iterator((char *)&number, type_size - bits.bit_size());
             bit_copy(bits.bit_begin(), bits.bit_end(), dest);
             if (swap)
                 reverse_bytes<T>(number);
@@ -810,12 +810,13 @@ inline bitstring from_integer(T number, size_t dest_size = sizeof(T) * 8) {
     // dest_size
     if (dest_size == type_size) {
         reverse_bytes(number);
-        auto f = bit_iterator((char *)&number);
+        auto f = bitstring::bit_iterator((char *)&number);
         return bitstring(f, f + dest_size);
     } else if (dest_size < type_size) {
         // dest bitsting size is smaller than size of T, so remove leading bits
         reverse_bytes(number);
-        return bitstring(bit_iterator((char *)&number) + type_size - dest_size,
+        return bitstring(bitstring::bit_iterator((char *)&number) + type_size -
+                             dest_size,
                          dest_size);
     } else {
         // dest size is greater than size of T, so pad right with 0 bits
@@ -930,9 +931,9 @@ inline std::string calc_gsm7(const bitstring &bsp) {
 // Replace the bits starting at index with bs
 inline bitstring &replace_bits(bitstring &src, size_t index,
                                bitstring const &bs) {
-    const_bit_iterator first = bs.bit_begin();
-    const_bit_iterator last = bs.bit_end();
-    bit_iterator dest = src.bit_begin() + index;
+    bitstring::const_bit_iterator first = bs.bit_begin();
+    bitstring::const_bit_iterator last = bs.bit_end();
+    bitstring::bit_iterator dest = src.bit_begin() + index;
     bit_copy(first, last, dest);
     return src;
 }
@@ -959,7 +960,7 @@ inline bitstring random_bitstring(size_t bit_len) {
     auto v = std::vector<unsigned char>(bytes);
     for (auto &b : v)
         b = engine();
-    return ict::bitstring(bit_iterator(v.data()), bit_len);
+    return ict::bitstring(bitstring::bit_iterator(v.data()), bit_len);
 }
 
 inline std::string gsm7(const bitstring &bits, size_t fill_bits = 0) {
