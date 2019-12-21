@@ -1,5 +1,0 @@
-subdir('multivector')
-subdir('bitstring')
-subdir('string64')
-subdir('expression')
-subdir('ict')
