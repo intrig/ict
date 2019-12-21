@@ -32,3 +32,5 @@ build
 
 #vim
 *.swp
+
+tags
