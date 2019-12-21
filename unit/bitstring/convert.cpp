@@ -301,7 +301,7 @@ void ict::bitstring_unit::toInteger()
         //sub.padLeft(16);  // 0000 0000 0001 0000
         IT_ASSERT(sub =="@0000000000010000");
         
-        char const * c = sub.begin();
+        auto c = sub.begin();
         IT_ASSERT_MSG(std::hex << (int) c[0], c[0] == 0x00);
         IT_ASSERT(c[1] == 0x10);
 

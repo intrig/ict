@@ -27,16 +27,18 @@ template <typename Char> inline bool get_bit(Char *buf, size_t index) {
 namespace detail {
 // bit proxy type
 struct bit_proxy {
-    bit_proxy(char *byte, size_t bit) : byte_(byte), bit_(bit) {}
+    bit_proxy() : byte_(nullptr), bit_(0) {}
+    bit_proxy(char *byte, size_t bit) : byte_((unsigned char *) byte), bit_(bit) {}
+    bit_proxy(unsigned char *byte, size_t bit) : byte_(byte), bit_(bit) {}
 
     bool value() const { return get_bit(byte_, bit_); }
 
     void value(bool x) { set_bit(byte_, bit_, x); }
     void value(const bit_proxy &x) { set_bit(byte_, bit_, x.value()); }
 
-    void increment() { ++bit_; }
+    void increment() { ++bit_; normalize(); }
 
-    void increment(size_t n) { bit_ += n; }
+    void increment(size_t n) { bit_ += n; normalize(); }
 
     void decrement() {
         if (bit_)
@@ -53,17 +55,10 @@ struct bit_proxy {
             decrement();
     }
 
-    size_t difference(const bit_proxy &b) const {
+    std::ptrdiff_t difference(const bit_proxy &b) const {
         auto bytes = byte_ - b.byte_;
         auto bits = bit_ - b.bit_;
         return (bytes * 8) + bits;
-    }
-
-    void normalize() const {
-        if (bit_ > 7) {
-            byte_ += bit_ / 8;
-            bit_ = bit_ % 8;
-        }
     }
 
     bool identical(const bit_proxy &b) const {
@@ -72,27 +67,33 @@ struct bit_proxy {
         return byte_ == b.byte_ && bit_ == b.bit_;
     }
 
-    char *get_byte() {
+    unsigned char *get_byte() {
         normalize();
         return byte_;
     }
 
-    const char *get_byte() const {
+    const unsigned char *get_byte() const {
         normalize();
         return byte_;
     }
 
-    unsigned char *get_unsigned_byte() { return (unsigned char *)get_byte(); }
+    unsigned char *get_unsigned_byte() { return get_byte(); }
 
     const unsigned char *get_unsigned_byte() const {
-        return (const unsigned char *)get_byte();
+        return const_cast<unsigned char *>(get_byte());
     }
 
     size_t bit() const { return bit_; }
 
     private:
+    void normalize() const {
+        if (bit_ > 7) {
+            byte_ += bit_ / 8;
+            bit_ = bit_ % 8;
+        }
+    }
 
-    mutable char *byte_;
+    mutable unsigned char *byte_;
     mutable size_t bit_;
 };
 
@@ -108,7 +109,7 @@ template <bool is_const> struct bit_iterator_base {
     typedef proxy_type &reference;
     typedef std::bidirectional_iterator_tag iterator_category;
 
-    bit_iterator_base() : value(nullptr, 0) {}
+    bit_iterator_base() {}
     bit_iterator_base(const bit_iterator_base<false> &b) : value(b.value) {}
     bit_iterator_base(const bit_iterator_base<true> &b) : value(b.value) {}
 
@@ -169,7 +170,7 @@ template <bool is_const> struct bit_iterator_base {
         return x -= n;
     }
 
-    friend size_t operator-(bit_iterator_base a, bit_iterator_base b) {
+    friend difference_type operator-(bit_iterator_base a, bit_iterator_base b) {
         return a.value.difference(b.value);
     }
 
@@ -334,9 +335,10 @@ inline void bit_copy(Input first, Input last, Output result) {
 }
 
 struct bitstring {
-    typedef char *pointer;
-    typedef char *iterator;
-    typedef const char *const_iterator;
+    typedef unsigned char *pointer;
+    typedef const char *const_pointer;
+    typedef unsigned char *iterator;
+    typedef const unsigned char *const_iterator;
     typedef detail::bit_iterator_base<false> bit_iterator;
     typedef detail::bit_iterator_base<true> const_bit_iterator;
 
@@ -367,7 +369,7 @@ struct bitstring {
         bit_size_ = a.bit_size_;
         buffer_ = a.buffer_;
         if (local())
-            begin_ = (char *)&buffer_;
+            begin_ = (pointer)&buffer_;
         else
             begin_ = buffer_;
         a.bit_size_ = 0;
@@ -421,7 +423,7 @@ struct bitstring {
         bit_size_ = b.bit_size_;
         buffer_ = b.buffer_;
         if (local())
-            begin_ = (char *)&buffer_;
+            begin_ = (pointer)&buffer_;
         else
             begin_ = buffer_;
 
@@ -457,7 +459,7 @@ struct bitstring {
     iterator end() { return begin_ + byte_size(); }
     const_iterator end() const { return begin_ + byte_size(); }
 
-    pointer data() const { return begin_; }
+    char * data() const { return (char *)begin_; }
 
     bit_iterator bit_begin() { return bit_iterator(data(), 0); }
     const_bit_iterator bit_begin() const {
@@ -492,9 +494,9 @@ struct bitstring {
     void alloc(size_t s) {
         set_size(s);
         if (local()) {
-            begin_ = (char *)&buffer_;
+            begin_ = (pointer)&buffer_;
         } else {
-            buffer_ = new char[byte_size()];
+            buffer_ = new unsigned char[byte_size()];
             begin_ = buffer_;
         }
         data()[byte_size() - 1] =
@@ -912,7 +914,7 @@ inline void map_to_ascii(std::vector<unsigned char> &unpacked) {
 }
 
 inline std::vector<unsigned char> to_uchar_array(bitstring const &bs) {
-    const char *p = bs.begin();
+    auto p = bs.begin();
     std::vector<unsigned char> dest(bs.bit_size() / 8);
     std::copy(p, p + bs.bit_size() / 8, dest.begin());
     return dest;

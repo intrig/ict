@@ -660,7 +660,7 @@ void bitstring_unit::modern_sms_difficult() {
 
 void random_copy(size_t n) {
     auto bs = random_bitstring(n);
-    auto l = bs.bit_end() - bs.bit_begin();
+    size_t l = bs.bit_end() - bs.bit_begin();
     IT_ASSERT_MSG(l << " != " << n, l == n);
     auto x = bitstring(n);
     // std::cerr << "copying " << bs << '\n';
