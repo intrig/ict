@@ -15,6 +15,7 @@ clean:
 
 realclean:
 	cmake -E remove_directory build
+	cmake -E remove_directory debug
 
 check: all
 	cd build && CTEST_OUTPUT_ON_FAILURE=1 ctest
