@@ -7,7 +7,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if (NOT MSVC)
-    add_compile_options(-Wall -Wextra -Wpedantic -fdiagnostics-color=always)
+    add_compile_options(
+        -Wall -Wextra -Weverything -Wpedantic -fdiagnostics-color=always
+        -Wno-implicit-fallthrough -Wno-keyword-macro
+        -Wno-unneeded-internal-declaration
+        -Wno-c++98-compat
+        -Wno-c++98-compat-pedantic
+        -Wno-shadow-field-in-constructor
+    )
 endif ()
 
 include_directories(${CMAKE_SOURCE_DIR})
