@@ -9,7 +9,8 @@ template <class T> class netvar {
     typedef const iterator const_iterator;
 
     netvar(T number = 0) {
-        auto first = (char *)&number;
+        auto first = reinterpret_cast<char *>(&number);
+
         std::reverse_copy(first, first + data.size(), data.begin());
     }
 
@@ -20,7 +21,7 @@ template <class T> class netvar {
     }
 
     netvar &operator=(T const number) {
-        auto first = (char *)&number;
+        auto first = reinterpret_cast<char *>(&number);
         std::reverse_copy(first, first + data.size(), data.begin());
         return *this;
     }
@@ -60,7 +61,8 @@ template <class T> class netvar {
     /** Conversion */
     T value() const {
         T number;
-        std::reverse_copy(data.begin(), data.end(), (char *)&number);
+        std::reverse_copy(data.begin(), data.end(),
+                          reinterpret_cast<char *>(&number));
         return number;
     }
 
