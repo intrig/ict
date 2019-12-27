@@ -10,6 +10,11 @@ debug:
 	cmake -B $@ -S . -GNinja -DCMAKE_BUILD_TYPE=Debug
 	cmake --build $@
 
+clang:
+	mkdir $@ && cd $@ && cmake -GNinja -DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_COMPILER=/usr/local/clang_9.0.0/bin/clang \
+	-DCMAKE_CXX_COMPILER=/usr/local/clang_9.0.0/bin/clang++ ..
+
 clean:
 	cmake --build build --target clean
 
