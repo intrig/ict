@@ -1,50 +1,54 @@
-//-- Copyright 2016 Intrig
-//-- See https://github.com/intrig/ict for license.
 #include "ictunit.h"
 #include <cloned_ptr.h>
 #include <multivector.h>
 
 struct base_type {
     base_type() {}
-    virtual ~base_type() {}
+    virtual ~base_type();
     base_type(const base_type & x) : i(x.i) {}
     base_type & operator=(const base_type & x) { i = x.i; return *this; }
-    virtual std::string name() const { return "base_type"; };
+    virtual std::string name() const { return "base_type"; }
     virtual base_type * clone() const { 
         //IT_WARN("cloning base_type");
         return new base_type(*this); }
     int i = 42;
 };
 
+base_type::~base_type() {}
+
 struct derived_a : public base_type {
     derived_a() : base_type() {}
-    virtual ~derived_a() {}
+    virtual ~derived_a();
     derived_a(const derived_a & x) : base_type(x), j(x.j) {}
     derived_a & operator=(const derived_a & x) { 
         base_type::operator=(x);
         j = x.j; 
         return *this; }
-    virtual std::string name() const { return "derived_a"; };
+    virtual std::string name() const { return "derived_a"; }
     virtual base_type * clone() const { 
         //IT_WARN("cloning derived_a");
         return new derived_a(*this); }
     int j = 33;
 };
 
+derived_a::~derived_a() {}
+
 struct derived_b : public derived_a {
     derived_b() : derived_a() {}
-    virtual ~derived_b() {}
+    virtual ~derived_b();
     derived_b(const derived_b & x) : derived_a(x), k(x.k) {}
     derived_b & operator=(const derived_b & x) { 
         derived_a::operator=(x);
         k = x.k; 
         return *this; }
-    virtual std::string name() const { return "derived_b"; };
+    virtual std::string name() const { return "derived_b"; }
     virtual base_type * clone() const { 
         //IT_WARN("cloning derived_b");
         return new derived_b(*this); }
     int k = 111;
 };
+
+derived_b::~derived_b() {}
 
 void ict_unit::cloned() {
     auto b = ict::make_cloned<base_type>();
@@ -97,6 +101,9 @@ void ict_unit::cloned_vector() {
 
 typedef ict::cloned_ptr<base_type> pointer_type;
 namespace ict {
+    std::string to_string(const pointer_type & x);
+    std::ostream& operator<<(std::ostream& os, const pointer_type &x);
+
     std::string to_string(const pointer_type & x) {
         return x->name();
     }
