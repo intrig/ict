@@ -366,7 +366,7 @@ template <typename ValueType> struct item {
     typedef std::ptrdiff_t difference_type;
 
     //! Default constructor
-    item() : parent{(item *)(-1)} {}
+    item() : parent{reinterpret_cast<item *>(-1)} {}
 
     //! Copy constructor
     item(const item &b) : parent(0) {
@@ -377,7 +377,7 @@ template <typename ValueType> struct item {
             nodes_[0].parent = this;
     }
 
-    item(item &&b) noexcept : parent(0) {
+    item(item &&b) noexcept : parent(nullptr) {
         parent = b.parent;
         value = std::move(b.value);
         nodes_ = std::move(b.nodes_);
@@ -464,7 +464,7 @@ template <typename ValueType> struct item {
     operator reference() { return value; }
     operator const_reference() const { return value; }
 
-    bool is_root() const { return parent == (item *)(-1); }
+    bool is_root() const { return parent == reinterpret_cast<item *>(-1); }
 
     item_pointer parent_item() const {
         auto i = this;
@@ -578,31 +578,31 @@ template <typename value_type> struct multivector {
     // default constructable: multivector a;
     multivector() {
         root_.value = value_type();
-        root_.parent = (item<value_type> *)(-1);
+        root_.parent = reinterpret_cast<item<value_type> *>(-1);
     }
 
     // copy constructable: multivector a = b;
-    multivector(const multivector &b) : root_(b.root_){};
+    multivector(const multivector &b) : root_(b.root_){}
 
-    multivector(multivector &&b) noexcept { root_ = std::move(b.root_); };
+    multivector(multivector &&b) noexcept { root_ = std::move(b.root_); }
 
     // Conversions
     explicit multivector(cursor a) : root_(a.item_ref()) {
         root_.value = value_type(); // weird
-        root_.parent = (item<value_type> *)(-1);
+        root_.parent = reinterpret_cast<item<value_type> *>(-1);
     }
 
     // initialization list
     multivector(std::initializer_list<init_list_type<value_type>> l) {
         root_.value = value_type();
-        root_.parent = (item<value_type> *)(-1);
+        root_.parent = reinterpret_cast<item<value_type> *>(-1);
         for (const auto &e : l)
             e.add(root());
     }
 
     multivector(std::initializer_list<init_list_type<const char *>> l) {
         root_.value = value_type();
-        root_.parent = (item<value_type> *)(-1);
+        root_.parent = reinterpret_cast<item<value_type> *>(-1);
         for (const auto &e : l)
             e.add(root());
     }
@@ -757,7 +757,7 @@ template <typename T> void verify(T parent) {
 }
 
 template <typename T> inline void verify(const multivector<T> &tree) {
-    if (tree.root().item_ref().parent != (item<T> *)(-1)) {
+    if (tree.root().item_ref().parent != reinterpret_cast<item<T> *>(-1)) {
         std::ostringstream os;
         os << "root parent is not valid: " << tree.root().item_ref().parent;
         std::runtime_error(os.str());
