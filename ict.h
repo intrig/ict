@@ -18,6 +18,7 @@
 #include <iostream>
 #include <sstream>
 #include <time.h>
+#include <filesystem>
 
 #include "exception.h"
 #include "netvar.h"
@@ -68,7 +69,8 @@ inline std::vector<std::string> split(const T &source, char c) {
 }
 
 // split on any of the supplied characters
-inline std::vector<std::string> split(const std::string &source, const char *s,
+inline std::vector<std::string> split(const std::string &source,
+                                      const char *split_string,
                                       bool include_del = false) {
     std::vector<std::string> l;
     if (source.size() == 0)
@@ -78,23 +80,20 @@ inline std::vector<std::string> split(const std::string &source, const char *s,
     size_t last = source.size();
 
     while (first != last) {
-        auto i = source.find_first_of(s, first);
+        auto i = source.find_first_of(split_string, first);
         if (i == std::string::npos) {
             auto s = source.substr(first);
             if (!s.empty())
                 l.push_back(s);
             first = last;
         } else {
-            auto s = std::string(source.begin() + first,
-                                 source.begin() + i + (include_del == true));
-            l.push_back(s);
+            l.emplace_back(source, first, i - first + (include_del == true));
             first = i;
             ++first;
         }
     }
     return l;
 }
-
 namespace util {
 template <typename T> T read_line(T first, T last, std::string &line) {
     while (first != last && *first != '\n') {
@@ -240,20 +239,6 @@ inline int string_case_compare(const char *string1, const char *string2,
 #endif
 }
 
-inline bool string_to_int(int &value, const char *s, int base = 10) {
-    if (!s)
-        return false;
-    char *end;
-    errno = 0;
-    value = strtol(s, &end, base);
-    return (errno == 0 && *end == '\0');
-}
-
-template <typename T>
-inline bool string_to_int(int &value, const T &s, int base = 10) {
-    return string_to_int(value, s.c_str(), base);
-}
-
 inline bool string_to_int64(int64_t &value, const char *s, int base = 10) {
     if (!s)
         return false;
@@ -269,19 +254,25 @@ inline std::string ucfirst(const std::string &value) {
     if (value.empty())
         return value;
     std::string v = value;
-    v[0] = toupper(v[0]);
+    std::locale loc;
+    v[0] = std::toupper(v[0], loc);
     return v;
 }
 
 inline std::string uppercase(const std::string &value) {
     std::string v = value;
+    std::locale loc;
     for (auto &i : v)
-        i = toupper(i);
+        i = std::toupper(i, loc);
     return v;
 }
 
 inline bool is_binary(const std::string &value) {
     return value.find_first_not_of("01") == std::string::npos;
+}
+
+inline bool is_uint(const std::string &value) {
+    return value.find_first_not_of("0123456789") == std::string::npos;
 }
 
 inline bool is_hex(std::string const &value) {
@@ -467,11 +458,11 @@ inline bool contains(const char *src, const char *value) {
     return std::string(src).find(value) != std::string::npos;
 }
 
+#if 0
 inline int file_size(const std::string &filename) {
-    struct stat stat_buf;
-    int rc = stat(filename.c_str(), &stat_buf);
-    return rc == 0 ? stat_buf.st_size : -1;
+    return std::filesystem::file_size(filename);
 }
+#endif
 
 inline std::vector<char> read_stream(std::istream &in) {
     std::vector<char> v;
@@ -482,10 +473,13 @@ inline std::vector<char> read_stream(std::istream &in) {
 }
 
 template <typename T> inline std::vector<char> read_file(const T &filename) {
+#if 1
+    auto sz = std::filesystem::file_size(filename);
+#else
     int sz = file_size(filename);
     if (sz == -1)
         IT_PANIC("cannot stat " << filename);
-
+#endif
     std::ifstream file(filename.c_str(), std::ios::binary);
     if (!file.good())
         IT_PANIC("cannot open " << filename);
