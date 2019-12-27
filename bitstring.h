@@ -28,7 +28,8 @@ namespace detail {
 // bit proxy type
 struct bit_proxy {
     bit_proxy() : byte_(nullptr), bit_(0) {}
-    bit_proxy(char *byte, size_t bit) : byte_((unsigned char *) byte), bit_(bit) {}
+    bit_proxy(char *byte, size_t bit)
+        : byte_(reinterpret_cast<unsigned char *>(byte)), bit_(bit) {}
     bit_proxy(unsigned char *byte, size_t bit) : byte_(byte), bit_(bit) {}
 
     bool value() const { return get_bit(byte_, bit_); }
@@ -36,9 +37,15 @@ struct bit_proxy {
     void value(bool x) { set_bit(byte_, bit_, x); }
     void value(const bit_proxy &x) { set_bit(byte_, bit_, x.value()); }
 
-    void increment() { ++bit_; normalize(); }
+    void increment() {
+        ++bit_;
+        normalize();
+    }
 
-    void increment(size_t n) { bit_ += n; normalize(); }
+    void increment(size_t n) {
+        bit_ += n;
+        normalize();
+    }
 
     void decrement() {
         if (bit_)
@@ -85,7 +92,7 @@ struct bit_proxy {
 
     size_t bit() const { return bit_; }
 
-    private:
+  private:
     void normalize() const {
         if (bit_ > 7) {
             byte_ += bit_ / 8;
@@ -114,7 +121,8 @@ template <bool is_const> struct bit_iterator_base {
     bit_iterator_base(const bit_iterator_base<true> &b) : value(b.value) {}
 
     bit_iterator_base(char *p, size_t b = 0) : value(p, b) {}
-    bit_iterator_base(unsigned char *p, size_t b = 0) : value((char *)p, b) {}
+    bit_iterator_base(unsigned char *p, size_t b = 0)
+        : value(reinterpret_cast<char *>(p), b) {}
 
     bit_iterator_base<false> &operator=(const bit_iterator_base<false> &b) {
         value = b.value;
@@ -212,7 +220,7 @@ template <typename A, typename B, typename C, typename D, typename E,
 inline void prepare_first_copy(A &src_len, B const dst_offset_modulo, C *dst,
                                D const &reverse_mask, E const &reverse_mask_xor,
                                F &c) {
-    if (src_len >= (size_t)(CHAR_BIT - dst_offset_modulo)) {
+    if (src_len >= static_cast<size_t>(CHAR_BIT - dst_offset_modulo)) {
         *dst &= reverse_mask[dst_offset_modulo];
         src_len -= CHAR_BIT - dst_offset_modulo;
     } else {
@@ -288,7 +296,7 @@ inline void bit_copy_n(Input first, size_t bit_count, Output result) {
                 bit_diff_rs = CHAR_BIT - bit_diff_ls;
 
                 // assert(dst_offset_modulo >= 0);
-                c = *src++ << bit_diff_ls;
+                c = static_cast<value_type>(*src++ << bit_diff_ls);
                 c |= *src >> bit_diff_rs;
                 c &= reverse_mask_xor[dst_offset_modulo];
             } else {
@@ -306,7 +314,7 @@ inline void bit_copy_n(Input first, size_t bit_count, Output result) {
              */
             byte_len = bit_count / CHAR_BIT;
             for (size_t i = 0; i < byte_len; ++i) {
-                c = *src++ << bit_diff_ls;
+                c = static_cast<value_type>(*src++ << bit_diff_ls);
                 c |= *src >> bit_diff_rs;
                 *dst++ = c;
             }
@@ -317,7 +325,7 @@ inline void bit_copy_n(Input first, size_t bit_count, Output result) {
              */
             src_len_modulo = bit_count % CHAR_BIT;
             if (src_len_modulo) {
-                c = *src++ << bit_diff_ls;
+                c = static_cast<value_type>(*src++ << bit_diff_ls);
                 c |= *src >> bit_diff_rs;
                 c &= reverse_mask[src_len_modulo];
 
@@ -344,7 +352,7 @@ struct bitstring {
     typedef const unsigned char *const_iterator;
 
     // Regular
-    bitstring() : buffer_(0), begin_(0) { set_size(0); }
+    bitstring() : buffer_(nullptr), begin_(nullptr) { set_size(0); }
 
     bitstring(size_t bit_size) {
         alloc(bit_size);
@@ -369,7 +377,7 @@ struct bitstring {
         bit_size_ = a.bit_size_;
         buffer_ = a.buffer_;
         if (local())
-            begin_ = (pointer)&buffer_;
+            begin_ = reinterpret_cast<pointer>(&buffer_);
         else
             begin_ = buffer_;
         a.bit_size_ = 0;
@@ -423,7 +431,7 @@ struct bitstring {
         bit_size_ = b.bit_size_;
         buffer_ = b.buffer_;
         if (local())
-            begin_ = (pointer)&buffer_;
+            begin_ = reinterpret_cast<pointer>(&buffer_);
         else
             begin_ = buffer_;
 
@@ -459,7 +467,7 @@ struct bitstring {
     iterator end() { return begin_ + byte_size(); }
     const_iterator end() const { return begin_ + byte_size(); }
 
-    char * data() const { return (char *)begin_; }
+    char *data() const { return reinterpret_cast<char *>(begin_); }
 
     bit_iterator bit_begin() { return bit_iterator(data(), 0); }
     const_bit_iterator bit_begin() const {
@@ -474,27 +482,31 @@ struct bitstring {
 
     size_t bit_size() const { return bit_size_; }
 
-    bool local() const { return bit_size() <= (sizeof(pointer) * 8); };
+    bool local() const { return bit_size() <= (sizeof(pointer) * 8); }
 
-    void set(size_t index) { set_bit((unsigned char *)data(), index, 1); }
-    void reset(size_t index) { set_bit((unsigned char *)data(), index, 0); }
+    void set(size_t index) {
+        set_bit(reinterpret_cast<unsigned char *>(data()), index, 1);
+    }
+    void reset(size_t index) {
+        set_bit(reinterpret_cast<unsigned char *>(data()), index, 0);
+    }
     bool at(size_t index) const {
-        return get_bit((unsigned char *)data(), index);
+        return get_bit(reinterpret_cast<unsigned char *>(data()), index);
     }
 
     void clear() {
         if (!local())
             delete[] buffer_;
         set_size(0);
-        buffer_ = 0;
-        begin_ = 0;
+        buffer_ = nullptr;
+        begin_ = nullptr;
     }
 
   private:
     void alloc(size_t s) {
         set_size(s);
         if (local()) {
-            begin_ = (pointer)&buffer_;
+            begin_ = reinterpret_cast<pointer>(&buffer_);
         } else {
             buffer_ = new unsigned char[byte_size()];
             begin_ = buffer_;
@@ -506,8 +518,8 @@ struct bitstring {
     void set_size(size_t bit_size) { bit_size_ = bit_size; }
 
     size_t bit_size_ = 0;
-    pointer buffer_ = 0;
-    pointer begin_ = 0;
+    pointer buffer_ = nullptr;
+    pointer begin_ = nullptr;
 };
 
 inline std::string to_string(const bitstring &bits) {
@@ -597,7 +609,7 @@ struct ibitstream {
 
     void unconstrain() { end_bit_list.pop_back(); }
 
-    size_t remaining() const { return end_bit_list.back() - bit_index; };
+    size_t remaining() const { return end_bit_list.back() - bit_index; }
 
     void mark() { marker_bit_list.push_back(bit_index); }
 
@@ -690,7 +702,8 @@ inline bitstring::bitstring(int base, const char *str) {
         if (ict::is_binary(s)) {
             resize(s.size());
             for (unsigned i = 0; i < bit_size(); ++i) {
-                set_bit((unsigned char *)begin(), i, s[(int)i] == '1');
+                set_bit(reinterpret_cast<unsigned char *>(begin()), i,
+                        s[i] == '1');
             }
         }
         break;
@@ -699,10 +712,10 @@ inline bitstring::bitstring(int base, const char *str) {
             resize(s.size() * 4);
 
             for (unsigned cb = 0, i = 0; i < s.size(); i += 2, ++cb) {
-                char hex_char = str[(int)i];
-                char new_char = ict::hex_ascii(hex_char);
-                data()[cb] = new_char << 4;
-                new_char = ict::hex_ascii(str[(int)(1 + i)]);
+                char hex_char = str[i];
+                char new_char = static_cast<char>(ict::hex_ascii(hex_char));
+                data()[cb] = static_cast<char>(new_char << 4);
+                new_char = static_cast<char>(ict::hex_ascii(str[1 + i]));
                 data()[cb] |= new_char;
             }
         }
@@ -713,7 +726,7 @@ inline bitstring::bitstring(int base, const char *str) {
     } break;
     case 8: // ascii 8
     {
-        auto first = const_bit_iterator((char *)s.c_str());
+        auto first = const_bit_iterator(const_cast<char *>(s.c_str()));
         *this = bitstring(first, first + s.length() * 8);
     } break;
     default:
@@ -722,7 +735,8 @@ inline bitstring::bitstring(int base, const char *str) {
 }
 
 template <typename T> inline void reverse_bytes(T &number) {
-    std::reverse((char *)&number, (char *)&number + sizeof(T));
+    std::reverse(reinterpret_cast<char *>(&number),
+                 reinterpret_cast<char *>(&number) + sizeof(T));
 }
 
 #ifdef _MSC_VER
@@ -730,25 +744,34 @@ template <typename T> inline void reverse_bytes(T &number) {
 #pragma warning(disable : 4800)
 #endif
 
+namespace detail {
+    template <typename T>
+    auto convert_to_int(void *first, bool swap) -> T {
+        T number = *reinterpret_cast<T *>(first);
+        if (swap)
+            reverse_bytes<T>(number);
+        return static_cast<T>(number);
+    }
+
+}
+
 template <typename T>
 inline T to_integer(bitstring const &bits, bool swap = true) {
     const size_t type_size = sizeof(T) * 8;
+    auto first = const_cast<bitstring::pointer>(bits.begin());
     T number = 0;
     if (bits.bit_size() == type_size) {
-        number = *((T *)bits.begin());
-        if (swap)
-            reverse_bytes<T>(number);
-        return number;
+        return detail::convert_to_int<T>(first, swap);
     } else if (bits.bit_size() < type_size) {
         switch (bits.bit_size()) {
         case 8:
-            return (T) * ((uint8_t *)bits.begin());
+            return static_cast<T>(*first);
             break;
         case 16: {
-            uint16_t n = *((uint16_t *)(void *)bits.begin());
+            uint16_t n = *reinterpret_cast<uint16_t *>(first);
             if (swap)
                 reverse_bytes<uint16_t>(n);
-            return (T)n;
+            return static_cast<T>(n);
             break;
         }
         case 32: {
