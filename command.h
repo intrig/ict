@@ -302,8 +302,6 @@ class command {
                     target += ch;
                 }
                 break;
-            default:
-                IT_PANIC("panic!");
             }
         }
     }
