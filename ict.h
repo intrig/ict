@@ -458,12 +458,6 @@ inline bool contains(const char *src, const char *value) {
     return std::string(src).find(value) != std::string::npos;
 }
 
-#if 0
-inline int file_size(const std::string &filename) {
-    return std::filesystem::file_size(filename);
-}
-#endif
-
 inline std::vector<char> read_stream(std::istream &in) {
     std::vector<char> v;
     char ch;
@@ -473,21 +467,12 @@ inline std::vector<char> read_stream(std::istream &in) {
 }
 
 template <typename T> inline std::vector<char> read_file(const T &filename) {
-#if 1
     auto sz = std::filesystem::file_size(filename);
-#else
-    int sz = file_size(filename);
-    if (sz == -1)
-        IT_PANIC("cannot stat " << filename);
-#endif
     std::ifstream file(filename.c_str(), std::ios::binary);
     if (!file.good())
         IT_PANIC("cannot open " << filename);
     std::vector<char> contents(sz);
-    file.read((char *)contents.data(), sz);
-
-    if (file.gcount() != sz)
-        IT_PANIC("read " << file.gcount() << " bytes, expected " << sz);
+    file.read(static_cast<char *>(contents.data()), sz);
 
     return contents;
 }
@@ -686,7 +671,7 @@ inline int hex_ascii(char ch) {
 inline std::string bin_table() {
     std::bitset<8> n;
     std::ostringstream os;
-    for (int i = 0; i < 256; ++i) {
+    for (unsigned long long i = 0; i < 256; ++i) {
         n = i;
         os << "\"" << n << "\", ";
         if ((i + 1) % 8 == 0)
@@ -746,7 +731,7 @@ inline std::string &to_bin_string(T first, T last, std::string &dest) {
 
     dest.reserve((last - first) * 8);
     while (first != last) {
-        dest += ahhhhh[(unsigned char)*first];
+        dest += ahhhhh[static_cast<unsigned char>(*first)];
         ++first;
     }
     return dest;
@@ -794,7 +779,7 @@ inline std::string &to_hex_string(T first, T last, std::string &dest) {
 
     dest.reserve((last - first) * 2);
     while (first != last) {
-        dest += hmmmm[(unsigned char)*first];
+        dest += hmmmm[static_cast<unsigned char>(*first)];
         ++first;
     }
     return dest;
