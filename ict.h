@@ -472,8 +472,8 @@ template <typename T> inline std::vector<char> read_file(const T &filename) {
     if (!file.good())
         IT_PANIC("cannot open " << filename);
     std::vector<char> contents(sz);
-    file.read(static_cast<char *>(contents.data()), sz);
-
+    file.read(const_cast<char *>(contents.data()),
+              static_cast<std::streamsize>(sz));
     return contents;
 }
 
