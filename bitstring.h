@@ -752,11 +752,19 @@ namespace detail {
             reverse_bytes<T>(number);
         return static_cast<T>(number);
     }
+    template <typename Size, typename T>
+    auto convert_to_int(void *first, bool swap) -> T {
+        Size number = *reinterpret_cast<Size *>(first);
+        if (swap)
+            reverse_bytes<Size>(number);
+
+        return static_cast<T>(number);
+    }
 
 }
 
 template <typename T>
-inline T to_integer(bitstring const &bits, bool swap = true) {
+inline auto to_integer(bitstring const &bits, bool swap = true) -> T {
     const size_t type_size = sizeof(T) * 8;
     auto first = const_cast<bitstring::pointer>(bits.begin());
     T number = 0;
@@ -766,28 +774,12 @@ inline T to_integer(bitstring const &bits, bool swap = true) {
         switch (bits.bit_size()) {
         case 8:
             return static_cast<T>(*first);
-            break;
-        case 16: {
-            uint16_t n = *reinterpret_cast<uint16_t *>(first);
-            if (swap)
-                reverse_bytes<uint16_t>(n);
-            return static_cast<T>(n);
-            break;
-        }
-        case 32: {
-            uint32_t n = *((uint32_t *)bits.begin());
-            if (swap)
-                reverse_bytes<uint32_t>(n);
-            return (T)n;
-            break;
-        }
-        case 64: {
-            uint64_t n = *((uint64_t *)bits.begin());
-            if (swap)
-                reverse_bytes<uint64_t>(n);
-            return (T)n;
-            break;
-        }
+        case 16:
+            return detail::convert_to_int<uint16_t, T>(first, swap);
+        case 32:
+            return detail::convert_to_int<uint32_t, T>(first, swap);
+        case 64:
+            return detail::convert_to_int<uint64_t, T>(first, swap);
         default:
             // we are converting a bitstring to a bigger type.  So copy the
             // bitstring into the last bits of the number, leaving the first
