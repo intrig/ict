@@ -256,7 +256,6 @@ void bitstring_unit::from_string() {
 
 static void test_convert(size_t bit_size) {
     IT_ASSERT(bit_size > 0);
-    // IT_WARN("converting " << bit_size);
     ict::bitstring bits = ict::from_integer<unsigned>(1, bit_size);
     std::string s = std::string(bit_size - 1, '0') + '1';
     IT_ASSERT(bits.bit_size() == bit_size);
@@ -380,45 +379,8 @@ void bitstring_unit::modern_pad() {
         IT_ASSERT(bs1.bit_size() == 8);
         IT_ASSERT(bs1 == "@00111111");
     }
-#if 0 // not even sure what this stuff should do... pad_left(10) doesn't make
-      // sense
-    {
-        ict::bitstring bs1(2, "111111");
-        bs1.padLeft(10);
-        IT_ASSERT_MSG(bs1.info(), bs1 == "@0000111111");
-    }
-    {
-        ict::bitstring bs1(50);
-        bs1.padLeft();
-        IT_ASSERT_MSG(bs1.info(), bs1.bit_size() == 56);
-    }
-    {
-        ict::bitstring bs1(2, "111111");
-        bs1.padRight();
-        IT_ASSERT_MSG(bs1.info(), bs1 == "@11111100");
-
-        // make sure it doesn't do any more padding
-        bs1.padRight();
-        IT_ASSERT_MSG(bs1.info(), bs1 == "@11111100");
-    }
-    {
-        ict::bitstring bs1(2, "111111");
-        bs1.padRight(10);
-        IT_ASSERT_MSG(bs1.info(), bs1 == "@1111110000");
-    }
-    {
-        ict::bitstring bs1(50);
-        bs1.padRight();
-        IT_ASSERT_MSG(bs1.info(), bs1.bit_size() == 56);
-    }
-        auto bs = ict::bitstring(2, "10000");
-        IT_ASSERT(bs.bit_size() == 5);
-        bs.padLeft();
-        IT_ASSERT(bs.bit_size() == 8);
-        IT_ASSERT_MSG(bs.info(), bs == "@00010000");
-        IT_ASSERT_MSG(bs.info(), IT::toInteger<int>(bs) == 16);
-#endif
 }
+
 void bitstring_unit::modern_replace() {
     {
         // these first 3 tests were added because of a bug found when the
@@ -495,7 +457,6 @@ void bitstring_unit::modern_replace() {
 
 void bitstring_unit::modern_gsm7() {
     /*
-
      Unpacked: "12345678"
      0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38
 
@@ -633,7 +594,6 @@ void bitstring_unit::modern_gsm7() {
 void bitstring_unit::modern_sms_difficult() {
     // E139F92CCF9BF379333D9FA7CD6435DBED86CBC17034992C041809042510C87456A301
     // should be: asdgryfyyftyy43256778908422!@#$$%^^&gjh
-
     std::string result = "asdgryfyyftyy43256778908422!@#$$%  &gjh";
 
     ict::bitstring sm("E139F92CCF9BF379333D9FA7CD6435DBED86CBC17034992C04180904"
@@ -657,7 +617,6 @@ static void random_copy(size_t n) {
     size_t l = bs.bit_end() - bs.bit_begin();
     IT_ASSERT_MSG(l << " != " << n, l == n);
     auto x = bitstring(n);
-    // std::cerr << "copying " << bs << '\n';
     bit_copy(bs.bit_begin(), bs.bit_end(), x.bit_begin());
     IT_ASSERT(bs.bit_size() == n);
     IT_ASSERT(x.bit_size() == n);
