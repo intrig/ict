@@ -18,7 +18,6 @@
 #include <iostream>
 #include <sstream>
 #include <time.h>
-#include <filesystem>
 
 #include "exception.h"
 #include "netvar.h"
@@ -43,7 +42,6 @@ template <typename T> std::string to_string(const T &value) {
     os << value;
     return os.str();
 #else
-    // using namespace std;
     return std::to_string(value);
 #endif
 }
@@ -467,16 +465,12 @@ inline std::vector<char> read_stream(std::istream &in) {
 }
 
 template <typename T> inline std::vector<char> read_file(const T &filename) {
-    auto sz = std::filesystem::file_size(filename);
+    std::vector<char> contents;
     std::ifstream file(filename.c_str(), std::ios::binary);
-    if (!file.good())
-        IT_PANIC("cannot open " << filename);
-    std::vector<char> contents(sz);
-    file.read(const_cast<char *>(contents.data()),
-              static_cast<std::streamsize>(sz));
+    std::copy(std::istreambuf_iterator<char>(file),
+              std::istreambuf_iterator<char>(), std::back_inserter(contents));
     return contents;
 }
-
 inline std::vector<char> read_file(const char *filename) {
     return read_file(std::string(filename));
 }
