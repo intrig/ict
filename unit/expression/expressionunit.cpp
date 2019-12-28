@@ -11,7 +11,7 @@ struct test_result {
     int64_t result;
 };
 
-std::vector<test_result> basic_tests = {
+const std::vector<test_result> basic_tests = {
 #if 0
 #endif
     { "0", 0 },
@@ -171,7 +171,7 @@ struct fail_result {
     bool fail;
 };
 
-std::vector<fail_result> fail_tests = {
+const std::vector<fail_result> fail_tests = {
     { "3foo", true },
     { "3 <", true },
     { "3 <<", true },

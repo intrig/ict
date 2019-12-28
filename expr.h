@@ -219,7 +219,7 @@ struct expr_type {
                     left *= prim();
                     break;
                 case POW:
-                    left = (T)std::pow(left, prim());
+                    left = static_cast<T>(std::pow(left, prim()));
                     break;
                 case DIV:
                     if (T d = prim()) {
