@@ -4,8 +4,6 @@
 
 using std::cerr;
 
-void out_bits() {}
-
 template <typename Op> void time_op(int n, Op op) {
     ict::timer time;
     time.start();
@@ -26,19 +24,19 @@ void time_op(int n, Op op, EndOp end_op) {
     cerr << time << '\n';
 }
 
-void in_bits(int s, int n) {
+static void in_bits(int s, int n) {
     // create a giant bitstring
     auto bits = ict::random_bitstring(1024);
 
     time_op(n, [&]() {
         ict::ibitstream ibs(bits);
         while (!ibs.eobits()) {
-            auto bits = ibs.read(s);
+            auto b = ibs.read(s);
         }
     });
 }
 
-void out_bits(int s, int n) {
+static void out_bits(int s, int n) {
     // create a giant bitstring
     auto bits = ict::random_bitstring(s);
 
@@ -63,7 +61,7 @@ int main(int argc, char **argv) {
             in_bits(5, 100000);
             in_bits(8, 100000);
             in_bits(11, 100000);
-        };
+        }
 
         if (output) {
             out_bits(3, 10000000);
@@ -72,5 +70,6 @@ int main(int argc, char **argv) {
             out_bits(11, 10000000);
         }
     } catch (std::exception &e) {
+        cerr << "exception: " << e.what() << '\n';
     }
 }
