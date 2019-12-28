@@ -24,9 +24,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         -Wno-shadow-field-in-constructor
         -Wno-padded
         -Wno-sign-conversion
+
+        # These are more informational
         -Wno-weak-vtables
         -Wno-exit-time-destructors
         -Wno-global-constructors
+        -Wno-switch-enum
         #-Werror
     )
 endif()
