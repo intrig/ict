@@ -13,8 +13,6 @@ struct store_init {
 };
 
 void bitstring_unit::bitstring_sanity() {
-    ict::bitstring a;
-
     const size_t ptr_bytes = sizeof(char *);
     const size_t ptr_bits = ptr_bytes * 8;
 
@@ -107,34 +105,37 @@ void bitstring_unit::bitstring_sanity() {
 }
 
 void bitstring_unit::obs() {
-    ict::obitstream os;
+    {
+        ict::obitstream os;
 
-    os << ict::bitstring("@111");
-    os << ict::bitstring("@000");
+        os << ict::bitstring("@111");
+        os << ict::bitstring("@000");
 
-    IT_ASSERT(os.bits() == "@111000");
-    os << os.bits();
-    IT_ASSERT(os.bits() == "@111000111000");
+        IT_ASSERT(os.bits() == "@111000");
+        os << os.bits();
+        IT_ASSERT(os.bits() == "@111000111000");
 
-    auto t = os.bits();
-    std::string base_string =
-        ict::to_bin_string(t.begin(), t.end(), t.bit_size());
-    auto s = base_string;
-    auto b = os.bits();
-    ict::obitstream bs;
-    std::ostringstream ss;
-    ss << "@";
+        auto t = os.bits();
+        std::string base_string =
+            ict::to_bin_string(t.begin(), t.end(), t.bit_size());
+        auto s = base_string;
+        auto b = os.bits();
+        ict::obitstream bs;
+        std::ostringstream ss;
+        ss << "@";
 
-    for (int i = 0; i < 1000; ++i) {
-        bs << b;
-        ss << s;
-        auto ts = ss.str();
-        IT_ASSERT(bs.bits() == ts.c_str());
-        IT_ASSERT(bs.bits().bit_size() == ts.size() - 1);
+        for (int i = 0; i < 1000; ++i) {
+            bs << b;
+            ss << s;
+            auto ts = ss.str();
+            IT_ASSERT(bs.bits() == ts.c_str());
+            IT_ASSERT(bs.bits().bit_size() == ts.size() - 1);
+        }
+        t = bs.bits();
+        std::string t2 =
+            "@" + ict::to_bin_string(t.begin(), t.end(), t.bit_size());
+        IT_ASSERT_MSG(ss.str() << " == " << t2, ss.str() == t2);
     }
-    t = bs.bits();
-    std::string t2 = "@" + ict::to_bin_string(t.begin(), t.end(), t.bit_size());
-    IT_ASSERT_MSG(ss.str() << " == " << t2, ss.str() == t2);
     {
         ict::obitstream os;
         os << ict::bitstring("@111");
@@ -165,44 +166,36 @@ void bitstring_unit::ibs_constraint() {
         ict::constraint c(ibs, 15);
         IT_ASSERT_MSG(ibs.remaining(), ibs.remaining() == 15);
         {
-            ict::constraint c(ibs, 10);
+            ict::constraint d(ibs, 10);
             IT_ASSERT_MSG(ibs.remaining(), ibs.remaining() == 10);
         }
         IT_ASSERT_MSG(ibs.remaining(), ibs.remaining() == 15);
     }
     IT_ASSERT(ibs.remaining() == 27);
-
-    {
-        auto bits = ict::bitstring(27); // bits.bit_size() = 27
-        ict::ibitstream is(bits);       // is.remaining() = 27
-        {
-            ict::constraint c(is, 15); // is.remaining() = 15
-        }
-        // is.remaining() == 27
-    }
 }
 
 void bitstring_unit::ibs() {
-    ict::bitstring bits("@111000");
-    ict::ibitstream is2(bits);
-    IT_ASSERT_MSG(is2.remaining() << " == 6", is2.remaining() == 6);
-    IT_ASSERT(!is2.eobits());
+    {
+        ict::bitstring bits("@111000");
+        ict::ibitstream is2(bits);
+        IT_ASSERT_MSG(is2.remaining() << " == 6", is2.remaining() == 6);
+        IT_ASSERT(!is2.eobits());
 
-    auto a = is2.read(1);
-    IT_ASSERT(a == "@1");
-    IT_ASSERT_MSG(is2.remaining(), is2.remaining() == 5);
-    IT_ASSERT(!is2.eobits());
+        auto a = is2.read(1);
+        IT_ASSERT(a == "@1");
+        IT_ASSERT_MSG(is2.remaining(), is2.remaining() == 5);
+        IT_ASSERT(!is2.eobits());
 
-    a = is2.read(3);
-    IT_ASSERT(!is2.eobits());
-    IT_ASSERT(is2.remaining() == 2);
-    IT_ASSERT(a == "@110");
+        a = is2.read(3);
+        IT_ASSERT(!is2.eobits());
+        IT_ASSERT(is2.remaining() == 2);
+        IT_ASSERT(a == "@110");
 
-    a = is2.read(2);
-    IT_ASSERT(is2.eobits());
-    IT_ASSERT(is2.remaining() == 0);
-    IT_ASSERT(a == "@00");
-
+        a = is2.read(2);
+        IT_ASSERT(is2.eobits());
+        IT_ASSERT(is2.remaining() == 0);
+        IT_ASSERT(a == "@00");
+    }
     {
         auto bits = ict::bitstring("@111000");
         ict::ibitstream is(bits);
@@ -261,7 +254,7 @@ void bitstring_unit::from_string() {
     }
 }
 
-void test_convert(size_t bit_size) {
+static void test_convert(size_t bit_size) {
     IT_ASSERT(bit_size > 0);
     // IT_WARN("converting " << bit_size);
     ict::bitstring bits = ict::from_integer<unsigned>(1, bit_size);
@@ -515,49 +508,50 @@ void bitstring_unit::modern_gsm7() {
     DD
     70
     */
-    ict::bitstring bs("31D98C56B3DD70");
+    {
+        ict::bitstring bs("31D98C56B3DD70");
 
-    auto packed = ict::detail::to_uchar_array(bs);
+        auto packed = ict::detail::to_uchar_array(bs);
 
-    IT_ASSERT(packed.size() == 7);
-    IT_ASSERT_MSG(packed[0], packed[0] == 0x31);
-    IT_ASSERT_MSG(packed[1], packed[1] == 0xD9);
-    IT_ASSERT_MSG(packed[2], packed[2] == 0x8C);
-    IT_ASSERT_MSG(packed[3], packed[3] == 0x56);
-    IT_ASSERT_MSG(packed[4], packed[4] == 0xB3);
-    IT_ASSERT_MSG(packed[5], packed[5] == 0xDD);
-    IT_ASSERT_MSG(packed[6], packed[6] == 0x70);
+        IT_ASSERT(packed.size() == 7);
+        IT_ASSERT_MSG(packed[0], packed[0] == 0x31);
+        IT_ASSERT_MSG(packed[1], packed[1] == 0xD9);
+        IT_ASSERT_MSG(packed[2], packed[2] == 0x8C);
+        IT_ASSERT_MSG(packed[3], packed[3] == 0x56);
+        IT_ASSERT_MSG(packed[4], packed[4] == 0xB3);
+        IT_ASSERT_MSG(packed[5], packed[5] == 0xDD);
+        IT_ASSERT_MSG(packed[6], packed[6] == 0x70);
 
-    auto unpacked = ict::detail::unpack_bytes(packed);
-    IT_ASSERT(unpacked.size() == 8);
-    IT_ASSERT_MSG(unpacked[0], unpacked[0] == 0x31);
-    IT_ASSERT_MSG(unpacked[1], unpacked[1] == 0x32);
-    IT_ASSERT_MSG(unpacked[2], unpacked[2] == 0x33);
-    IT_ASSERT_MSG(unpacked[3], unpacked[3] == 0x34);
-    IT_ASSERT_MSG(unpacked[4], unpacked[4] == 0x35);
-    IT_ASSERT_MSG(unpacked[5], unpacked[5] == 0x36);
-    IT_ASSERT_MSG(unpacked[6], unpacked[6] == 0x37);
-    IT_ASSERT_MSG(unpacked[7], unpacked[7] == 0x38);
+        auto unpacked = ict::detail::unpack_bytes(packed);
+        IT_ASSERT(unpacked.size() == 8);
+        IT_ASSERT_MSG(unpacked[0], unpacked[0] == 0x31);
+        IT_ASSERT_MSG(unpacked[1], unpacked[1] == 0x32);
+        IT_ASSERT_MSG(unpacked[2], unpacked[2] == 0x33);
+        IT_ASSERT_MSG(unpacked[3], unpacked[3] == 0x34);
+        IT_ASSERT_MSG(unpacked[4], unpacked[4] == 0x35);
+        IT_ASSERT_MSG(unpacked[5], unpacked[5] == 0x36);
+        IT_ASSERT_MSG(unpacked[6], unpacked[6] == 0x37);
+        IT_ASSERT_MSG(unpacked[7], unpacked[7] == 0x38);
 
-    IT_ASSERT_MSG("[" << ict::gsm7(bs) << "]", ict::gsm7(bs) == "12345678");
+        IT_ASSERT_MSG("[" << ict::gsm7(bs) << "]", ict::gsm7(bs) == "12345678");
 
-    ict::bitstring hello("C8329BFD06");
-    IT_ASSERT(ict::gsm7(hello) == "Hello");
+        ict::bitstring hello("C8329BFD06");
+        IT_ASSERT(ict::gsm7(hello) == "Hello");
 
-    ict::bitstring t1("@11011");
-    t1.remove(2, 1);
-    IT_ASSERT_MSG(to_string(t1), t1 == "@1111");
+        ict::bitstring t1("@11011");
+        t1.remove(2, 1);
+        IT_ASSERT_MSG(to_string(t1), t1 == "@1111");
 
-    ict::bitstring t2("@11011");
-    IT_ASSERT(t2.remove(2, 1) == "@1111");
+        ict::bitstring t2("@11011");
+        IT_ASSERT(t2.remove(2, 1) == "@1111");
 
-    ict::bitstring t3("@1111000");
-    IT_ASSERT(t3.remove(6, 1) == "@111100");
+        ict::bitstring t3("@1111000");
+        IT_ASSERT(t3.remove(6, 1) == "@111100");
 
-    ict::bitstring t4("@11011");
-    t4.remove(0, 1);
-    IT_ASSERT_MSG(to_string(t4), t4 == "@1011");
-
+        ict::bitstring t4("@11011");
+        t4.remove(0, 1);
+        IT_ASSERT_MSG(to_string(t4), t4 == "@1011");
+    }
     {
         ict::bitstring bs1("@111100011111010"); // 15
 
@@ -658,7 +652,7 @@ void bitstring_unit::modern_sms_difficult() {
     IT_ASSERT(ict::gsm7(sm) == result.c_str());
 }
 
-void random_copy(size_t n) {
+static void random_copy(size_t n) {
     auto bs = random_bitstring(n);
     size_t l = bs.bit_end() - bs.bit_begin();
     IT_ASSERT_MSG(l << " != " << n, l == n);
@@ -677,14 +671,15 @@ void random_copy(size_t n) {
 }
 
 void bitstring_unit::bit_iterators() {
-    bit_iterator first;
-    IT_ASSERT(first == bit_iterator());
-    ++first;
-    first++;
-    --first;
-    first--;
-    IT_ASSERT(first == bit_iterator());
-
+    {
+        bit_iterator first;
+        IT_ASSERT(first == bit_iterator());
+        ++first;
+        first++;
+        --first;
+        first--;
+        IT_ASSERT(first == bit_iterator());
+    }
     {
         auto bs = bitstring("@111001");
         auto x = bitstring(bs.bit_size());
@@ -725,7 +720,7 @@ void bitstring_unit::bit_iterators() {
 }
 
 namespace detail {
-void const_test(const bitstring &bs) {
+static void const_test(const bitstring &bs) {
     auto first = bs.begin();
     auto last = bs.end();
     while (first != last) {
