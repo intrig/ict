@@ -10,6 +10,7 @@ message("compiler id: " ${CMAKE_CXX_COMPILER_ID})
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_compile_options(
         -Wall -Wextra -Wpedantic -fdiagnostics-color=always
+        -Werror
     )
 endif()
 
@@ -22,16 +23,16 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
         -Wno-shadow-field-in-constructor
-        -Wno-padded
         -Wno-sign-conversion
         -Wno-implicit-float-conversion
 
         # These are more informational
+        -Wno-padded
         -Wno-weak-vtables
         -Wno-exit-time-destructors
         -Wno-global-constructors
         -Wno-switch-enum
-        #-Werror
+        -Werror
     )
 endif()
 
