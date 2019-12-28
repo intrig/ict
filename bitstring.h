@@ -745,15 +745,8 @@ template <typename T> inline void reverse_bytes(T &number) {
 #endif
 
 namespace detail {
-    template <typename T>
-    auto convert_to_int(void *first, bool swap) -> T {
-        T number = *reinterpret_cast<T *>(first);
-        if (swap)
-            reverse_bytes<T>(number);
-        return static_cast<T>(number);
-    }
     template <typename Size, typename T>
-    auto convert_to_int(void *first, bool swap) -> T {
+    auto convert_to_int(void *first, bool swap) {
         Size number = *reinterpret_cast<Size *>(first);
         if (swap)
             reverse_bytes<Size>(number);
@@ -764,12 +757,11 @@ namespace detail {
 }
 
 template <typename T>
-inline auto to_integer(bitstring const &bits, bool swap = true) -> T {
+inline auto to_integer(bitstring const &bits, bool swap = true) {
     const size_t type_size = sizeof(T) * 8;
     auto first = const_cast<bitstring::pointer>(bits.begin());
-    T number = 0;
     if (bits.bit_size() == type_size) {
-        return detail::convert_to_int<T>(first, swap);
+        return detail::convert_to_int<T, T>(first, swap);
     } else if (bits.bit_size() < type_size) {
         switch (bits.bit_size()) {
         case 8:
@@ -784,12 +776,13 @@ inline auto to_integer(bitstring const &bits, bool swap = true) -> T {
             // we are converting a bitstring to a bigger type.  So copy the
             // bitstring into the last bits of the number, leaving the first
             // bits as zero.  Then swap and return.
-            auto dest =
-                bit_iterator((char *)&number, type_size - bits.bit_size());
+            T number = 0;
+            auto dest = bit_iterator(reinterpret_cast<char *>(&number),
+                                     type_size - bits.bit_size());
             bit_copy(bits.bit_begin(), bits.bit_end(), dest);
             if (swap)
                 reverse_bytes<T>(number);
-            return (T)number;
+            return number;
             break;
         }
     } else {
@@ -801,7 +794,6 @@ inline auto to_integer(bitstring const &bits, bool swap = true) -> T {
         return to_integer<T>(
             bs.seek(bits.bit_size() - type_size).read(type_size));
     }
-    return 0;
 }
 
 #ifdef _MSC_VER
@@ -827,13 +819,13 @@ inline bitstring from_integer(T number, size_t dest_size = sizeof(T) * 8) {
     // dest_size
     if (dest_size == type_size) {
         reverse_bytes(number);
-        auto f = bit_iterator((char *)&number);
+        auto f = bit_iterator(reinterpret_cast<char *>(&number));
         return bitstring(f, f + dest_size);
     } else if (dest_size < type_size) {
         // dest bitsting size is smaller than size of T, so remove leading bits
         reverse_bytes(number);
-        return bitstring(bit_iterator((char *)&number) + type_size -
-                             dest_size,
+        return bitstring(bit_iterator(reinterpret_cast<char *>(&number)) +
+                             type_size - dest_size,
                          dest_size);
     } else {
         // dest size is greater than size of T, so pad right with 0 bits
@@ -866,7 +858,8 @@ unpack_bytes(std::vector<unsigned char> const &packedBytes) {
             shiftIndex++;
         }
 
-        shiftedBytes[shiftIndex] = (unsigned char)((*b << shiftOffset) & 127);
+        shiftedBytes[shiftIndex] =
+            static_cast<unsigned char>((*b << shiftOffset) & 127);
 
         shiftOffset++;
         shiftIndex++;
@@ -899,7 +892,7 @@ unpack_bytes(std::vector<unsigned char> const &packedBytes) {
                 int movedBitsByte =
                     (extractedBitsByte | shiftedBytes[unpackIndex]);
 
-                unpackedBytes[unpackIndex] = (unsigned char)movedBitsByte;
+                unpackedBytes[unpackIndex] = static_cast<unsigned char>(movedBitsByte);
 
                 moveOffset++;
                 unpackIndex++;
@@ -973,11 +966,11 @@ inline bitstring &pad_right(bitstring &bits, size_t new_width) {
 
 inline bitstring random_bitstring(size_t bit_len) {
     std::random_device engine;
-    auto bytes = bit_len / 8 + 1;
-    auto v = std::vector<unsigned char>(bytes);
+    auto sz = bit_len / sizeof(unsigned int) + 1;
+    auto v = std::vector<unsigned int>(sz);
     for (auto &b : v)
         b = engine();
-    return ict::bitstring(bit_iterator(v.data()), bit_len);
+    return ict::bitstring(bit_iterator(reinterpret_cast<char*>(v.data())), bit_len);
 }
 
 inline std::string gsm7(const bitstring &bits, size_t fill_bits = 0) {
