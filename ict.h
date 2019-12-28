@@ -252,16 +252,25 @@ inline std::string ucfirst(const std::string &value) {
     if (value.empty())
         return value;
     std::string v = value;
+#if defined(_MSC_VER)
+    v[0] = std::toupper(v[0]);
+#else
     std::locale loc;
     v[0] = std::toupper(v[0], loc);
+#endif
     return v;
 }
 
 inline std::string uppercase(const std::string &value) {
     std::string v = value;
+#if defined(_MSC_VER)
+    for (auto &i : v)
+        v[0] = std::toupper(v[0]);
+#else
     std::locale loc;
     for (auto &i : v)
         i = std::toupper(i, loc);
+#endif
     return v;
 }
 
