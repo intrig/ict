@@ -16,7 +16,7 @@ endif()
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(
         -Wall -Wextra -Wpedantic -fdiagnostics-color=always
-        #-Weverything
+        -Weverything
         -Wno-implicit-fallthrough -Wno-keyword-macro
         -Wno-unneeded-internal-declaration
         -Wno-c++98-compat
@@ -25,6 +25,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         -Wno-padded
         -Wno-sign-conversion
         -Wno-weak-vtables
+        -Wno-exit-time-destructors
+        -Wno-global-constructors
         #-Werror
     )
 endif()

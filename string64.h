@@ -22,9 +22,6 @@ class string64 {
         c_str()[n] = '\0';
     }
 
-#if defined(USE_ICT_STRING)
-    string64(const IT::String &b) : string64(b.c_str()) {}
-#endif
     string64(const std::string &b) : string64(b.c_str()) {}
 
     friend bool operator==(const string64 &a, const string64 &b) {
@@ -53,8 +50,8 @@ class string64 {
         return !(a < b);
     }
 
-    char *c_str() { return (char *)&value; }
-    const char *c_str() const { return (char *)&value; }
+    char *c_str() { return reinterpret_cast<char *>(&value); }
+    const char *c_str() const { return reinterpret_cast<const char *>(&value); }
 
     char &operator[](size_t index) { return c_str()[index]; }
 
