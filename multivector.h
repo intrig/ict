@@ -240,7 +240,7 @@ struct ascending_cursor_base {
     item_pointer item_ptr() const { return &(*it_); }
 
     ascending_cursor_reference operator++() {
-        if (it_->parent == 0)
+        if (it_->parent == nullptr)
             --it_;
         else
             it_ = it_->parent;
@@ -369,7 +369,7 @@ template <typename ValueType> struct item {
     item() : parent{reinterpret_cast<item *>(-1)} {}
 
     //! Copy constructor
-    item(const item &b) : parent(0) {
+    item(const item &b) : parent(nullptr) {
         parent = b.parent;
         value = b.value;
         nodes_ = b.nodes_;
@@ -479,7 +479,7 @@ template <typename ValueType> struct item {
         if (nodes_.empty())
             return;
         auto last = std::move(nodes_.back());
-        last[0].parent = 0; // set its parent pointer to 0
+        last[0].parent = nullptr; // set its parent pointer to 0
         nodes_.resize(nodes_.size() - 1);
 
         if (last.empty())
@@ -734,7 +734,7 @@ template <typename T> void verify(T parent) {
         if (self.empty() && self.size() != 0)
             std::runtime_error("empty cursor has non-zero size");
         if (!self.empty()) {
-            if (self.begin().it_->parent == 0)
+            if (self.begin().it_->parent == nullptr)
                 std::runtime_error("parent set to 0");
             if (self.begin().it_->parent != &(self.item_ref())) {
                 std::ostringstream os;
@@ -745,7 +745,7 @@ template <typename T> void verify(T parent) {
 
             ++count;
             for (auto i = self.begin() + 1; i != self.end(); ++i, ++count) {
-                if (i.item_ref().parent != 0)
+                if (i.item_ref().parent != nullptr)
                     std::runtime_error("non-first child of self is not zero");
             }
 

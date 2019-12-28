@@ -44,25 +44,25 @@ inline Platform hostPlatform() {
 #define IT_ASSERT_MSG(desc, condition)                                         \
     do {                                                                       \
         if (!(condition)) {                                                    \
-            std::ostringstream os;                                             \
-            os << desc << ": " << #condition;                                  \
-            throw ict::unit_error(os.str(), __FILE__, __LINE__);               \
+            std::ostringstream os_assert_msg_;                                 \
+            os_assert_msg_ << desc << ": " << #condition;                      \
+            throw ict::unit_error(os_assert_msg_.str(), __FILE__, __LINE__);   \
         }                                                                      \
     } while (0)
 
 #define IT_FORCE_ASSERT(desc)                                                  \
     do {                                                                       \
-        std::ostringstream os;                                                 \
-        os << desc;                                                            \
-        throw ict::unit_error(os.str(), __FILE__, __LINE__);                   \
+        std::ostringstream os_force_assert_;                                   \
+        os_force_assert_ << desc;                                              \
+        throw ict::unit_error(os_force_assert_.str(), __FILE__, __LINE__);     \
     } while (0)
 
 #define IT_WARN_MSG(desc, condition)                                           \
     do {                                                                       \
         if (!(condition)) {                                                    \
-            std::ostringstream os;                                             \
-            os << desc << ": " << #condition;                                  \
-            throw unit_error(os.str(), __FILE__, __LINE__, true);              \
+            std::ostringstream os_warn_msg_;                                   \
+            os_warn_msg_ << desc << ": " << #condition;                        \
+            throw unit_error(os_warn_msg_.str(), __FILE__, __LINE__, true);    \
         }                                                                      \
     } while (0)
 
@@ -90,24 +90,24 @@ template <typename T> class unit_test {
         bool iso;
     };
 
-    unit_test(T *test) : _test(test), _mask(0), _iso(false) {
+    unit_test(T *test) : test_(test), mask_(0), iso_(false) {
         tests.reserve(100);
-        _test->register_tests(*this);
+        test_->register_tests(*this);
     }
-    void skip(unsigned int mask = 0xFFFFFFFF) { _mask = mask; }
+    void skip(unsigned int mask = 0xFFFFFFFF) { mask_ = mask; }
     void skip(Pointer p) {
         test test(p, 0xFFFFFFFF);
         tests.push_back(test);
     }
-    void cont() { _mask = 0; }
+    void cont() { mask_ = 0; }
     void add(Pointer p) {
-        test test(p, _mask);
+        test test(p, mask_);
         tests.push_back(test);
     }
     void iso(Pointer p) {
         test test(p, 0, true);
         tests.push_back(test);
-        _iso = true;
+        iso_ = true;
     }
     int run() {
         ict::timer tmr;
@@ -117,12 +117,12 @@ template <typename T> class unit_test {
         for (it = tests.begin(); it != tests.end(); ++it) {
             Pointer p = it->p;
             try {
-                if ((_iso && !it->iso) || (ict::hostPlatform() & it->mask)) {
+                if ((iso_ && !it->iso) || (ict::hostPlatform() & it->mask)) {
                     std::cerr << "S";
                     skipped++;
                 } else {
                     std::cerr << ".";
-                    (_test->*p)();
+                    (test_->*p)();
                 }
             } catch (unit_error &e) {
                 std::cerr << std::endl << e.file << ":" << e.line << ": ";
@@ -155,9 +155,8 @@ template <typename T> class unit_test {
 
   private:
     std::vector<test> tests;
-    T *_test;
-    unsigned int _mask;
-    bool _iso;
+    T *test_;
+    unsigned int mask_;
+    bool iso_;
 };
-
 } // namespace ict

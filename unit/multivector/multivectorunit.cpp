@@ -69,7 +69,7 @@ void multivector_unit::adding() {
     }
 }
 
-void size_one_test(const ict::multivector<int> &x) {
+static void size_one_test(const ict::multivector<int> &x) {
     IT_ASSERT(!x.empty());
     IT_ASSERT(x.size() == 1);
     IT_ASSERT(!x.root().empty());
@@ -79,7 +79,7 @@ void size_one_test(const ict::multivector<int> &x) {
     IT_ASSERT(x.root().begin().empty());
 }
 
-void size_one_mutate(ict::multivector<int> &x) {
+static void size_one_mutate(ict::multivector<int> &x) {
     auto i = x.root().begin();
     IT_ASSERT_MSG(*i, *i == 42);
     *i = 21;
@@ -89,7 +89,7 @@ void size_one_mutate(ict::multivector<int> &x) {
     IT_ASSERT(*x.root().begin() == 42);
 }
 
-void size_one_copy_mutate(ict::multivector<int> x) { size_one_mutate(x); }
+static void size_one_copy_mutate(ict::multivector<int> x) { size_one_mutate(x); }
 
 void multivector_unit::size_one() {
 
@@ -121,7 +121,7 @@ void multivector_unit::size_one() {
     size_one_mutate(a);
 }
 
-void size_two_test(std::string m, ict::multivector<int> &x) {
+static void size_two_test(std::string m, ict::multivector<int> &x) {
     IT_ASSERT_MSG(m, !x.empty());
     IT_ASSERT_MSG(m, x.size() == 2);
     IT_ASSERT_MSG(m, !x.root().empty());
@@ -163,7 +163,7 @@ template <typename T> void add_recursive(T x, unsigned int n) {
         add_recursive(y, n - 1);
 }
 
-void create_complicated(ict::multivector<int> &tree) {
+static void create_complicated(ict::multivector<int> &tree) {
     add_recursive(tree.root(), 3);
     add_recursive(tree.root(), 3);
     add_recursive(tree.root(), 3);
@@ -174,16 +174,16 @@ void create_complicated(ict::multivector<int> &tree) {
     for (auto n : {1, 2, 3}) {
         tree.root().emplace(n);
         auto i = tree.root().end() - 1;
-        for (int n = 0; n < 3; ++n) {
+        for (int x = 0; x < 3; ++x) {
             i.emplace(c++);
             auto j = i.begin() + i.size() - 1;
-            for (int n = 0; n < 2; ++n)
-                j.emplace(n);
+            for (int y = 0; y < 2; ++y)
+                j.emplace(y);
         }
     }
 }
 
-ict::multivector<int> create_complicated() {
+static ict::multivector<int> create_complicated() {
     ict::multivector<int> comp;
     create_complicated(comp);
     return comp;
@@ -242,18 +242,12 @@ void multivector_unit::iterators() {
 }
 
 struct boo {
-    boo() : n(0) {
-        // IT_WARN("default constructor");
-    }
-    ~boo() {
-        // IT_WARN("destroying " << name);
-    }
+    boo() : n(0) {}
+    ~boo() {}
     boo(int n, const ict::bitstring &bits, const std::string &name)
-        : n(n), bits(bits), name(name) {
-        // IT_WARN("constructor " << name);
-    }
-    boo(const boo &b) =default;
-    boo& operator=(const boo&) = default;
+        : n(n), bits(bits), name(name) {}
+    boo(const boo &b) = default;
+    boo &operator=(const boo &) = default;
 
     int n;
     ict::bitstring bits;
@@ -263,26 +257,17 @@ struct boo {
     }
 };
 
-std::ostream &operator<<(std::ostream &os, const boo &b) {
-    os << b.n << ' ' << b.bits << ' ' << b.name;
-    return os;
-}
-
 void multivector_unit::non_pod() {
     ict::multivector<boo> tree;
-    // IT_WARN("A");
     tree.root().emplace_back(boo{0, "@1", "mark"});
     tree.root().emplace_back(boo{1, "@11", "allan"});
     tree.root().emplace_back(boo{2, "@111", "beckwith"});
     tree.root().emplace_back(boo{3, "@1111", "phil"});
-    // IT_WARN("B");
     tree.clear();
-    // IT_WARN("C");
     tree.root().emplace(0, "@1", "mark");
     tree.root().emplace(1, "@11", "allan");
     tree.root().emplace(2, "@111", "beckwith");
     tree.root().emplace(3, "@1111", "phil");
-    // IT_WARN("D");
 
     auto i = tree.root().begin();
     IT_ASSERT(i->n == 0);
@@ -307,7 +292,6 @@ void multivector_unit::non_pod() {
     IT_ASSERT(i->bits == "@0");
     IT_ASSERT(i->name == "joe");
     IT_ASSERT(*i == (boo{4, "@0", "joe"}));
-    // IT_WARN('\n' << tree);
 }
 
 struct Custom {
@@ -322,18 +306,6 @@ struct Custom {
     bool operator==(const std::string &n) const { return name == n; }
     bool operator==(const std::string &n) { return name == n; }
 };
-
-std::string name_of(const Custom &value) {
-    // IT_WARN("getting name_of");
-    return value.name;
-}
-
-std::string to_string(const Custom &value) { return value.name; }
-
-std::ostream &operator<<(std::ostream &os, const Custom &c) {
-    os << c.name << " " << c.length << " " << c.value << " " << c.description;
-    return os;
-}
 
 void multivector_unit::initializer_list() {
     auto tree = ict::multivector<int>{1, 2, {4, 5, 6, {7, 8, 9}}, 5, {7}, 3};
@@ -439,8 +411,8 @@ void multivector_unit::ascending() {
         os << *last << ' ';
         ++last;
     }
-    auto s = os.str();
-    IT_ASSERT_MSG(s, s == "4 3 2 1 ");
+    auto str = os.str();
+    IT_ASSERT_MSG(str, str == "4 3 2 1 ");
 }
 
 void multivector_unit::ascending2() {
