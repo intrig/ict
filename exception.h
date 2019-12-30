@@ -18,25 +18,14 @@ inline std::runtime_error create_exception(const std::string &desc,
 }
 } // namespace ict
 
-// Print to std::cerr a description with source file and line number.  Or log on
-// ANDROID platforms.
-#ifdef ANDROID
 #define IT_WARN(s)                                                             \
     do {                                                                       \
         std::ostringstream os_warn_;                                           \
         os_warn_ << s;                                                         \
-        auto e = ict::create_exception(os_warn_.str(), __FILE__, __LINE__);    \
-        __android_log_print(ANDROID_LOG_VERBOSE, "xenon", e..what());          \
+        std::cerr << ict::create_exception(os_warn_.str(), __FILE__, __LINE__) \
+                         .what()                                               \
+                  << '\n';                                                     \
     } while (0)
-#else
-#define IT_WARN(s)                                                             \
-    do {                                                                       \
-        std::ostringstream os_warn_;                                           \
-        os_warn_ << s;                                                         \
-        auto e = ict::create_exception(os_warn_.str(), __FILE__, __LINE__);    \
-        std::cerr << e.what() << '\n';                                         \
-    } while (0)
-#endif
 
 // Throw a std::runtime_error with description.
 #define IT_FATAL(desc)                                                         \
